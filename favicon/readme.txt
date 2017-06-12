@@ -1,0 +1,1 @@
+Destino dos favicons gerados por "_src/images/favicon-master.png", se utilizado com o legacy-gulp.

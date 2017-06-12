@@ -1,0 +1,16 @@
+.bg-name{background-image: url(images/image-1920.jpg)}
+@media (max-width: 100em){
+    .bg-name{background-image: url(images/image-1600.jpg)}
+}
+@media (max-width: 80em){
+    .bg-name{background-image: url(images/image-1280.jpg)}
+}
+@media (max-width: 64em){
+    .bg-name{background-image: url(images/image-1024.jpg)}
+}
+@media (max-width: 48em){
+    .bg-name{background-image: url(images/image-768.jpg)}
+}
+@media (max-width: 30em){
+    .bg-name{background-image: url(images/image-480.jpg)}
+}
