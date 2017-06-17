@@ -33,8 +33,6 @@
 .modal_content{position: relative; background-clip: padding-box; outline: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.5); border: 1px solid rgba(0,0,0,0.2);}
 .modal_box_close{position: absolute; top: 2px; right: 2px; font-size: 0.9em; font-weight: bold; padding: 14px; cursor: pointer; border-radius: 50%; background-image: url(icons/cross-white.svg); background-repeat: no-repeat; background-position: center center; background-size: 60%; transition: all ease 0.2s}
 .modal_box_close.black{background-image: url(icons/cross.svg);}
-.modal_box_close:hover{background-image: url(icons/cross-gray.svg);}
-.modal_box_close.black:hover{background-image: url(icons/cross-darkgray.svg);}
 .modal_box .header{padding: 30px; color: #fff; text-align: center; border-radius: 3px 3px 0 0;}
 .modal_box .header p{font-weight: 500; font-size: 1.5em; text-shadow: 1px 1px 0 #555;}
 .modal_box .cont{padding: 30px; background: #fff; border-radius: 0 0 3px 3px;}

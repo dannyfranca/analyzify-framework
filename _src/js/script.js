@@ -1,5 +1,8 @@
 /* global index, property, param, eval, ytVideos, ytPlayers, YT, parseFloat, dataLayer */
 
+//DATALAYER INIT
+window.dataLayer = window.dataLayer || [];
+
 /**
  * GLOBAL TO JQUERY LINK
  * 
@@ -24,13 +27,15 @@ function Create(callback) {
  * @returns Retorna URL Path inteira ou fragmentada se n for definido.
  */
 function getUrlPath(n) {
-    var base = BASE.replace(/(https:|http:|)\/\//, '');
-    var path = window.location.href;
-    path = path.replace(/(https:|http:|)\/\//, '').replace(base, '').toLowerCase();
-    if (n) {
-        path = path.split("/")[n];
+    if (typeof window.BASE !== 'undefined') {
+        var base = BASE.replace(/(https:|http:|)\/\//, '');
+        var path = window.location.href;
+        path = path.replace(/(https:|http:|)\/\//, '').replace(base, '').toLowerCase();
+        if (n) {
+            path = path.split("/")[n];
+        }
+        return path;
     }
-    return path;
 }
 
 
@@ -57,7 +62,7 @@ function dlPush(cat, act, lab, val, nInt, tran, exc) {
                     eventLabel: lab ? (isNaN(Number(lab)) ? String(lab) : Number(lab)) : '',
                     eventValue: val ? (isNaN(Number(val)) ? String(val) : Number(val)) : '',
                     nonInteraction: (nInt === 'true' || nInt === true || nInt === 1) ? true : false,
-                    transport: (tran !== null || tran !== 'null') ? 'beacon' : '',
+                    transport: (typeof tran !== 'undefined') ? 'beacon' : '',
                     exceptions: exc ? String(exc) : '',
                     event: 'legacyEvent'
                 }
@@ -70,7 +75,7 @@ function dlPush(cat, act, lab, val, nInt, tran, exc) {
                     eventLabel: lab ? (isNaN(Number(lab)) ? String(lab) : Number(lab)) : '',
                     eventValue: val ? (isNaN(Number(val)) ? String(val) : Number(val)) : '',
                     nonInteraction: (nInt === 'true' || nInt === true || nInt === 1) ? true : false,
-                    transport: (tran !== null || tran !== 'null') ? 'beacon' : '',
+                    transport: (typeof tran !== 'undefined') ? 'beacon' : '',
                     exceptions: exc ? String(exc) : '',
                     event: 'legacyEvent'
                 }
@@ -82,9 +87,9 @@ function dlPush(cat, act, lab, val, nInt, tran, exc) {
 $(function () {
 
     //-----PRESETS-----
-    window.BASE = $('link[rel="base"]').attr('href');
+    window.BASE = $('link[rel="base"]').attr('href') || window.BASE;
     window.ajaxPage = window.ajaxPage || false;
-    window.debug = false;
+    window.debug = false; //debug switch
     window.height = $(window).height();
     window.width = $(window).width();
     window.hashVal = window.location.hash.replace(/^#/, "");
@@ -120,7 +125,7 @@ $(function () {
      */
     function beforeUnload() {
         //ACTIVE TIME
-        dlPush('time', 'active timer', (window.ajaxPage = false ? window.activeTimerPath : window.ajaxPage.replace(/(https:|http:|)\/\//, '')), window.activeTimer, true, 'beacon');
+        dlPush('time', 'active timer', (window.ajaxPage === false ? window.activeTimerPath : window.ajaxPage.replace(/(https:|http:|)\/\//, '')), window.activeTimer, true, 'beacon');
 
         //CUSTOM TIMES
         for (var name in window['customTimers']) {
@@ -158,14 +163,12 @@ $(function () {
         }
     });
 
-    window.domReady = false;
     window.load = false;
-    $(document).ready(function () {
-        window.domReady = true;
-    });
 
     $(window).on("load", function () {
         window.load = true;
+        window.dataLayer.push({event: 'pageLoad'});
+        viewEventCalc();
         if (window.jSameHeightExist === true) { //IGUALA ALTURA DE BOX MENORES
             sameHeight();
         }
@@ -202,7 +205,7 @@ $(function () {
         if (window.scrollSpyExist === true) { //SCROLLSPY
             scrollSpy();
         }
-        if (window.viewEventExist === true) { //VIEWEVENT
+        if (window.viewEventExist === true && window.load === true) { //VIEWEVENT
             viewEvent();
         }
 //        if (affixExist === true) { //AFFIX
@@ -255,7 +258,7 @@ $(function () {
             viewEventCalc();
             viewEvent();
         }
-        if (window.jSameHeightExist === true) { //IGUALA ALTURA DE BOX MENORES
+        if (window.jSameHeightExist === true && window.load === true) { //IGUALA ALTURA DE BOX MENORES
             sameHeight();
         }
     });
@@ -332,9 +335,6 @@ $(function () {
     $(window).on('beforeunload', function () {
         beforeUnload();
     });
-//    window.onbeforeunload = function () {
-//        beforeUnload();
-//    };
 
     /**
      * Informa ao framework que o usuário começou a interagir com a página por meio de uma variável e marcando o evento firstActive na camada de dados do GTM, previnindo que Analytics comece a rodar se usuário apenas abriu o navegador.
@@ -402,6 +402,9 @@ $(function () {
             window['customTimers'][name]['activeTimerId'] = setInterval(function () {
                 if ((window['customTimers'][name]['idle'] === false || window['customTimers'][name]['activeMaster'] === true) && (window.firstActive === true)) {
                     window['customTimers'][name]['activeTimer'] += 1;
+                    if (window.debug === true) {
+                        console.log(name + ' - ' + window['customTimers'][name]['activeTimer']);
+                    }
                 }
                 if (typeof funcInterval !== "undefined" && isNaN(parseInt(funcInterval)) === false && window['customTimers'][name]['activeTimer'] >= funcInterval * counter && funcLimit !== 0) {
                     funcParams = $.isArray(funcParams) ? funcParams : [];
@@ -436,10 +439,10 @@ $(function () {
      * Executada pelo <b>customTimer</b> caso seja definido um seletor CSS pelo parâmetro idleTrack.
      * 
      * @param {string} name - Deve ser o mesmo usado para iniciar o contador na função <b>customTimer</b>.
-     * @param {string} selector - (Opcional) <b>Seletor CSS</b>. Se setado, rastreia o tempo ativo com o elemento específico. Se não setado, o temporizador contará continuamente a menos que a função <b>customUserNonIdle</b> seja executada.
+     * @param {string} selector - <b>Seletor CSS</b>. Indica o elemento para rastrear o tempo ativo.
      */
     function customActiveListener(name, selector) {
-        if (typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof window['customTimers'][name]['activeListener'] === "undefined" && typeof name !== "undefined" && typeof selector !== "undefined") {
+        if (typeof name !== "undefined" && typeof selector !== "undefined" && $(selector).length && typeof window['customTimers'] !== "undefined" && typeof window['customTimers'][name] !== "undefined" && typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof window['customTimers'][name]['activeListener'] === "undefined") {
 
             window['customTimers'][name]['activeListener'] = true;
 
@@ -463,12 +466,49 @@ $(function () {
                 customUserNonIdle(name, true);
             });
 
+            $(selector).scroll(function () {
+                customUserNonIdle(name, true);
+            });
+
+            var viewPercent = $(selector).attr('data-view-percent') ? parseInt($(selector).attr('data-view-percent')) : 50;
+            var position = $(selector).offset().top;
+            var height = $(selector).outerHeight();
+
+            //Percent Test
+            if (isNaN(viewPercent) === false) {
+                if (viewPercent >= 0) {
+                    viewPercent = (viewPercent <= 100 && viewPercent >= 0 ? viewPercent : 50);
+                    var viewPositionTop = position - window.height + height * viewPercent / 100;
+                    var viewPositionBottom = position - window.menuHeight + height * (100 - viewPercent) / 100;
+                } else {
+                    viewPercent = -(viewPercent >= -100 && viewPercent <= 0 ? viewPercent : -50);
+                    var viewPositionTop = position - window.height * (100 - viewPercent) / 100;
+                    var viewPositionBottom = position + height - window.height * viewPercent / 100;
+                }
+            }
+
             $(window).scroll(function () {
+                if ((window.scrollTop >= viewPositionTop) && (window.scrollTop <= viewPositionBottom)) {
+                    customUserNonIdle(name, true);
+                }
+            });
+
+            $(window).resize(function () {
+                var viewPercent = $(selector).attr('data-view-percent') ? parseInt($(selector).attr('data-view-percent')) : 50;
                 var position = $(selector).offset().top;
                 var height = $(selector).outerHeight();
 
-                if ((window.scrollTop >= position - window.height + height * 1 / 2) && (window.scrollTop <= position - window.menuHeight + height * 1 / 2)) {
-                    customUserNonIdle(name, true);
+                //Percent Test
+                if (isNaN(viewPercent) === false) {
+                    if (viewPercent >= 0) {
+                        viewPercent = (viewPercent <= 100 && viewPercent >= 0 ? viewPercent : 50);
+                        var viewPositionTop = position - window.height + height * viewPercent / 100;
+                        var viewPositionBottom = position - window.menuHeight + height * (100 - viewPercent) / 100;
+                    } else {
+                        viewPercent = -(viewPercent >= -100 && viewPercent <= 0 ? viewPercent : -50);
+                        var viewPositionTop = position - window.height * (100 - viewPercent) / 100;
+                        var viewPositionBottom = position + height - window.height * viewPercent / 100;
+                    }
                 }
             });
         }
@@ -481,7 +521,7 @@ $(function () {
      * @param {boolean} state - Se setado como true, contador ativo deixa de ficar ocioso e continua a contagem. Se setado como false, contador fica ocioso e para de contar imediatamente.
      */
     function customUserNonIdle(name, state) {
-        if (typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof name !== "undefined") {
+        if (typeof name !== "undefined" && typeof window['customTimers'] !== "undefined" && typeof window['customTimers'][name] !== "undefined" && typeof window['customTimers'][name]['timerInit'] !== "undefined") {
             if (state === true || state === "true" || state === 1) {
                 window['customTimers'][name]['idle'] = false;
                 clearTimeout(window['customTimers'][name]['idleTimer']);
@@ -537,10 +577,7 @@ $(function () {
     //VIEW EVENT
     if ($('[data-view]').length) {
         window.viewEventExist = true;
-        var arrayView = {};
-        var viewFunc;
-
-        viewEventCalc();
+        window.arrayView = {};
 
         /**
          * <b>VIEW EVENT</b>
@@ -597,69 +634,44 @@ $(function () {
 
             $(selector).each(function (i) {
                 var e = $(this).attr('data-view');
-                if (arrayView[e].processing !== true) {
-                    arrayView[e].processing = true;
-                    var viewTime = isNaN(parseInt($(this).attr('data-view-time'))) === false ? parseInt($(this).attr('data-view-time')) : 0;
-                    var viewPercent = $(this).attr('data-view-percent') ? parseInt($(this).attr('data-view-percent')) : 50;
-                    var timerCheck = isNaN(parseInt(viewTime)) === false ? window.activeTimer >= viewTime : true;
-                    typeof arrayView[e].viewCounter !== "undefined" ? '' : arrayView[e].viewCounter = 0;
-                    typeof arrayView[e].nonViewCounter !== "undefined" ? '' : arrayView[e].nonViewCounter = 0;
-                    var viewLimit = $(this).attr('data-view-limit') ? $(this).attr('data-view-limit').split(',') : 'notset';
-                    var nonViewLimit = $(this).attr('data-nonview-limit') ? $(this).attr('data-nonview-limit').split(',') : 'notset';
-                    var viewHidden = $(this).attr('data-view-hidden');
-                    viewHidden = (viewHidden === 1 || viewHidden === true || viewHidden === 'true') ? true : false;
+                var timerCheck = isNaN(parseInt(arrayView[e]['viewTime'])) === false ? window.activeTimer >= arrayView[e]['viewTime'] : true;
 
-                    //Percent Test
-                    if (isNaN(viewPercent) === false) {
-                        if (viewPercent >= 0) {
-                            viewPercent = (viewPercent <= 100 && viewPercent >= 0 ? viewPercent : 50);
-                            var viewPositionTop = arrayView[e].position - window.height + arrayView[e].height * viewPercent / 100;
-                            var viewPositionBottom = arrayView[e].position - window.menuHeight + arrayView[e].height * (100 - viewPercent) / 100;
-                        } else {
-                            viewPercent = -(viewPercent >= -100 && viewPercent <= 0 ? viewPercent : -50);
-                            var viewPositionTop = arrayView[e].position - window.height * (100 - viewPercent) / 100;
-                            var viewPositionBottom = arrayView[e].position + arrayView[e].height - window.height * viewPercent / 100;
-                        }
-                    }
-
-                    if ((window.scrollTop >= viewPositionTop) && (window.scrollTop <= viewPositionBottom)) {
-                        if (viewHidden !== true) {
-                            if ((arrayView[e].alt !== true || ignorealt === true) && timerCheck) {
-                                if ($(this).attr('data-view-act')) {
-                                    var viewFunc = $(this).attr('data-view-act').split('||');
-                                    for (i = 0; i < viewFunc.length; i++) {
-                                        if (isNaN(parseInt(viewLimit[i])) === false ? viewLimit[i] > arrayView[e].viewCounter : true) {
-                                            eval(viewFunc[i]);
-                                        }
-                                    }
-                                    ignorealt !== true ? arrayView[e].viewCounter++ : '';
-                                } else if (!($(this).attr('data-nonview-act'))) {
-                                    var viewFunc = e.split('||');
-                                    for (i = 0; i < viewFunc.length; i++) {
-                                        if (isNaN(parseInt(viewLimit[i])) === false ? viewLimit[i] > arrayView[e].viewCounter : true) {
-                                            eval(viewFunc[i]);
-                                        }
-                                    }
-                                    ignorealt !== true ? arrayView[e].viewCounter++ : '';
-                                }
-                            }
-                            arrayView[e].alt = true;
-                        }
-                    } else {
-                        if ((arrayView[e].alt !== false || ignorealt === true) && timerCheck) {
-                            if ($(this).attr('data-nonview-act')) {
-                                var viewFunc = $(this).attr('data-nonview-act').split('||');
+                if ((window.scrollTop >= arrayView[e]['viewPositionTop']) && (window.scrollTop <= arrayView[e]['viewPositionBottom'])) {
+                    if (arrayView[e]['viewHidden'] !== true) {
+                        if ((arrayView[e]['alt'] !== true || ignorealt === true) && timerCheck) {
+                            if ($(this).attr('data-view-act')) {
+                                var viewFunc = $(this).attr('data-view-act').split('||');
                                 for (i = 0; i < viewFunc.length; i++) {
-                                    if (isNaN(parseInt(nonViewLimit[i])) === false ? nonViewLimit[i] > arrayView[e].nonViewCounter : true) {
+                                    if (isNaN(parseInt(arrayView[e]['viewLimit'][i])) === false ? arrayView[e]['viewLimit'][i] > arrayView[e]['viewCounter'] : true) {
                                         eval(viewFunc[i]);
                                     }
                                 }
-                                ignorealt !== true ? arrayView[e].nonViewCounter++ : '';
+                                ignorealt !== true ? arrayView[e]['viewCounter']++ : '';
+                            } else if (!($(this).attr('data-nonview-act'))) {
+                                var viewFunc = e.split('||');
+                                for (i = 0; i < viewFunc.length; i++) {
+                                    if (isNaN(parseInt(arrayView[e]['viewLimit'][i])) === false ? arrayView[e]['viewLimit'][i] > arrayView[e]['viewCounter'] : true) {
+                                        eval(viewFunc[i]);
+                                    }
+                                }
+                                ignorealt !== true ? arrayView[e]['viewCounter']++ : '';
                             }
-                            arrayView[e].alt = false;
                         }
+                        arrayView[e]['alt'] = true;
                     }
-                    arrayView[e].processing = false;
+                } else {
+                    if ((arrayView[e]['alt'] !== false || ignorealt === true) && timerCheck) {
+                        if ($(this).attr('data-nonview-act')) {
+                            var viewFunc = $(this).attr('data-nonview-act').split('||');
+                            for (i = 0; i < viewFunc.length; i++) {
+                                if (isNaN(parseInt(arrayView[e]['nonViewLimit'][i])) === false ? arrayView[e]['nonViewLimit'][i] > arrayView[e]['nonViewCounter'] : true) {
+                                    eval(viewFunc[i]);
+                                }
+                            }
+                            ignorealt !== true ? arrayView[e]['nonViewCounter']++ : '';
+                        }
+                        arrayView[e]['alt'] = false;
+                    }
                 }
             });
         }
@@ -673,10 +685,30 @@ $(function () {
             $('[data-view]').each(function (i) {
                 var e = $(this).attr('data-view');
                 if (typeof arrayView[e] !== "undefined") {
-                    arrayView[e].position = $(this).offset().top;
-                    arrayView[e].height = $(this).outerHeight();
+                    arrayView[e]['position'] = $(this).offset().top;
+                    arrayView[e]['height'] = $(this).outerHeight();
                 } else {
                     arrayView[e] = {position: $(this).offset().top, height: $(this).outerHeight()};
+                }
+                arrayView[e]['viewTime'] = isNaN(parseInt($(this).attr('data-view-time'))) === false ? parseInt($(this).attr('data-view-time')) : 0;
+                arrayView[e]['viewPercent'] = $(this).attr('data-view-percent') ? parseInt($(this).attr('data-view-percent')) : 50;
+                typeof arrayView[e]['viewCounter'] !== "undefined" ? '' : arrayView[e]['viewCounter'] = 0;
+                typeof arrayView[e]['nonViewCounter'] !== "undefined" ? '' : arrayView[e]['nonViewCounter'] = 0;
+                arrayView[e]['viewLimit'] = $(this).attr('data-view-limit') ? $(this).attr('data-view-limit').split(',') : 'notset';
+                arrayView[e]['nonViewLimit'] = $(this).attr('data-nonview-limit') ? $(this).attr('data-nonview-limit').split(',') : 'notset';
+                arrayView[e]['viewHidden'] = $(this).attr('data-view-hidden');
+                arrayView[e]['viewHidden'] = (arrayView[e]['viewHidden'] === 1 || arrayView[e]['viewHidden'] === true || arrayView[e]['viewHidden'] === 'true') ? true : false;
+                //Percent Test
+                if (isNaN(arrayView[e]['viewPercent']) === false) {
+                    if (arrayView[e]['viewPercent'] >= 0) {
+                        arrayView[e]['viewPercent'] = (arrayView[e]['viewPercent'] <= 100 && arrayView[e]['viewPercent'] >= 0 ? arrayView[e]['viewPercent'] : 50);
+                        arrayView[e]['viewPositionTop'] = arrayView[e]['position'] - window.height + arrayView[e]['height'] * arrayView[e]['viewPercent'] / 100;
+                        arrayView[e]['viewPositionBottom'] = arrayView[e]['position'] - window.menuHeight + arrayView[e]['height'] * (100 - arrayView[e]['viewPercent']) / 100;
+                    } else {
+                        arrayView[e]['viewPercent'] = -(arrayView[e]['viewPercent'] >= -100 && arrayView[e]['viewPercent'] <= 0 ? arrayView[e]['viewPercent'] : -50);
+                        arrayView[e]['viewPositionTop'] = arrayView[e]['position'] - window.height * (100 - arrayView[e]['viewPercent']) / 100;
+                        arrayView[e]['viewPositionBottom'] = arrayView[e]['position'] + arrayView[e]['height'] - window.height * arrayView[e]['viewPercent'] / 100;
+                    }
                 }
             });
         }
@@ -717,12 +749,10 @@ $(function () {
      * Após página carregada, executa ações das funções <b>pageVisibilityHidden</b>, se página <b>não</b> está visível, ou <b>pageVisibility</b>, se página está visível
      */
     function handleVisibilityChange() {
-        if (window.domReady === true) {
-            if (document[hidden]) { // If the page is hidden
-                pageVisibilityHidden();
-            } else { // if the page is shown
-                pageVisibility();
-            }
+        if (document[hidden]) { // If the page is hidden
+            pageVisibilityHidden();
+        } else { // if the page is shown
+            pageVisibility();
         }
     }
 
@@ -736,16 +766,18 @@ $(function () {
      * 
      * Verifica se clique em um link tem destino fora do site. Se positivo, envia evento ao GTM informando site e link completo.
      */
-    $('a').click(function () {
-        var base = BASE.replace(/(https:|http:|)\/\//, '');
-        var href = $(this).attr('href') ? $(this).attr('href') : '';
-        if (href !== '' && href.indexOf(base) === -1) {
-            var site = href.replace(/(https:|http:|)\/\//, '');
-            var n = site.indexOf('/');
-            site = site.substring(0, n !== -1 ? n : site.length);
-            dlPush('click', 'outgoing', site, href);
-        }
-    });
+    if (typeof window.BASE !== 'undefined') {
+        $('a[href^="http"]').click(function () {
+            var base = window.BASE.replace(/(https:|http:|)\/\//, '');
+            var href = $(this).attr('href') ? $(this).attr('href') : '';
+            if (href !== '' && href.indexOf(base) === -1) {
+                var site = href.replace(/(https:|http:|)\/\//, '');
+                var n = site.indexOf('/');
+                site = site.substring(0, n !== -1 ? n : site.length);
+                dlPush('click', 'outgoing', site, href);
+            }
+        });
+    }
 
     //*****EVENT TRACKING*****
 
@@ -758,12 +790,14 @@ $(function () {
      * Também previne comportamento padrão no processo.
      * @param event - Marcação apenas para prevenir comportamento padrão.
      */
-    $('a[href^="#"]').click(function (event) {
-        event.preventDefault();
-        var goto = $('[id="' + $(this).attr('href').replace('#', '') + '_go"]').offset().top;
-        $('html, body').animate({scrollTop: goto - window.menuInitialHeight + window.logoDeltaHeight}, 1000);
-        return false;
-    });
+    if ($('[id$="_go"]').length) {
+        $('a[href^="#"]').click(function (event) {
+            event.preventDefault();
+            var goto = $('[id="' + $(this).attr('href').replace('#', '') + '_go"]').offset().top;
+            $('html, body').animate({scrollTop: goto - window.menuInitialHeight + window.logoDeltaHeight}, 1000);
+            return false;
+        });
+    }
 
     /**
      * Exibe submenu ao clicar no ítem .submenu
@@ -1072,11 +1106,11 @@ $(function () {
          * 
          * Após carregar a página, abre modal se o parâmetro da URL <b>modal</b> for igual ao valor do atributo <b>data-modal</b>.
          */
-        if (($.urlParam('modal')) && ($.urlParam('modal') !== 0) && (window.domReady === true)) {
+        if (($.urlParam('modal')) && ($.urlParam('modal') !== 0)) {
             openModal($.urlParam('modal'));
         }
     }
-    
+
     //IGUALAR ALTURA DE BOX MENORES
     if ($('[data-same-height]').length) {
         window.jSameHeightExist = true;
@@ -1230,7 +1264,7 @@ $(function () {
 
     //-----DEV TOOLS-----
 
-    if (window.BASE.indexOf('/localhost') !== -1) { //Verifica se está em localhost
+    if (typeof window.BASE !== 'undefined' && window.BASE.indexOf('/localhost') !== -1) { //Verifica se está em localhost
 
         $(window).resize(function () {
             definePrefix();
@@ -1308,11 +1342,11 @@ $(function () {
          */
         function echos(x, y) {
             if (x && y) {
-                var echo = x + ' e ' + y;
+                var echo = '(' + typeof x + ') x: ' + x + ' / ' + '(' + typeof y + ') y: ' + y;
             } else if (x) {
-                var echo = 'x: ' + x;
+                var echo = '(' + typeof x + ') x: ' + x;
             } else if (y) {
-                var echo = 'y: ' + y;
+                var echo = '(' + typeof y + ') y: ' + y;
             } else {
                 var echo = 'no param';
             }

@@ -1,0 +1,62 @@
+
+
+
+/*--------------- MAX WIDTH ---------------*/
+
+/* < 1280(md)*/
+@media (max-width: 80em){
+    
+}
+
+/* < 1024 (sm)*/
+@media (max-width: 64em){
+    
+}
+
+/* < 768 (xs)*/
+@media (max-width: 48em){
+    
+}
+
+/* < 480*/
+@media (max-width: 30em){
+    
+}
+
+
+/*--------------- MIN WIDTH ---------------*/
+
+/* > 480*/
+@media (min-width: 30em){
+    
+}
+/* > 768*/
+@media (min-width: 48em){
+    
+}
+/* > 1024*/
+@media (min-width: 64em){
+    
+}
+/* > 1280*/
+@media (min-width: 80em){
+    
+}
+
+
+/*--------------- MIN/MAX WIDTH ---------------*/
+
+/*480 to 768 (xs)*/
+@media (min-width: 30em) and (max-width: 48em){
+    
+}
+
+/*768 to 1024 (sm)*/
+@media (min-width: 48em) and (max-width: 64em){
+    
+}
+
+/*1024 to 1280 (md)*/
+@media (min-width: 64em) and (max-width: 80em){
+    
+}
