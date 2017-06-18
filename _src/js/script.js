@@ -2,6 +2,11 @@
 
 //DATALAYER INIT
 window.dataLayer = window.dataLayer || [];
+window.dataLayer.push(
+        {
+            originalLocation: document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search
+        }
+);
 
 /**
  * GLOBAL TO JQUERY LINK
@@ -52,34 +57,33 @@ function getUrlPath(n) {
  * @param {boolean} nInt - (Opcional) Padrão: false. Se setado como true indica ao Analytics que é um <b>hit de não interação</b> (Não influencia na taxa de rejeição)
  * @param {string} tran - (Opcional) Se setado como qualquer valor, exceto null, será enviado <b>transport: beacon</b> ao Analytics (Tipo de transporte onde o Analytics coleta dados para enviar em um hit único ao final da sessão. Recomendado para eventos beforeUnload)
  * @param {string} exc - (Opcional) Se definido, informará ao Google Tag Manager quais tags de <b>evento não disparar</b>. se setado como <b>'fb'</b>, o evento apenas será enviado ao Analytics, se setado como <b>'ga'</b>, o evento apenas será enviado ao Facebook. Se setado como <b>'fbga' ou 'fb ga'</b> não será enviado evento algum, o que é válido se você apenas quiser enviar para suas outras integrações no GTM.
+ * @param {object} obj - (Opcional) Objeto com métricas customizadas para expandir os dados enviados pelo dlPush().
  */
-function dlPush(cat, act, lab, val, nInt, tran, exc) {
+function dlPush(cat, act, lab, val, nInt, tran, exc, obj) {
+    
+    var event = {
+        eventCategory: checkType(cat),
+        eventAction: checkType(act),
+        eventLabel: checkType(lab),
+        eventValue: checkType(val),
+        nonInteraction: (nInt === 'true' || nInt === true || nInt === 1) ? true : false,
+        transport: tran ? 'beacon' : '',
+        exceptions: exc ? String(exc) : '',
+        event: 'legacyEvent'
+    };
+    
+    if (typeof obj === 'object' && obj !== null) {
+        Object.assign(event,obj);
+    }
+    
     if (cat && act && window.debug !== true) {
-        window.dataLayer.push(
-                {
-                    eventCategory: cat ? (isNaN(Number(cat)) ? String(cat) : Number(cat)) : '',
-                    eventAction: act ? (isNaN(Number(act)) ? String(act) : Number(act)) : '',
-                    eventLabel: lab ? (isNaN(Number(lab)) ? String(lab) : Number(lab)) : '',
-                    eventValue: val ? (isNaN(Number(val)) ? String(val) : Number(val)) : '',
-                    nonInteraction: (nInt === 'true' || nInt === true || nInt === 1) ? true : false,
-                    transport: (typeof tran !== 'undefined') ? 'beacon' : '',
-                    exceptions: exc ? String(exc) : '',
-                    event: 'legacyEvent'
-                }
-        );
+        window.dataLayer.push(event);
     } else if (window.debug === true) {
-        console.log(
-                {
-                    eventCategory: cat ? (isNaN(Number(cat)) ? String(cat) : Number(cat)) : '',
-                    eventAction: act ? (isNaN(Number(act)) ? String(act) : Number(act)) : '',
-                    eventLabel: lab ? (isNaN(Number(lab)) ? String(lab) : Number(lab)) : '',
-                    eventValue: val ? (isNaN(Number(val)) ? String(val) : Number(val)) : '',
-                    nonInteraction: (nInt === 'true' || nInt === true || nInt === 1) ? true : false,
-                    transport: (typeof tran !== 'undefined') ? 'beacon' : '',
-                    exceptions: exc ? String(exc) : '',
-                    event: 'legacyEvent'
-                }
-        );
+        console.log(JSON.stringify(event));
+    }
+    
+    function checkType(param) {
+        return (param ? (isNaN(Number(param)) ? String(param) : (typeof param === 'boolean' ? param : Number(param))) : '');
     }
 }
 
@@ -89,7 +93,8 @@ $(function () {
     //-----PRESETS-----
     window.BASE = $('link[rel="base"]').attr('href') || window.BASE;
     window.ajaxPage = window.ajaxPage || false;
-    window.debug = false; //debug switch
+    window.hidden = window.hidden || false;
+    window.debug = window.debug || true; //debug switch
     window.height = $(window).height();
     window.width = $(window).width();
     window.hashVal = window.location.hash.replace(/^#/, "");
@@ -101,6 +106,7 @@ $(function () {
      * Ações executadas quando a aba do navegador não está em foco, executada pela <b>PAGE VISIBILITY API</b>.
      */
     function pageVisibilityHidden() {
+        window.hidden = true;
         //YOUTUBE
         if (typeof ytPlayers !== "undefined" && ytPlayers) {
             ytPause();
@@ -111,6 +117,7 @@ $(function () {
      * Ações executadas quando a aba do navegador está em foco, executada pela <b>PAGE VISIBILITY API</b>.
      */
     function pageVisibility() {
+        window.hidden = false;
         //YOUTUBE
         if (typeof ytPlayers !== "undefined" && ytPlayers) {
             viewEvent('youtube', true);
@@ -125,11 +132,13 @@ $(function () {
      */
     function beforeUnload() {
         //ACTIVE TIME
-        dlPush('time', 'active timer', (window.ajaxPage === false ? window.activeTimerPath : window.ajaxPage.replace(/(https:|http:|)\/\//, '')), window.activeTimer, true, 'beacon');
+        dlPush('Active Time', (window.ajaxPage === false ? window.activeTimerPath : window.ajaxPage.replace(/(https:|http:|)\/\//, '')), null, window.activeTimer, true, 'beacon', null, {
+            activeTime: window.activeTimer
+        });
 
         //CUSTOM TIMES
         for (var name in window['customTimers']) {
-            dlPush('custom time', window['customTimers'][name]['name'], window['customTimers'][name]['path'], window['customTimers'][name]['activeTimer'], true, 'beacon');
+            dlPush('Custom Time', window['customTimers'][name]['name'], window['customTimers'][name]['path'], window['customTimers'][name]['activeTimer'], true, 'beacon');
         }
 
         //YOUTUBE
@@ -274,7 +283,7 @@ $(function () {
      */
     window.idle = true;
     window.firstActive = false;
-    var idleTimer;
+    window.idleTimer;
     window.activeTimer = 0;
     window.activeMaster = false;
     window.activeTimerId = setInterval(function () {
@@ -353,8 +362,8 @@ $(function () {
      */
     function userNonIdle() {
         window.idle = false;
-        clearTimeout(idleTimer);
-        idleTimer = setTimeout(function () {
+        clearTimeout(window.idleTimer);
+        window.idleTimer = setTimeout(function () {
             window.idle = true;
         }, 5000);
     }
@@ -400,7 +409,7 @@ $(function () {
             }
 
             window['customTimers'][name]['activeTimerId'] = setInterval(function () {
-                if ((window['customTimers'][name]['idle'] === false || window['customTimers'][name]['activeMaster'] === true) && (window.firstActive === true)) {
+                if ((window['customTimers'][name]['idle'] === false || window['customTimers'][name]['activeMaster'] === true) && window.firstActive === true && window.hidden === false) {
                     window['customTimers'][name]['activeTimer'] += 1;
                     if (window.debug === true) {
                         console.log(name + ' - ' + window['customTimers'][name]['activeTimer']);
@@ -774,7 +783,7 @@ $(function () {
                 var site = href.replace(/(https:|http:|)\/\//, '');
                 var n = site.indexOf('/');
                 site = site.substring(0, n !== -1 ? n : site.length);
-                dlPush('click', 'outgoing', site, href);
+                dlPush('Click', 'Outgoing', site, href);
             }
         });
     }
