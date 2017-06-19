@@ -90,7 +90,7 @@ $(function () {
     window.BASE = document.location.hostname;
     window.ajaxPage = window.ajaxPage || false;
     window.hidden = window.hidden || false;
-    window.debug = window.debug || true; //debug switch
+    window.debug = window.debug || false; //debug switch
     window.height = $(window).height();
     window.width = $(window).width();
     window.hashVal = window.location.hash.replace(/^#/, "");
