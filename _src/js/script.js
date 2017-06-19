@@ -62,7 +62,7 @@ function dlPush(cat, act, lab, val, nInt, tran, exc, obj) {
         eventAction: checkType(act),
         eventLabel: checkType(lab),
         eventValue: checkType(val),
-        nonInteraction: (nInt === true || 'true' || 1) ? true : false,
+        nonInteraction: nInt ? (nInt === true || nInt === 'true' || nInt === 1 ? true : false) : false,
         transport: tran ? 'beacon' : '',
         exceptions: exc ? String(exc) : '',
         event: 'legacyEvent'
@@ -128,7 +128,7 @@ $(function () {
      */
     function beforeUnload() {
         //ACTIVE TIME
-        dlPush('Active Time', (window.ajaxPage === false ? window.activeTimerPath : window.ajaxPage.replace(/(https:|http:|)\/\//, '')), null, window.activeTimer, true, 'beacon', null, {
+        dlPush('Active Time', (window.ajaxPage === false ? window.activeTimerPath : window.ajaxPage.replace(/(https:|http:|)\/\//, '').toLowerCase()), (window.ajaxPage === false ? window.activeTimerFirstPath : null), window.activeTimer, true, 'beacon', null, {
             activeTime: window.activeTimer
         });
 
@@ -173,7 +173,12 @@ $(function () {
     $(window).on("load", function () {
         window.load = true;
         window.dataLayer.push({event: 'pageLoad'});
-        viewEventCalc();
+        if (window.scrollSpyExist === true) { //SCROLLSPY
+            scrollSpyCalc();
+        }
+        if (window.viewEventExist === true) { //VIEWEVENT
+            viewEventCalc();
+        }
         if (window.jSameHeightExist === true) { //IGUALA ALTURA DE BOX MENORES
             sameHeight();
         }
@@ -207,7 +212,7 @@ $(function () {
         if (window.botaoTopoExist === true) { //BOTAO TOPO
             exibeBotaoTopo();
         }
-        if (window.scrollSpyExist === true) { //SCROLLSPY
+        if (window.scrollSpyExist === true && window.load === true) { //SCROLLSPY
             scrollSpy();
         }
         if (window.viewEventExist === true && window.load === true) { //VIEWEVENT
@@ -255,16 +260,18 @@ $(function () {
 //            affixCalc();
 //            affixResize();
 //        }
-        if (window.scrollSpyExist === true) { //SCROLLSPY
-            scrollSpyCalc();
-            scrollSpy();
-        }
-        if (window.viewEventExist === true) { //VIEWEVENT
-            viewEventCalc();
-            viewEvent();
-        }
-        if (window.jSameHeightExist === true && window.load === true) { //IGUALA ALTURA DE BOX MENORES
-            sameHeight();
+        if (window.load === true) {
+            if (window.scrollSpyExist === true) { //SCROLLSPY
+                scrollSpyCalc();
+                scrollSpy();
+            }
+            if (window.viewEventExist === true) { //VIEWEVENT
+                viewEventCalc();
+                viewEvent();
+            }
+            if (window.jSameHeightExist === true) { //IGUALA ALTURA DE BOX MENORES
+                sameHeight();
+            }
         }
     });
 
@@ -287,7 +294,8 @@ $(function () {
             window.activeTimer += 1;
         }
     }, 1000);
-    window.activeTimerPath = getUrlPath(1);
+    window.activeTimerPath = getUrlPath();
+    window.activeTimerFirstPath = getUrlPath(1);
 
     /**
      * Verifica se página está em foco.
@@ -370,7 +378,7 @@ $(function () {
      * @param {boolean} state
      */
     function activeMaster(state) {
-        (state === true || "true" || 1) ? window.activeMaster = true : window.activeMaster = false;
+        (state === true || state === "true" || state === 1) ? window.activeMaster = true : window.activeMaster = false;
     }
 
     /**
@@ -388,10 +396,11 @@ $(function () {
     function customTimer(name, idleTrack, func, funcParams, funcInterval, funcLimit) {
         window['customTimers'] = window['customTimers'] || [];
         window['customTimers'][name] = window['customTimers'][name] || [];
-        window['customTimers'][name]['name'] = name;
-        window['customTimers'][name]['path'] = getUrlPath(1);
         //check if timer is not already initiated
         if (typeof window['customTimers'][name]['timerInit'] === "undefined" && typeof name !== "undefined") {
+            window['customTimers'][name]['name'] = name;
+            window['customTimers'][name]['path'] = getUrlPath();
+            window['customTimers'][name]['firstPath'] = getUrlPath(1);
             //setup
             window['customTimers'][name]['timerInit'] = true;
             window['customTimers'][name]['idle'] = false;
@@ -434,7 +443,7 @@ $(function () {
     function unsetCustomTimer(name, definitive) {
         if (typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof name !== "undefined") {
             clearInterval(window['customTimers'][name]['activeTimerId']);
-            definitive === true || 'true' || 1 ? '' : delete window['customTimers'][name]['timerInit'];
+            definitive === true || definitive === 'true' || definitive === 1 ? '' : delete window['customTimers'][name]['timerInit'];
         }
     }
 
@@ -527,7 +536,7 @@ $(function () {
      */
     function customUserNonIdle(name, state) {
         if (typeof name !== "undefined" && typeof window['customTimers'] !== "undefined" && typeof window['customTimers'][name] !== "undefined" && typeof window['customTimers'][name]['timerInit'] !== "undefined") {
-            if (state === true || "true" || 1) {
+            if (state === true || state === "true" || state === 1) {
                 window['customTimers'][name]['idle'] = false;
                 clearTimeout(window['customTimers'][name]['idleTimer']);
                 window['customTimers'][name]['idleTimer'] = setTimeout(function () {
@@ -547,7 +556,7 @@ $(function () {
      */
     function customActiveMaster(name, state) {
         if (typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof name !== "undefined") {
-            (state === true || "true" || 1) ? window['customTimers'][name]['activeMaster'] = true : window['customTimers'][name]['activeMaster'] = false;
+            (state === true || state === "true" || state === 1) ? window['customTimers'][name]['activeMaster'] = true : window['customTimers'][name]['activeMaster'] = false;
         }
     }
 
@@ -641,7 +650,7 @@ $(function () {
                 var e = $(this).attr('data-view');
                 var timerCheck = isNaN(parseInt(arrayView[e]['viewTime'])) === false ? window.activeTimer >= arrayView[e]['viewTime'] : true;
 
-                if ((window.scrollTop >= arrayView[e]['viewPositionTop']) && (window.scrollTop <= arrayView[e]['viewPositionBottom'])) {
+                if ((window.scrollTop >= arrayView[e]['viewPositionTop']) && (window.scrollTop < arrayView[e]['viewPositionBottom'])) {
                     if (arrayView[e]['viewHidden'] !== true) {
                         if ((arrayView[e]['alt'] !== true || ignorealt === true) && timerCheck) {
                             if ($(this).attr('data-view-act')) {
@@ -702,7 +711,7 @@ $(function () {
                 arrayView[e]['viewLimit'] = $(this).attr('data-view-limit') ? $(this).attr('data-view-limit').split(',') : 'notset';
                 arrayView[e]['nonViewLimit'] = $(this).attr('data-nonview-limit') ? $(this).attr('data-nonview-limit').split(',') : 'notset';
                 arrayView[e]['viewHidden'] = $(this).attr('data-view-hidden');
-                arrayView[e]['viewHidden'] = (arrayView[e]['viewHidden'] === 1 || true || 'true') ? true : false;
+                arrayView[e]['viewHidden'] = arrayView[e]['viewHidden'] === 1 || arrayView[e]['viewHidden'] === true || arrayView[e]['viewHidden'] === 'true' ? true : false;
                 //Percent Test
                 if (isNaN(arrayView[e]['viewPercent']) === false) {
                     if (arrayView[e]['viewPercent'] >= 0) {
@@ -797,9 +806,12 @@ $(function () {
     if ($('[id$="_go"]').length) {
         $('a[href^="#"]').click(function (event) {
             event.preventDefault();
-            var goto = $('[id="' + $(this).attr('href').replace('#', '') + '_go"]').offset().top;
-            $('html, body').animate({scrollTop: goto - window.menuInitialHeight + window.logoDeltaHeight}, 1000);
-            return false;
+            var selector = $('[id="' + $(this).attr('href').replace('#', '') + '_go"]');
+            if (selector.length) {
+                var goto = selector.offset().top;
+                $('html, body').stop().animate({scrollTop: goto - window.menuInitialHeight + window.logoDeltaHeight}, 1000);
+                return false;
+            }
         });
     }
 
@@ -939,8 +951,6 @@ $(function () {
         var processingSpy = false;
         var processingSpyCalc = false;
 
-        scrollSpyCalc();
-
         /**
          * Calcula as posição de cada elemento com data-spy.
          */
@@ -962,16 +972,16 @@ $(function () {
          * Na presença do atributo <b>data-spy</b> a função busca no mesmo elemento o valor do atributo <b>href</b> e verifica se é equivalente ao href do menu scrollspy. Verifica elementos com sufixo <b>_go</b> também.
          */
         function scrollSpy() {
-            if (processingSpyCalc === false) {
-                processingSpyCalc = true;
+            if (processingSpy === false) {
+                processingSpy = true;
                 $('[data-spy]').each(function (i) {
-                    if ((window.scrollTop >= arraySpy[i].position) && (window.scrollTop <= arraySpy[i].position + arraySpy[i].height)) {
+                    if ((window.scrollTop >= arraySpy[i].position - 5) && (window.scrollTop < arraySpy[i].position + arraySpy[i].height - 5)) {
                         $('[scrollspy] [href="#' + arraySpy[i].dataspy + '"]').addClass('active');
                     } else {
                         $('[scrollspy] [href="#' + arraySpy[i].dataspy + '"]').removeClass('active');
                     }
                 });
-                processingSpyCalc = false;
+                processingSpy = false;
             }
         }
     }
@@ -1267,7 +1277,7 @@ $(function () {
     //*****END WIDGETS*****
 
     //-----DEV TOOLS-----
-    if (typeof window.BASE !== 'undefined' && window.BASE === 'localhost' || '127.0.0.1') { //Verifica se está em localhost
+    if (typeof window.BASE !== 'undefined' && window.BASE === 'localhost' || window.BASE === '127.0.0.1') { //Verifica se está em localhost
 
         $(window).resize(function () {
             definePrefix();
