@@ -32,15 +32,11 @@ function Create(callback) {
  * @returns Retorna URL Path inteira ou fragmentada se n for definido.
  */
 function getUrlPath(n) {
-    if (typeof window.BASE !== 'undefined') {
-        var base = BASE.replace(/(https:|http:|)\/\//, '');
-        var path = window.location.href;
-        path = path.replace(/(https:|http:|)\/\//, '').replace(base, '').toLowerCase();
-        if (n) {
-            path = path.split("/")[n];
-        }
-        return path;
+    var path = window.location.pathname.toLowerCase();
+    if (n) {
+        path = path.split("/")[n];
     }
+    return path;
 }
 
 
@@ -60,28 +56,28 @@ function getUrlPath(n) {
  * @param {object} obj - (Opcional) Objeto com métricas customizadas para expandir os dados enviados pelo dlPush().
  */
 function dlPush(cat, act, lab, val, nInt, tran, exc, obj) {
-    
+
     var event = {
         eventCategory: checkType(cat),
         eventAction: checkType(act),
         eventLabel: checkType(lab),
         eventValue: checkType(val),
-        nonInteraction: (nInt === 'true' || nInt === true || nInt === 1) ? true : false,
+        nonInteraction: (nInt === true || 'true' || 1) ? true : false,
         transport: tran ? 'beacon' : '',
         exceptions: exc ? String(exc) : '',
         event: 'legacyEvent'
     };
-    
+
     if (typeof obj === 'object' && obj !== null) {
-        Object.assign(event,obj);
+        Object.assign(event, obj);
     }
-    
+
     if (cat && act && window.debug !== true) {
         window.dataLayer.push(event);
     } else if (window.debug === true) {
         console.log(JSON.stringify(event));
     }
-    
+
     function checkType(param) {
         return (param ? (isNaN(Number(param)) ? String(param) : (typeof param === 'boolean' ? param : Number(param))) : '');
     }
@@ -91,7 +87,7 @@ function dlPush(cat, act, lab, val, nInt, tran, exc, obj) {
 $(function () {
 
     //-----PRESETS-----
-    window.BASE = $('link[rel="base"]').attr('href') || window.BASE;
+    window.BASE = document.location.hostname;
     window.ajaxPage = window.ajaxPage || false;
     window.hidden = window.hidden || false;
     window.debug = window.debug || true; //debug switch
@@ -374,7 +370,7 @@ $(function () {
      * @param {boolean} state
      */
     function activeMaster(state) {
-        (state === true || state === "true" || state === 1) ? window.activeMaster = true : window.activeMaster = false;
+        (state === true || "true" || 1) ? window.activeMaster = true : window.activeMaster = false;
     }
 
     /**
@@ -438,7 +434,7 @@ $(function () {
     function unsetCustomTimer(name, definitive) {
         if (typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof name !== "undefined") {
             clearInterval(window['customTimers'][name]['activeTimerId']);
-            definitive === true || definitive === 'true' || definitive === 1 ? '' : delete window['customTimers'][name]['timerInit'];
+            definitive === true || 'true' || 1 ? '' : delete window['customTimers'][name]['timerInit'];
         }
     }
 
@@ -531,7 +527,7 @@ $(function () {
      */
     function customUserNonIdle(name, state) {
         if (typeof name !== "undefined" && typeof window['customTimers'] !== "undefined" && typeof window['customTimers'][name] !== "undefined" && typeof window['customTimers'][name]['timerInit'] !== "undefined") {
-            if (state === true || state === "true" || state === 1) {
+            if (state === true || "true" || 1) {
                 window['customTimers'][name]['idle'] = false;
                 clearTimeout(window['customTimers'][name]['idleTimer']);
                 window['customTimers'][name]['idleTimer'] = setTimeout(function () {
@@ -551,7 +547,7 @@ $(function () {
      */
     function customActiveMaster(name, state) {
         if (typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof name !== "undefined") {
-            (state === true || state === "true" || state === 1) ? window['customTimers'][name]['activeMaster'] = true : window['customTimers'][name]['activeMaster'] = false;
+            (state === true || "true" || 1) ? window['customTimers'][name]['activeMaster'] = true : window['customTimers'][name]['activeMaster'] = false;
         }
     }
 
@@ -706,7 +702,7 @@ $(function () {
                 arrayView[e]['viewLimit'] = $(this).attr('data-view-limit') ? $(this).attr('data-view-limit').split(',') : 'notset';
                 arrayView[e]['nonViewLimit'] = $(this).attr('data-nonview-limit') ? $(this).attr('data-nonview-limit').split(',') : 'notset';
                 arrayView[e]['viewHidden'] = $(this).attr('data-view-hidden');
-                arrayView[e]['viewHidden'] = (arrayView[e]['viewHidden'] === 1 || arrayView[e]['viewHidden'] === true || arrayView[e]['viewHidden'] === 'true') ? true : false;
+                arrayView[e]['viewHidden'] = (arrayView[e]['viewHidden'] === 1 || true || 'true') ? true : false;
                 //Percent Test
                 if (isNaN(arrayView[e]['viewPercent']) === false) {
                     if (arrayView[e]['viewPercent'] >= 0) {
@@ -777,9 +773,8 @@ $(function () {
      */
     if (typeof window.BASE !== 'undefined') {
         $('a[href^="http"]').click(function () {
-            var base = window.BASE.replace(/(https:|http:|)\/\//, '');
             var href = $(this).attr('href') ? $(this).attr('href') : '';
-            if (href !== '' && href.indexOf(base) === -1) {
+            if ((href.indexOf('http://') !== -1 || href.indexOf('https://') !== -1) && href.indexOf(window.BASE) === -1) {
                 var site = href.replace(/(https:|http:|)\/\//, '');
                 var n = site.indexOf('/');
                 site = site.substring(0, n !== -1 ? n : site.length);
@@ -1272,8 +1267,7 @@ $(function () {
     //*****END WIDGETS*****
 
     //-----DEV TOOLS-----
-
-    if (typeof window.BASE !== 'undefined' && window.BASE.indexOf('/localhost') !== -1) { //Verifica se está em localhost
+    if (typeof window.BASE !== 'undefined' && window.BASE === 'localhost' || '127.0.0.1') { //Verifica se está em localhost
 
         $(window).resize(function () {
             definePrefix();
