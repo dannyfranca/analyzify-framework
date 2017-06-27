@@ -1,0 +1,2431 @@
+{
+    "exportFormatVersion": 2,
+    "exportTime": "2017-06-27 16:51:06",
+    "containerVersion": {
+        "path": "accounts/447353382/containers/6978358/versions/7",
+        "accountId": "447353382",
+        "containerId": "6978358",
+        "containerVersionId": "7",
+        "name": "1.2.2",
+        "description": "Enhanced Link Attribution true como padrão",
+        "container": {
+            "path": "accounts/447353382/containers/6978358",
+            "accountId": "447353382",
+            "containerId": "6978358",
+            "name": "Analyzify Framework",
+            "publicId": "GTM-528GBKQ",
+            "usageContext": [
+                "WEB"
+            ],
+            "fingerprint": "1498576957603",
+            "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/447353382/containers/6978358/workspaces?apiLink=container"
+        },
+        "tag": [
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "tagId": "1",
+                "name": "FB - PageView",
+                "type": "html",
+                "priority": {
+                    "type": "INTEGER",
+                    "value": "10"
+                },
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "html",
+                        "value": "<!-- Facebook Pixel Code -->\n<script>\n  (function() {\n    !function (f, b, e, v, n, t, s) {\n      if (f.fbq)\n        return;n = f.fbq = function () {\n          n.callMethod ?\n            n.callMethod.apply(n, arguments) : n.queue.push(arguments)\n        };\n      if (!f._fbq)\n        f._fbq = n;\n      n.push = n;\n      n.loaded = !0;\n      n.version = '2.0';\n      n.queue = [];\n      t = b.createElement(e);\n      t.async = !0;\n      t.src = v;\n      s = b.getElementsByTagName(e)[0];\n      s.parentNode.insertBefore(t, s)\n    }(window,\n      document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');\n    fbq('init', '{{fbPixelID}}', {\n      em: '{{userEmail}}', //Email\n      fn: '{{userFirstName}}', //Nome\n      ln: '{{userLastName}}' //Sobrenome\n    });\n    fbq('track', 'PageView', {\n      utm_source: {{utmSource}},\n      utm_medium: {{utmMedium}},\n      utm_campaign: {{utmCampaign}},\n      utm_term: {{utmTerm}},\n      utm_content: {{utmContent}},\n      referrer: document.referrer,\n      userAgent: navigator.userAgent,\n      language: navigator.language\n    });\n  })();\n</script>\n<!-- End Facebook Pixel Code -->"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "supportDocumentWrite",
+                        "value": "false"
+                    }
+                ],
+                "fingerprint": "1498348288796",
+                "firingTriggerId": [
+                    "14"
+                ],
+                "parentFolderId": "6",
+                "tagFiringOption": "ONCE_PER_LOAD"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "tagId": "3",
+                "name": "FB - legacyEvent",
+                "type": "html",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "html",
+                        "value": "<script>\n  (function() {\n    fbq('trackCustom', '{{Event}}', {\n      event_category: {{eventCategory}},\n      event_action: {{eventAction}},\n      event_label: {{eventLabel}},\n      event_value: {{eventValue}},\n      utm_source: {{utmSource}},\n      utm_medium: {{utmMedium}},\n      utm_campaign: {{utmCampaign}},\n      utm_term: {{utmTerm}},\n      utm_content: {{utmContent}},\n      referrer: document.referrer,\n      userAgent: navigator.userAgent,\n      language: navigator.language\n    });\n  })();\n</script>"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "supportDocumentWrite",
+                        "value": "false"
+                    }
+                ],
+                "fingerprint": "1498348341432",
+                "firingTriggerId": [
+                    "23"
+                ],
+                "blockingTriggerId": [
+                    "34"
+                ],
+                "parentFolderId": "32",
+                "tagFiringOption": "ONCE_PER_EVENT"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "tagId": "4",
+                "name": "FB - legacyPage",
+                "type": "html",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "html",
+                        "value": "<script>\n  (function () {\n\n    if ('{{fbEvent}}' === 'ViewContent') {\n      fbq('track', '{{fbEvent}}', {\n        content_category: {{eventCategory}},\n        content_ids: {{eventAction}},\n        content_name: {{eventValue}},\n        content_label: {{eventLabel}},\n        content_type: {{contentType}},\n        value: {{value}},\n        currency: {{currency}},\n        pdt_code: {{pdtCode}},\n        content_transaction: {{contentTransaction}},\n        content_finality: {{contentFinality}},\n        realty_ref: {{realtyRef}},\n        class_time: {{classTime}},\n        referrer: document.referrer,\n        userAgent: navigator.userAgent,\n        language: navigator.language\n      });\n    }\n\n    if ('{{fbEvent}}' === 'Search') {\n      fbq('track', '{{fbEvent}}', {\n        search_string: {{searchString}},\n        referrer: document.referrer,\n        userAgent: navigator.userAgent,\n        language: navigator.language\n      });\n    }\n\n    if ('{{fbEvent}}' === 'CompleteRegistration') {\n      fbq('track', '{{fbEvent}}', {\n        content_category: {{eventCategory}},\n        content_name: {{eventAction}},\n        status: {{eventLabel}},\n        referrer: document.referrer,\n        userAgent: navigator.userAgent,\n        language: navigator.language\n      });\n    }\n\n    //ECOMMERCE\n    if ('{{fbEvent}}' === 'AddToCart') {\n      fbq('track', '{{fbEvent}}', {\n        content_category: {{eventCategory}},\n        content_ids: {{eventAction}},\n        content_type: {{contentType}},\n        value: {{value}},\n        currency: {{currency}},\n        referrer: document.referrer,\n        userAgent: navigator.userAgent,\n        language: navigator.language\n      });\n    }\n\n    if ('{{fbEvent}}' === 'InitiateCheckout') {\n      fbq('track', '{{fbEvent}}', {\n        content_category: {{eventCategory}},\n        referrer: document.referrer,\n        userAgent: navigator.userAgent,\n        language: navigator.language\n      });\n    }\n\n    if ('{{fbEvent}}' === 'AddPaymentInfo') {\n      fbq('track', '{{fbEvent}}', {\n        content_category: {{eventCategory}},\n        referrer: document.referrer,\n        userAgent: navigator.userAgent,\n        language: navigator.language\n      });\n    }\n\n    if ('{{fbEvent}}' === 'Purchase') {\n      fbq('track', '{{fbEvent}}', {\n        content_category: {{eventCategory}},\n        content_ids: {{eventAction}},\n        content_type: {{contentType}},\n        value: {{value}},\n        currency: {{currency}},\n        referrer: document.referrer,\n        userAgent: navigator.userAgent,\n        language: navigator.language\n      });\n    }\n\n    //EAD\n    if ('{{fbEvent}}' === 'Lead') {\n      fbq('track', '{{fbEvent}}', {\n        content_category: {{eventCategory}},\n        content_name: {{eventAction}},\n        referrer: document.referrer,\n        userAgent: navigator.userAgent,\n        language: navigator.language\n      });\n    }\n\n  })();\n</script>"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "supportDocumentWrite",
+                        "value": "false"
+                    }
+                ],
+                "fingerprint": "1498348496765",
+                "firingTriggerId": [
+                    "24"
+                ],
+                "parentFolderId": "32",
+                "tagFiringOption": "ONCE_PER_LOAD"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "tagId": "5",
+                "name": "GA - PageView",
+                "type": "ua",
+                "priority": {
+                    "type": "INTEGER",
+                    "value": "10"
+                },
+                "parameter": [
+                    {
+                        "type": "BOOLEAN",
+                        "key": "overrideGaSettings",
+                        "value": "true"
+                    },
+                    {
+                        "type": "LIST",
+                        "key": "fieldsToSet",
+                        "list": [
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "fieldName",
+                                        "value": "customTask"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "value",
+                                        "value": "{{Set Client ID in Custom Dimension}}"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "trackType",
+                        "value": "TRACK_PAGEVIEW"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "gaSettings",
+                        "value": "{{GA - Main Config}}"
+                    },
+                    {
+                        "type": "LIST",
+                        "key": "dimension",
+                        "list": [
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "index",
+                                        "value": "{{dimSessionID}}"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "dimension",
+                                        "value": "{{Random Session ID}}"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1497805300539",
+                "firingTriggerId": [
+                    "14"
+                ],
+                "parentFolderId": "7",
+                "tagFiringOption": "ONCE_PER_LOAD"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "tagId": "7",
+                "name": "GA - Social",
+                "type": "ua",
+                "parameter": [
+                    {
+                        "type": "BOOLEAN",
+                        "key": "overrideGaSettings",
+                        "value": "true"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "doubleClick",
+                        "value": "false"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setTrackerName",
+                        "value": "false"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "useDebugVersion",
+                        "value": "false"
+                    },
+                    {
+                        "type": "LIST",
+                        "key": "fieldsToSet",
+                        "list": [
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "fieldName",
+                                        "value": "page"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "value",
+                                        "value": "{{pathWithFrags}}"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "trackType",
+                        "value": "TRACK_SOCIAL"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "socialAction",
+                        "value": "{{socialAction}}"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "enableLinkId",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "gaSettings",
+                        "value": "{{GA - Main Config}}"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "socialActionTarget",
+                        "value": "{{socialTarget}}"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "socialNetwork",
+                        "value": "{{socialNetwork}}"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "trackingId",
+                        "value": "{{gaProperty}}"
+                    }
+                ],
+                "fingerprint": "1497785164424",
+                "firingTriggerId": [
+                    "22"
+                ],
+                "parentFolderId": "7",
+                "tagFiringOption": "ONCE_PER_EVENT"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "tagId": "8",
+                "name": "GA - legacyEvent",
+                "type": "ua",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "nonInteraction",
+                        "value": "{{nonInteraction}}"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "overrideGaSettings",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "eventValue",
+                        "value": "{{eventValue}}"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "eventCategory",
+                        "value": "{{eventCategory}}"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "trackType",
+                        "value": "TRACK_EVENT"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "gaSettings",
+                        "value": "{{GA - Main Config}}"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "eventAction",
+                        "value": "{{eventAction}}"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "eventLabel",
+                        "value": "{{eventLabel}}"
+                    }
+                ],
+                "fingerprint": "1498339490148",
+                "firingTriggerId": [
+                    "23"
+                ],
+                "blockingTriggerId": [
+                    "33"
+                ],
+                "parentFolderId": "32",
+                "tagFiringOption": "ONCE_PER_EVENT"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "tagId": "9",
+                "name": "Google Optimize",
+                "type": "opt",
+                "parameter": [
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setTrackerName",
+                        "value": "false"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "useDebugVersion",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "optimizeContainerId",
+                        "value": "{{goID}}"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "trackingId",
+                        "value": "{{gaProperty}}"
+                    }
+                ],
+                "fingerprint": "1497791894034",
+                "firingTriggerId": [
+                    "2147479553"
+                ],
+                "blockingTriggerId": [
+                    "15"
+                ],
+                "parentFolderId": "11",
+                "tagFiringOption": "ONCE_PER_EVENT"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "tagId": "11",
+                "name": "Mautic",
+                "type": "html",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "html",
+                        "value": "<script>\n    (function(w,d,t,u,n,a,m){w['MauticTrackingObject']=n;\n        w[n]=w[n]||function(){(w[n].q=w[n].q||[]).push(arguments)},a=d.createElement(t),\n        m=d.getElementsByTagName(t)[0];a.async=1;a.src=u;m.parentNode.insertBefore(a,m)\n    })(window,document,'script','{{mauticDomain}}/mtc.js','mt');\n\n    mt('send', 'pageview');\n</script>"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "supportDocumentWrite",
+                        "value": "false"
+                    }
+                ],
+                "fingerprint": "1497792101903",
+                "firingTriggerId": [
+                    "14"
+                ],
+                "blockingTriggerId": [
+                    "16"
+                ],
+                "parentFolderId": "11",
+                "tagFiringOption": "ONCE_PER_EVENT"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "tagId": "13",
+                "name": "Navegg Analytics",
+                "type": "html",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "html",
+                        "value": "<script type=\"text/javascript\">\nvar nvgId = {{naveggID}};\nvar nvgAsync = true;\n(function() {\nvar nvg = document.createElement('script');\nnvg.id=\"navegg\";\nnvg.type = 'text/javascript';\nnvg.async = nvgAsync;\nnvg.src='https://tag.navdmp.com/tm'+nvgId+'.js';\nvar s = document.getElementsByTagName('script')[0];\ns.parentNode.insertBefore(nvg, s);\n})();\n</script>"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "supportDocumentWrite",
+                        "value": "false"
+                    }
+                ],
+                "fingerprint": "1497792126560",
+                "firingTriggerId": [
+                    "14"
+                ],
+                "blockingTriggerId": [
+                    "17"
+                ],
+                "parentFolderId": "11",
+                "tagFiringOption": "ONCE_PER_EVENT"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "tagId": "14",
+                "name": "Pinterest Pin It",
+                "type": "html",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "html",
+                        "value": "<script>\n  dataLayer.push({'event': 'socialInt', 'socialNetwork': 'Pinterest', 'socialAction': 'Pin It', 'socialTarget': window.location.href});\n</script>"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "supportDocumentWrite",
+                        "value": "false"
+                    }
+                ],
+                "fingerprint": "1496154414852",
+                "firingTriggerId": [
+                    "21"
+                ],
+                "parentFolderId": "12",
+                "tagFiringOption": "ONCE_PER_EVENT"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "tagId": "15",
+                "name": "Smartlook",
+                "type": "html",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "html",
+                        "value": "<script type=\"text/javascript\">\n    window.smartlook||(function(d) {\n    var o=smartlook=function(){ o.api.push(arguments)},h=d.getElementsByTagName('head')[0];\n    var c=d.createElement('script');o.api=new Array();c.async=true;c.type='text/javascript';\n    c.charset='utf-8';c.src='//rec.smartlook.com/recorder.js';h.appendChild(c);\n    })(document);\n    smartlook('init', '{{smartlookID}}');\n</script>"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "supportDocumentWrite",
+                        "value": "false"
+                    }
+                ],
+                "fingerprint": "1497792145592",
+                "firingTriggerId": [
+                    "14"
+                ],
+                "blockingTriggerId": [
+                    "18"
+                ],
+                "parentFolderId": "11",
+                "tagFiringOption": "ONCE_PER_EVENT"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "tagId": "16",
+                "name": "Social Shares",
+                "type": "html",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "html",
+                        "value": "<script>\n  if (typeof FB !== 'undefined'){\n    FB.Event.subscribe('edge.create',\n                       function(href) {\n      dataLayer.push({\n        'event': 'socialInt', \n        'socialNetwork': 'Facebook', \n        'socialAction': 'Like', \n        'socialTarget': href\n      });\n    }\n                      );\n  }\n  \n  //twitter\n  if (typeof twttr !== 'undefined') {\n    twttr.ready(function (twttr) {\n      twttr.events.bind('click', clickEventToAnalytics);  \n    });\n  }\n  function clickEventToAnalytics() {\n    dataLayer.push({\n      'event': 'socialInt', \n      'socialNetwork': 'Twitter', \n      'socialAction': 'tweet', \n      'socialTarget': window.location.href\n    });\n  }\n</script>"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "supportDocumentWrite",
+                        "value": "false"
+                    }
+                ],
+                "fingerprint": "1496154414853",
+                "firingTriggerId": [
+                    "14"
+                ],
+                "parentFolderId": "12",
+                "tagFiringOption": "ONCE_PER_EVENT"
+            }
+        ],
+        "trigger": [
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "triggerId": "34",
+                "name": "Exception - FB",
+                "type": "CUSTOM_EVENT",
+                "customEventFilter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{_event}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "legacyEvent"
+                            }
+                        ]
+                    }
+                ],
+                "filter": [
+                    {
+                        "type": "CONTAINS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{exceptions}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "fb"
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1498339451547",
+                "parentFolderId": "32"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "triggerId": "33",
+                "name": "Exception - GA",
+                "type": "CUSTOM_EVENT",
+                "customEventFilter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{_event}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "legacyEvent"
+                            }
+                        ]
+                    }
+                ],
+                "filter": [
+                    {
+                        "type": "CONTAINS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{exceptions}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "ga"
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1498339467795",
+                "parentFolderId": "32"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "triggerId": "15",
+                "name": "Exception - Google Optimize",
+                "type": "PAGEVIEW",
+                "filter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{goID}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "0"
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1497796051971",
+                "parentFolderId": "11"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "triggerId": "16",
+                "name": "Exception - Mautic",
+                "type": "CUSTOM_EVENT",
+                "customEventFilter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{_event}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "firstActive"
+                            }
+                        ]
+                    }
+                ],
+                "filter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{mauticDomain}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "0"
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1497796051972",
+                "parentFolderId": "11"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "triggerId": "17",
+                "name": "Exception - Navegg",
+                "type": "CUSTOM_EVENT",
+                "customEventFilter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{_event}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "firstActive"
+                            }
+                        ]
+                    }
+                ],
+                "filter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{naveggID}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "0"
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1497796051972",
+                "parentFolderId": "11"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "triggerId": "18",
+                "name": "Exception - Smartlook",
+                "type": "CUSTOM_EVENT",
+                "customEventFilter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{_event}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "firstActive"
+                            }
+                        ]
+                    }
+                ],
+                "filter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{smartlookID}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "0"
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1497796051972",
+                "parentFolderId": "11"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "triggerId": "21",
+                "name": "Pinterest - Pin It Click",
+                "type": "LINK_CLICK",
+                "filter": [
+                    {
+                        "type": "CONTAINS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{Click Classes}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "pin_it_button"
+                            }
+                        ]
+                    }
+                ],
+                "waitForTags": {
+                    "type": "BOOLEAN",
+                    "value": "false"
+                },
+                "checkValidation": {
+                    "type": "BOOLEAN",
+                    "value": "false"
+                },
+                "waitForTagsTimeout": {
+                    "type": "TEMPLATE",
+                    "value": "2000"
+                },
+                "uniqueTriggerId": {
+                    "type": "TEMPLATE"
+                },
+                "fingerprint": "1496154414826",
+                "parentFolderId": "12"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "triggerId": "22",
+                "name": "Social Interaction",
+                "type": "CUSTOM_EVENT",
+                "customEventFilter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{_event}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "socialInt"
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1496154414827",
+                "parentFolderId": "12"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "triggerId": "14",
+                "name": "firstActive",
+                "type": "CUSTOM_EVENT",
+                "customEventFilter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{_event}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "firstActive"
+                            }
+                        ]
+                    }
+                ],
+                "filter": [
+                    {
+                        "type": "STARTS_WITH",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{Page Path}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "/wp-admin/"
+                            },
+                            {
+                                "type": "BOOLEAN",
+                                "key": "negate",
+                                "value": "true"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "STARTS_WITH",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{Page Path}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "/admin/"
+                            },
+                            {
+                                "type": "BOOLEAN",
+                                "key": "negate",
+                                "value": "true"
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1497793662165",
+                "parentFolderId": "8"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "triggerId": "23",
+                "name": "legacyEvent",
+                "type": "CUSTOM_EVENT",
+                "customEventFilter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{_event}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "legacyEvent"
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1496154414827",
+                "parentFolderId": "8"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "triggerId": "24",
+                "name": "legacyPage",
+                "type": "CUSTOM_EVENT",
+                "customEventFilter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{_event}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "legacyPage"
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1496154414827",
+                "parentFolderId": "8"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "triggerId": "28",
+                "name": "pageLoad",
+                "type": "CUSTOM_EVENT",
+                "customEventFilter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{_event}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "pageLoad"
+                            }
+                        ]
+                    }
+                ],
+                "filter": [
+                    {
+                        "type": "STARTS_WITH",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{Page Path}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "/wp-admin/"
+                            },
+                            {
+                                "type": "BOOLEAN",
+                                "key": "negate",
+                                "value": "true"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "STARTS_WITH",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{Page Path}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "/admin/"
+                            },
+                            {
+                                "type": "BOOLEAN",
+                                "key": "negate",
+                                "value": "true"
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1497783597737",
+                "parentFolderId": "8"
+            }
+        ],
+        "variable": [
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "9",
+                "name": "GA - Main Config",
+                "type": "gas",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "cookieDomain",
+                        "value": "auto"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "doubleClick",
+                        "value": "true"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setTrackerName",
+                        "value": "false"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "useDebugVersion",
+                        "value": "false"
+                    },
+                    {
+                        "type": "LIST",
+                        "key": "fieldsToSet",
+                        "list": [
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "fieldName",
+                                        "value": "page"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "value",
+                                        "value": "{{Page Path}}"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "fieldName",
+                                        "value": "userId"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "value",
+                                        "value": "{{userIdCustom}}"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "fieldName",
+                                        "value": "transport"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "value",
+                                        "value": "{{transport}}"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "fieldName",
+                                        "value": "cookieDomain"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "value",
+                                        "value": "auto"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "fieldName",
+                                        "value": "location"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "value",
+                                        "value": "{{originalLocation}}"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "useHashAutoLink",
+                        "value": "false"
+                    },
+                    {
+                        "type": "LIST",
+                        "key": "metric",
+                        "list": [
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "index",
+                                        "value": "{{metTotalEngagedTime}}"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "metric",
+                                        "value": "{{activeTime}}"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "decorateFormsAutoLink",
+                        "value": "false"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "enableLinkId",
+                        "value": "true"
+                    },
+                    {
+                        "type": "LIST",
+                        "key": "dimension",
+                        "list": [
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "index",
+                                        "value": "{{dimHitTimestamp}}"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "dimension",
+                                        "value": "{{Hit Timestamp Local Time With Offset}}"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "index",
+                                        "value": "{{dimUserID}}"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "dimension",
+                                        "value": "{{userIdCustom}}"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "enableEcommerce",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "trackingId",
+                        "value": "{{gaProperty}}"
+                    }
+                ],
+                "fingerprint": "1498505936648",
+                "parentFolderId": "7"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "38",
+                "name": "Hit Timestamp Local Time With Offset",
+                "type": "jsm",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "javascript",
+                        "value": "function() {\n    // Get local time as ISO string with offset at the end\n    var now = new Date();\n    var tzo = -now.getTimezoneOffset();\n    var dif = tzo >= 0 ? '+' : '-';\n    var pad = function(num) {\n        var norm = Math.abs(Math.floor(num));\n        return (norm < 10 ? '0' : '') + norm;\n    };\n    return now.getFullYear() \n        + '-' + pad(now.getMonth()+1)\n        + '-' + pad(now.getDate())\n        + 'T' + pad(now.getHours())\n        + ':' + pad(now.getMinutes()) \n        + ':' + pad(now.getSeconds())\n        + '.' + pad(now.getMilliseconds())\n        + dif + pad(tzo / 60) \n        + ':' + pad(tzo % 60);\n}"
+                    }
+                ],
+                "fingerprint": "1497795476248",
+                "parentFolderId": "30"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "37",
+                "name": "Random Session ID",
+                "type": "jsm",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "javascript",
+                        "value": "function() {\n    return new Date().getTime() + '.' + Math.random().toString(36).substring(5);\n}"
+                    }
+                ],
+                "fingerprint": "1497793945412",
+                "parentFolderId": "30"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "36",
+                "name": "Set Client ID in Custom Dimension",
+                "type": "jsm",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "javascript",
+                        "value": "function() {\n  return function(model) {\n    model.set('dimension' + '{{dimClientId}}', model.get('clientId'));\n  }\n}"
+                    }
+                ],
+                "fingerprint": "1497805134394",
+                "parentFolderId": "30"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "44",
+                "name": "activeTime",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "activeTime"
+                    }
+                ],
+                "fingerprint": "1497819887659",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "10",
+                "name": "classTime",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "classTime"
+                    }
+                ],
+                "fingerprint": "1496154414830",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "11",
+                "name": "contentFinality",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "contentFinality"
+                    }
+                ],
+                "fingerprint": "1496154414831",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "12",
+                "name": "contentTransaction",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "contentTransaction"
+                    }
+                ],
+                "fingerprint": "1496154414832",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "13",
+                "name": "contentType",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "contentType"
+                    }
+                ],
+                "fingerprint": "1496154414832",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "14",
+                "name": "currency",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "currency"
+                    }
+                ],
+                "fingerprint": "1496154414832",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "39",
+                "name": "dimClientId",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "1"
+                    }
+                ],
+                "fingerprint": "1497805052020",
+                "parentFolderId": "31"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "41",
+                "name": "dimHitTimestamp",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "3"
+                    }
+                ],
+                "fingerprint": "1497805062332",
+                "parentFolderId": "31"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "40",
+                "name": "dimSessionID",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "2"
+                    }
+                ],
+                "fingerprint": "1497805071615",
+                "parentFolderId": "31"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "42",
+                "name": "dimUserID",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "4"
+                    }
+                ],
+                "fingerprint": "1497805079480",
+                "parentFolderId": "31"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "15",
+                "name": "eventAction",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "eventAction"
+                    }
+                ],
+                "fingerprint": "1496154414833",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "16",
+                "name": "eventCategory",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "eventCategory"
+                    }
+                ],
+                "fingerprint": "1496154414833",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "17",
+                "name": "eventLabel",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "eventLabel"
+                    }
+                ],
+                "fingerprint": "1496154414834",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "18",
+                "name": "eventValue",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "eventValue"
+                    }
+                ],
+                "fingerprint": "1496154414834",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "19",
+                "name": "exceptions",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "exceptions"
+                    }
+                ],
+                "fingerprint": "1496154414835",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "20",
+                "name": "fbEvent",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "fbEvent"
+                    }
+                ],
+                "fingerprint": "1496154414835",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "21",
+                "name": "fbPixelID",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "0"
+                    }
+                ],
+                "fingerprint": "1496154461186",
+                "parentFolderId": "9"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "8",
+                "name": "gaProperty",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "0"
+                    }
+                ],
+                "fingerprint": "1497785211547",
+                "parentFolderId": "9"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "1",
+                "name": "goID",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "0"
+                    }
+                ],
+                "fingerprint": "1496154414823",
+                "parentFolderId": "9"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "2",
+                "name": "mauticDomain",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "0"
+                    }
+                ],
+                "fingerprint": "1496154414824",
+                "parentFolderId": "9"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "45",
+                "name": "metTotalEngagedTime",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "1"
+                    }
+                ],
+                "fingerprint": "1497896119308",
+                "parentFolderId": "36"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "3",
+                "name": "naveggID",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "0"
+                    }
+                ],
+                "fingerprint": "1496154479225",
+                "parentFolderId": "9"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "22",
+                "name": "nonInteraction",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "nonInteraction"
+                    }
+                ],
+                "fingerprint": "1496154414836",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "43",
+                "name": "originalLocation",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "originalLocation"
+                    }
+                ],
+                "fingerprint": "1497807026111",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "23",
+                "name": "pathWithFrags",
+                "type": "jsm",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "javascript",
+                        "value": "function() {\n  return window.location.pathname + window.location.search + window.location.hash;\n}"
+                    }
+                ],
+                "fingerprint": "1497785186561",
+                "parentFolderId": "13"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "24",
+                "name": "pdtCode",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "pdtCode"
+                    }
+                ],
+                "fingerprint": "1496154414837",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "25",
+                "name": "realtyRef",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "realtyRef"
+                    }
+                ],
+                "fingerprint": "1496154414837",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "26",
+                "name": "searchString",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "true"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "defaultValue",
+                        "value": "notset"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "search_string"
+                    }
+                ],
+                "fingerprint": "1496154414838",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "4",
+                "name": "smartlookID",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "0"
+                    }
+                ],
+                "fingerprint": "1496154414825",
+                "parentFolderId": "9"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "27",
+                "name": "socialAction",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "socialAction"
+                    }
+                ],
+                "fingerprint": "1496154414838",
+                "parentFolderId": "12"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "28",
+                "name": "socialNetwork",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "socialNetwork"
+                    }
+                ],
+                "fingerprint": "1496154414839",
+                "parentFolderId": "12"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "29",
+                "name": "socialTarget",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "socialTarget"
+                    }
+                ],
+                "fingerprint": "1496154414839",
+                "parentFolderId": "12"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "30",
+                "name": "transport",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "transport"
+                    }
+                ],
+                "fingerprint": "1496154414840",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "32",
+                "name": "userEmail",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "userEmail"
+                    }
+                ],
+                "fingerprint": "1496154414841",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "33",
+                "name": "userFirstName",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "userFirstName"
+                    }
+                ],
+                "fingerprint": "1496154414841",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "5",
+                "name": "userId",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "userId"
+                    }
+                ],
+                "fingerprint": "1496154414828",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "6",
+                "name": "userIdCookie",
+                "type": "k",
+                "parameter": [
+                    {
+                        "type": "BOOLEAN",
+                        "key": "decodeCookie",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "{{userId}}"
+                    }
+                ],
+                "fingerprint": "1497805412651",
+                "parentFolderId": "30"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "7",
+                "name": "userIdCustom",
+                "type": "jsm",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "javascript",
+                        "value": "function() {\n  if ({{userId}}) {\n    var d = new Date();\n    d.setTime(d.getTime()+1000*60*60*24*365*2);\n    var expires = 'expires='+d.toGMTString();\n    document.cookie = 'userId=' + {{userId}} + '; '+expires+'; path=/';\n  return {{userId}};\n } else if ({{userIdCookie}}) {\n  return {{userIdCookie}};\n}\nreturn;\n}"
+                    }
+                ],
+                "fingerprint": "1497805412652",
+                "parentFolderId": "30"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "34",
+                "name": "userLastName",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "userLastName"
+                    }
+                ],
+                "fingerprint": "1496154414842",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "48",
+                "name": "utmCampaign",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "utmCampaign"
+                    }
+                ],
+                "fingerprint": "1498339324024",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "50",
+                "name": "utmContent",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "utmContent"
+                    }
+                ],
+                "fingerprint": "1498339344141",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "47",
+                "name": "utmMedium",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "utmMedium"
+                    }
+                ],
+                "fingerprint": "1498339310004",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "46",
+                "name": "utmSource",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "utmSource"
+                    }
+                ],
+                "fingerprint": "1498339286692",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "49",
+                "name": "utmTerm",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "utmTerm"
+                    }
+                ],
+                "fingerprint": "1498339333175",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "variableId": "35",
+                "name": "value",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "value"
+                    }
+                ],
+                "fingerprint": "1496154414842",
+                "parentFolderId": "10"
+            }
+        ],
+        "folder": [
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "folderId": "31",
+                "name": "..Config - Custom Dimensions",
+                "fingerprint": "1497796457663"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "folderId": "36",
+                "name": "..Config - Custom Metrics",
+                "fingerprint": "1497896106392"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "folderId": "9",
+                "name": "..Config - Tags IDs",
+                "fingerprint": "1497796467257"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "folderId": "6",
+                "name": ".Track - Facebook",
+                "fingerprint": "1497796397841"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "folderId": "7",
+                "name": ".Track - Google Analytics",
+                "fingerprint": "1497796405475"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "folderId": "32",
+                "name": ".Track - Legacy Events",
+                "fingerprint": "1497796412448"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "folderId": "10",
+                "name": "DataLayer",
+                "fingerprint": "1496154414821"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "folderId": "11",
+                "name": "Other Tags",
+                "fingerprint": "1496154414821"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "folderId": "30",
+                "name": "Resource - Data Collection Improvement",
+                "fingerprint": "1497795983860"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "folderId": "12",
+                "name": "Resource - Social Events",
+                "fingerprint": "1497795969987"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "folderId": "13",
+                "name": "Tools",
+                "fingerprint": "1496154414822"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "folderId": "8",
+                "name": "Triggers",
+                "fingerprint": "1497796020042"
+            }
+        ],
+        "builtInVariable": [
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "type": "PAGE_URL",
+                "name": "Page URL"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "type": "PAGE_HOSTNAME",
+                "name": "Page Hostname"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "type": "PAGE_PATH",
+                "name": "Page Path"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "type": "REFERRER",
+                "name": "Referrer"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "type": "EVENT",
+                "name": "Event"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "type": "CLICK_CLASSES",
+                "name": "Click Classes"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "type": "NEW_HISTORY_FRAGMENT",
+                "name": "New History Fragment"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "type": "HISTORY_SOURCE",
+                "name": "History Source"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
+                "type": "RANDOM_NUMBER",
+                "name": "Random Number"
+            }
+        ],
+        "fingerprint": "1498577035029",
+        "tagManagerUrl": "https://tagmanager.google.com/#/versions/accounts/447353382/containers/6978358/versions/7?apiLink=version"
+    }
+}

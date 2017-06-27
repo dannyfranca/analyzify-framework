@@ -1,12 +1,14 @@
 /* global index, property, param, eval, ytVideos, ytPlayers, YT, parseFloat, dataLayer */
 
+//-----PRESETS-----
+window.BASE = document.location.hostname;
+window.page = document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search;
+window.ajaxPage = window.ajaxPage || false;
+window.hidden = window.hidden || false;
+window.debug = window.debug || false; //debug switch
+
 //DATALAYER INIT
 window.dataLayer = window.dataLayer || [];
-window.dataLayer.push(
-        {
-            originalLocation: document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search
-        }
-);
 
 /**
  * GLOBAL TO JQUERY LINK
@@ -39,6 +41,20 @@ function getUrlPath(n) {
     return path;
 }
 
+function QueryStringToJSON() {            
+    var pairs = location.search.slice(1).split('&');
+    
+    var result = {};
+    pairs.forEach(function(pair) {
+        pair = pair.split('=');
+        result[pair[0]] = decodeURIComponent(pair[1] || '');
+    });
+
+    return JSON.parse(JSON.stringify(result));
+}
+
+window.query_string = QueryStringToJSON();
+
 
 /**
  * DATALAYER PUSH
@@ -63,8 +79,8 @@ function dlPush(cat, act, lab, val, nInt, tran, exc, obj) {
         eventLabel: checkType(lab),
         eventValue: checkType(val),
         nonInteraction: nInt ? (nInt === true || nInt === 'true' || nInt === 1 ? true : false) : false,
-        transport: tran ? 'beacon' : '',
-        exceptions: exc ? String(exc) : '',
+        transport: tran ? 'beacon' : null,
+        exceptions: exc ? String(exc) : null,
         event: 'legacyEvent'
     };
 
@@ -79,24 +95,54 @@ function dlPush(cat, act, lab, val, nInt, tran, exc, obj) {
     }
 
     function checkType(param) {
-        return (param ? (isNaN(Number(param)) ? String(param) : (typeof param === 'boolean' ? param : Number(param))) : '');
+        return (param ? (isNaN(Number(param)) ? String(param) : (typeof param === 'boolean' ? param : Number(param))) : null);
     }
 }
 
 //INÍCIO FUNÇÕES JQUERY
 $(function () {
 
-    //-----PRESETS-----
-    window.BASE = document.location.hostname;
-    window.ajaxPage = window.ajaxPage || false;
-    window.hidden = window.hidden || false;
-    window.debug = window.debug || false; //debug switch
+    //-----JQUERY PRESETS-----
     window.height = $(window).height();
     window.width = $(window).width();
     window.hashVal = window.location.hash.replace(/^#/, "");
     window.menuInitialHeight = $('[data-menu*="fixed-"]').length ? $('[data-menu*="fixed-"]').outerHeight() : 0;
     window.logoDeltaHeight = $('[data-menu*="fixed-"]').length ? 27 : 0; //variação da altura da logo
     window.menuHeight = window.menuInitialHeight - window.logoDeltaHeight;
+    
+    //GET PARAMETERS
+    /**
+     * Recebe valor de determinado parâmetro da URL.
+     * @param {string} name - Nome do parâmetro
+     * @returns Valor do parâmetro setado em <b>name</b>
+     */
+    $.urlParam = function (name) {
+        var results = new RegExp('[\?&]' + name + '=([^]*)').exec(window.location.href);
+        if (results === null) {
+            return null;
+        } else {
+            return results[1] || 0;
+        }
+    };
+
+    //-----GET UTM TAGS-----
+    window.utmSource = $.urlParam('utm_source');
+    window.utmMedium = $.urlParam('utm_medium');
+    window.utmCampaign = $.urlParam('utm_campaign');
+    window.utmTerm = $.urlParam('utm_term');
+    window.utmContent = $.urlParam('utm_content');
+    
+    //-----DATALAYER INITIAL PUSH-----
+    window.dataLayer.push(
+            {
+                originalLocation: window.page,
+                utmSource: window.utmSource,
+                utmMedium: window.utmMedium,
+                utmCampaign: window.utmCampaign,
+                utmTerm: window.utmTerm,
+                utmContent: window.utmContent
+            }
+    );
 
     /**
      * Ações executadas quando a aba do navegador não está em foco, executada pela <b>PAGE VISIBILITY API</b>.
@@ -106,6 +152,10 @@ $(function () {
         //YOUTUBE
         if (typeof ytPlayers !== "undefined" && ytPlayers) {
             ytPause();
+        }
+        
+        if (window.debug === true) {
+            console.log('Tab Hidden');
         }
     }
 
@@ -117,6 +167,10 @@ $(function () {
         //YOUTUBE
         if (typeof ytPlayers !== "undefined" && ytPlayers) {
             viewEvent('youtube', true);
+        }
+        
+        if (window.debug === true) {
+            console.log('Tab Visible');
         }
     }
 
@@ -263,11 +317,9 @@ $(function () {
         if (window.load === true) {
             if (window.scrollSpyExist === true) { //SCROLLSPY
                 scrollSpyCalc();
-                scrollSpy();
             }
             if (window.viewEventExist === true) { //VIEWEVENT
                 viewEventCalc();
-                viewEvent();
             }
             if (window.jSameHeightExist === true) { //IGUALA ALTURA DE BOX MENORES
                 sameHeight();
@@ -292,6 +344,7 @@ $(function () {
     window.activeTimerId = setInterval(function () {
         if ((window.idle === false || window.activeMaster === true) && (window.firstActive === true)) {
             window.activeTimer += 1;
+//            console.log('window.activeTimer');
         }
     }, 1000);
     window.activeTimerPath = getUrlPath();
@@ -356,6 +409,9 @@ $(function () {
         if (window.firstActive === false) {
             window.dataLayer.push({event: 'firstActive'});
             window.firstActive = true;
+            if (window.debug === true) {
+                console.log('First Active');
+            }
         }
     }
 
@@ -592,6 +648,7 @@ $(function () {
     if ($('[data-view]').length) {
         window.viewEventExist = true;
         window.arrayView = {};
+        var processingViewCalc = false;
 
         /**
          * <b>VIEW EVENT</b>
@@ -644,50 +701,52 @@ $(function () {
          * @param {boolean} ignorealt - (Opcional) Por padrão, as funções são executadas uma vez e só serão executadas novamente caso o elemento marcado não fique visível e venha ma ficar visível novamente. Com o ignorealt setado como true, a função é executada continuamente toda vez que a função <b>viewEvent</b> for invocada. Ex: É utilizado para dar play e pausar vídeo do YouTube quando a janela está ou não ativa, isso evita bugs e reações inesperadas. Não é usado true como padrão pois as funções seriam executadas diversas vezes enquanto o usuário rola pelo elemento visível.
          */
         function viewEvent(view, ignorealt) {
-            var selector = view ? '[data-view="' + view + '"]' : '[data-view]';
+            if (window.load === true && window.firstActive === true) {
+                var selector = view ? '[data-view="' + view + '"]' : '[data-view]';
 
-            $(selector).each(function (i) {
-                var e = $(this).attr('data-view');
-                var timerCheck = isNaN(parseInt(arrayView[e]['viewTime'])) === false ? window.activeTimer >= arrayView[e]['viewTime'] : true;
+                $(selector).each(function (i) {
+                    var e = $(this).attr('data-view');
+                    var timerCheck = isNaN(parseInt(arrayView[e]['viewTime'])) === false ? window.activeTimer >= arrayView[e]['viewTime'] : true;
 
-                if ((window.scrollTop >= arrayView[e]['viewPositionTop']) && (window.scrollTop < arrayView[e]['viewPositionBottom'])) {
-                    if (arrayView[e]['viewHidden'] !== true) {
-                        if ((arrayView[e]['alt'] !== true || ignorealt === true) && timerCheck) {
-                            if ($(this).attr('data-view-act')) {
-                                var viewFunc = $(this).attr('data-view-act').split('||');
+                    if ((window.scrollTop >= arrayView[e]['viewPositionTop']) && (window.scrollTop < arrayView[e]['viewPositionBottom'])) {
+                        if (arrayView[e]['viewHidden'] !== true) {
+                            if ((arrayView[e]['alt'] !== true || ignorealt === true) && timerCheck) {
+                                if ($(this).attr('data-view-act')) {
+                                    var viewFunc = $(this).attr('data-view-act').split('||');
+                                    for (i = 0; i < viewFunc.length; i++) {
+                                        if (isNaN(parseInt(arrayView[e]['viewLimit'][i])) === false ? arrayView[e]['viewLimit'][i] > arrayView[e]['viewCounter'] : true) {
+                                            eval(viewFunc[i]);
+                                        }
+                                    }
+                                    ignorealt !== true ? arrayView[e]['viewCounter']++ : '';
+                                } else if (!($(this).attr('data-nonview-act'))) {
+                                    var viewFunc = e.split('||');
+                                    for (i = 0; i < viewFunc.length; i++) {
+                                        if (isNaN(parseInt(arrayView[e]['viewLimit'][i])) === false ? arrayView[e]['viewLimit'][i] > arrayView[e]['viewCounter'] : true) {
+                                            eval(viewFunc[i]);
+                                        }
+                                    }
+                                    ignorealt !== true ? arrayView[e]['viewCounter']++ : '';
+                                }
+                            }
+                            arrayView[e]['alt'] = true;
+                        }
+                    } else {
+                        if ((arrayView[e]['alt'] !== false || ignorealt === true) && timerCheck) {
+                            if ($(this).attr('data-nonview-act')) {
+                                var viewFunc = $(this).attr('data-nonview-act').split('||');
                                 for (i = 0; i < viewFunc.length; i++) {
-                                    if (isNaN(parseInt(arrayView[e]['viewLimit'][i])) === false ? arrayView[e]['viewLimit'][i] > arrayView[e]['viewCounter'] : true) {
+                                    if (isNaN(parseInt(arrayView[e]['nonViewLimit'][i])) === false ? arrayView[e]['nonViewLimit'][i] > arrayView[e]['nonViewCounter'] : true) {
                                         eval(viewFunc[i]);
                                     }
                                 }
-                                ignorealt !== true ? arrayView[e]['viewCounter']++ : '';
-                            } else if (!($(this).attr('data-nonview-act'))) {
-                                var viewFunc = e.split('||');
-                                for (i = 0; i < viewFunc.length; i++) {
-                                    if (isNaN(parseInt(arrayView[e]['viewLimit'][i])) === false ? arrayView[e]['viewLimit'][i] > arrayView[e]['viewCounter'] : true) {
-                                        eval(viewFunc[i]);
-                                    }
-                                }
-                                ignorealt !== true ? arrayView[e]['viewCounter']++ : '';
+                                ignorealt !== true ? arrayView[e]['nonViewCounter']++ : '';
                             }
+                            arrayView[e]['alt'] = false;
                         }
-                        arrayView[e]['alt'] = true;
                     }
-                } else {
-                    if ((arrayView[e]['alt'] !== false || ignorealt === true) && timerCheck) {
-                        if ($(this).attr('data-nonview-act')) {
-                            var viewFunc = $(this).attr('data-nonview-act').split('||');
-                            for (i = 0; i < viewFunc.length; i++) {
-                                if (isNaN(parseInt(arrayView[e]['nonViewLimit'][i])) === false ? arrayView[e]['nonViewLimit'][i] > arrayView[e]['nonViewCounter'] : true) {
-                                    eval(viewFunc[i]);
-                                }
-                            }
-                            ignorealt !== true ? arrayView[e]['nonViewCounter']++ : '';
-                        }
-                        arrayView[e]['alt'] = false;
-                    }
-                }
-            });
+                });
+            }
         }
 
         /**
@@ -696,54 +755,43 @@ $(function () {
          * Executado em scroll e resize.
          */
         function viewEventCalc() {
-            $('[data-view]').each(function (i) {
-                var e = $(this).attr('data-view');
-                if (typeof arrayView[e] !== "undefined") {
-                    arrayView[e]['position'] = $(this).offset().top;
-                    arrayView[e]['height'] = $(this).outerHeight();
-                } else {
-                    arrayView[e] = {position: $(this).offset().top, height: $(this).outerHeight()};
-                }
-                arrayView[e]['viewTime'] = isNaN(parseInt($(this).attr('data-view-time'))) === false ? parseInt($(this).attr('data-view-time')) : 0;
-                arrayView[e]['viewPercent'] = $(this).attr('data-view-percent') ? parseInt($(this).attr('data-view-percent')) : 50;
-                typeof arrayView[e]['viewCounter'] !== "undefined" ? '' : arrayView[e]['viewCounter'] = 0;
-                typeof arrayView[e]['nonViewCounter'] !== "undefined" ? '' : arrayView[e]['nonViewCounter'] = 0;
-                arrayView[e]['viewLimit'] = $(this).attr('data-view-limit') ? $(this).attr('data-view-limit').split(',') : 'notset';
-                arrayView[e]['nonViewLimit'] = $(this).attr('data-nonview-limit') ? $(this).attr('data-nonview-limit').split(',') : 'notset';
-                arrayView[e]['viewHidden'] = $(this).attr('data-view-hidden');
-                arrayView[e]['viewHidden'] = arrayView[e]['viewHidden'] === 1 || arrayView[e]['viewHidden'] === true || arrayView[e]['viewHidden'] === 'true' ? true : false;
-                //Percent Test
-                if (isNaN(arrayView[e]['viewPercent']) === false) {
-                    if (arrayView[e]['viewPercent'] >= 0) {
-                        arrayView[e]['viewPercent'] = (arrayView[e]['viewPercent'] <= 100 && arrayView[e]['viewPercent'] >= 0 ? arrayView[e]['viewPercent'] : 50);
-                        arrayView[e]['viewPositionTop'] = arrayView[e]['position'] - window.height + arrayView[e]['height'] * arrayView[e]['viewPercent'] / 100;
-                        arrayView[e]['viewPositionBottom'] = arrayView[e]['position'] - window.menuHeight + arrayView[e]['height'] * (100 - arrayView[e]['viewPercent']) / 100;
+            if (processingViewCalc === false) {
+                $('[data-view]').each(function (i) {
+                    var e = $(this).attr('data-view');
+                    if (typeof arrayView[e] !== "undefined") {
+                        arrayView[e]['position'] = $(this).offset().top;
+                        arrayView[e]['height'] = $(this).outerHeight();
                     } else {
-                        arrayView[e]['viewPercent'] = -(arrayView[e]['viewPercent'] >= -100 && arrayView[e]['viewPercent'] <= 0 ? arrayView[e]['viewPercent'] : -50);
-                        arrayView[e]['viewPositionTop'] = arrayView[e]['position'] - window.height * (100 - arrayView[e]['viewPercent']) / 100;
-                        arrayView[e]['viewPositionBottom'] = arrayView[e]['position'] + arrayView[e]['height'] - window.height * arrayView[e]['viewPercent'] / 100;
+                        arrayView[e] = {position: $(this).offset().top, height: $(this).outerHeight()};
                     }
-                }
-            });
+                    arrayView[e]['viewTime'] = isNaN(parseInt($(this).attr('data-view-time'))) === false ? parseInt($(this).attr('data-view-time')) : 0;
+                    arrayView[e]['viewPercent'] = $(this).attr('data-view-percent') ? parseInt($(this).attr('data-view-percent')) : 50;
+                    typeof arrayView[e]['viewCounter'] !== "undefined" ? '' : arrayView[e]['viewCounter'] = 0;
+                    typeof arrayView[e]['nonViewCounter'] !== "undefined" ? '' : arrayView[e]['nonViewCounter'] = 0;
+                    arrayView[e]['viewLimit'] = $(this).attr('data-view-limit') ? $(this).attr('data-view-limit').split(',') : 'notset';
+                    arrayView[e]['nonViewLimit'] = $(this).attr('data-nonview-limit') ? $(this).attr('data-nonview-limit').split(',') : 'notset';
+                    arrayView[e]['viewHidden'] = $(this).attr('data-view-hidden');
+                    arrayView[e]['viewHidden'] = arrayView[e]['viewHidden'] === 1 || arrayView[e]['viewHidden'] === true || arrayView[e]['viewHidden'] === 'true' ? true : false;
+                    //Percent Test
+                    if (isNaN(arrayView[e]['viewPercent']) === false) {
+                        if (arrayView[e]['viewPercent'] >= 0) {
+                            arrayView[e]['viewPercent'] = (arrayView[e]['viewPercent'] <= 100 && arrayView[e]['viewPercent'] >= 0 ? arrayView[e]['viewPercent'] : 50);
+                            arrayView[e]['viewPositionTop'] = arrayView[e]['position'] - window.height + arrayView[e]['height'] * arrayView[e]['viewPercent'] / 100;
+                            arrayView[e]['viewPositionBottom'] = arrayView[e]['position'] - window.menuHeight + arrayView[e]['height'] * (100 - arrayView[e]['viewPercent']) / 100;
+                        } else {
+                            arrayView[e]['viewPercent'] = -(arrayView[e]['viewPercent'] >= -100 && arrayView[e]['viewPercent'] <= 0 ? arrayView[e]['viewPercent'] : -50);
+                            arrayView[e]['viewPositionTop'] = arrayView[e]['position'] - window.height * (100 - arrayView[e]['viewPercent']) / 100;
+                            arrayView[e]['viewPositionBottom'] = arrayView[e]['position'] + arrayView[e]['height'] - window.height * arrayView[e]['viewPercent'] / 100;
+                        }
+                    }
+                });
+                viewEvent();
+                processingViewCalc = false;
+            }
         }
 
 
     }
-
-    //GET PARAMETERS
-    /**
-     * Recebe valor de determinado parâmetro da URL.
-     * @param {string} name - Nome do parâmetro
-     * @returns Valor do parâmetro setado em <b>name</b>
-     */
-    $.urlParam = function (name) {
-        var results = new RegExp('[\?&]' + name + '=([^]*)').exec(window.location.href);
-        if (results === null) {
-            return null;
-        } else {
-            return results[1] || 0;
-        }
-    };
 
     //PAGE VISIBILITY API
     // Set the name of the hidden property and the change event for visibility
@@ -960,6 +1008,7 @@ $(function () {
                 $('[data-spy]').each(function (i) {
                     arraySpy[i] = {dataspy: $(this).attr('id').replace("_go", ""), position: $(this).offset().top - window.menuInitialHeight, height: $(this).outerHeight()};
                 });
+                scrollSpy();
                 processingSpyCalc = false;
             }
         }
@@ -1174,7 +1223,6 @@ $(function () {
         $('.facebook a').click(function () {
             var share = 'https://www.facebook.com/sharer/sharer.php?u=';
             var urlOpen = $(this).attr('href');
-            alert(urlOpen);
             window.open(share + urlOpen, "_blank", "toolbar=yes, scrollbars=yes, resizable=yes, width=660, height=400");
             return false;
         });
