@@ -41,11 +41,11 @@ function getUrlPath(n) {
     return path;
 }
 
-function QueryStringToJSON() {            
+function QueryStringToJSON() {
     var pairs = location.search.slice(1).split('&');
-    
+
     var result = {};
-    pairs.forEach(function(pair) {
+    pairs.forEach(function (pair) {
         pair = pair.split('=');
         result[pair[0]] = decodeURIComponent(pair[1] || '');
     });
@@ -109,7 +109,7 @@ $(function () {
     window.menuInitialHeight = $('[data-menu*="fixed-"]').length ? $('[data-menu*="fixed-"]').outerHeight() : 0;
     window.logoDeltaHeight = $('[data-menu*="fixed-"]').length ? 27 : 0; //variação da altura da logo
     window.menuHeight = window.menuInitialHeight - window.logoDeltaHeight;
-    
+
     //GET PARAMETERS
     /**
      * Recebe valor de determinado parâmetro da URL.
@@ -131,7 +131,7 @@ $(function () {
     window.utmCampaign = $.urlParam('utm_campaign');
     window.utmTerm = $.urlParam('utm_term');
     window.utmContent = $.urlParam('utm_content');
-    
+
     //-----DATALAYER INITIAL PUSH-----
     window.dataLayer.push(
             {
@@ -153,7 +153,7 @@ $(function () {
         if (typeof ytPlayers !== "undefined" && ytPlayers) {
             ytPause();
         }
-        
+
         if (window.debug === true) {
             console.log('Tab Hidden');
         }
@@ -168,7 +168,7 @@ $(function () {
         if (typeof ytPlayers !== "undefined" && ytPlayers) {
             viewEvent('youtube', true);
         }
-        
+
         if (window.debug === true) {
             console.log('Tab Visible');
         }
@@ -188,7 +188,9 @@ $(function () {
 
         //CUSTOM TIMES
         for (var name in window['customTimers']) {
-            dlPush('Custom Time', window['customTimers'][name]['name'], window['customTimers'][name]['path'], window['customTimers'][name]['activeTimer'], true, 'beacon');
+            dlPush('Custom Time', window['customTimers'][name]['name'], window['customTimers'][name]['path'], window['customTimers'][name]['activeTimer'], true, 'beacon', null, {
+                activeTime: window['customTimers'][name]['activeTimer']
+            });
         }
 
         //YOUTUBE
