@@ -5,6 +5,7 @@ window.BASE = document.location.hostname;
 window.page = document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search;
 window.ajaxPage = window.ajaxPage || false;
 window.hidden = window.hidden || false;
+window.query_string = QueryStringToJSON();
 window.debug = window.debug || false; //debug switch
 
 //DATALAYER INIT
@@ -53,14 +54,26 @@ function QueryStringToJSON() {
     return JSON.parse(JSON.stringify(result));
 }
 
-window.query_string = QueryStringToJSON();
-
+//GET PARAMETERS
+/**
+ * Recebe valor de determinado parâmetro da URL.
+ * @param {string} name - Nome do parâmetro
+ * @returns Valor do parâmetro setado em <b>name</b>
+ */
+function urlParam(name) {
+    var results = new RegExp('[\?&]' + name + '=([^]*)').exec(window.location.href);
+    if (results === null) {
+        return null;
+    } else {
+        return results[1] || 0;
+    }
+}
 
 /**
  * DATALAYER PUSH
  * 
- * Envia dados para a camada de dados do Google Tag Manager como evento legacyEvent.
- * Se debug for true, exibirá os dados no console do navegador.
+ * Envia dados para a camada de dados do Google Tag Manager como evento omeado legacyEvent.
+ * Se debug for true, exibirá os eventos no console do navegador.
  * 
  * @param {string/Integer/Float} cat - Categoria do Evento
  * @param {string/Integer/Float} act - Ação do Evento
@@ -97,6 +110,12 @@ function dlPush(cat, act, lab, val, nInt, tran, exc, obj) {
     function checkType(param) {
         return (param ? (isNaN(Number(param)) ? String(param) : (typeof param === 'boolean' ? param : Number(param))) : null);
     }
+
+    $(function () {
+        window.jqLink.func({
+            '$.sessionAlive': []
+        });
+    });
 }
 
 //INÍCIO FUNÇÕES JQUERY
@@ -110,27 +129,12 @@ $(function () {
     window.logoDeltaHeight = $('[data-menu*="fixed-"]').length ? 27 : 0; //variação da altura da logo
     window.menuHeight = window.menuInitialHeight - window.logoDeltaHeight;
 
-    //GET PARAMETERS
-    /**
-     * Recebe valor de determinado parâmetro da URL.
-     * @param {string} name - Nome do parâmetro
-     * @returns Valor do parâmetro setado em <b>name</b>
-     */
-    $.urlParam = function (name) {
-        var results = new RegExp('[\?&]' + name + '=([^]*)').exec(window.location.href);
-        if (results === null) {
-            return null;
-        } else {
-            return results[1] || 0;
-        }
-    };
-
     //-----GET UTM TAGS-----
-    window.utmSource = $.urlParam('utm_source');
-    window.utmMedium = $.urlParam('utm_medium');
-    window.utmCampaign = $.urlParam('utm_campaign');
-    window.utmTerm = $.urlParam('utm_term');
-    window.utmContent = $.urlParam('utm_content');
+    window.utmSource = urlParam('utm_source');
+    window.utmMedium = urlParam('utm_medium');
+    window.utmCampaign = urlParam('utm_campaign');
+    window.utmTerm = urlParam('utm_term');
+    window.utmContent = urlParam('utm_content');
 
     //-----DATALAYER INITIAL PUSH-----
     window.dataLayer.push(
@@ -145,9 +149,84 @@ $(function () {
     );
 
     /**
+     * Injeta atributos e seus respectivos valores em elementos por meio de seletores jQuery.
+     * 
+     * Se select não for definido, usará os dados da variável global analyzifyInject:
+     * window.analyzifyInject = {
+     *   'selector1': {
+     *       'attr1': "value",
+     *       'attr2': "value"
+     *   },
+     *   'selector2': {
+     *       'attr1': "value",
+     *       'attr2': "value"
+     *   }
+     * };
+     * 
+     * Nos valores dos atributos podem ser usados coringas que retornam valores dinamicamente de cada elemento:
+     * 
+     * - {{attr}}: Essa bloco é substituído pelo valor do atributo descrito. Ex: {{id}} é substituído pelo id do elemento. Se o atributo não existir, nada é substituído.
+     * - [[count]]: Esse bloco é substituído pelo índice do seletor, começando de 1. Ex: Se a classe .cta estiver em 3 elemento, [[count]] irá incrementar de 1 a 3 em cada loop.
+     * 
+     * @param {Object/String} select - Seletor jQuery para aplicar atributos e respectivos valores ou um Objeto com a mesma estrutura da variável global analyzifyInject.
+     * @param {String} attr - Nome do atributo a ser injetado
+     * @param {String} value - Valor do atributo injetado
+     */
+    $.analyzifyInjection = function (select, attr, value) {
+        if (typeof select === 'undefined') {
+            if (typeof window.analyzifyInject !== undefined) {
+                for (var selector in window.analyzifyInject) {
+                    $(selector).each(function (index) {
+
+                        var counter = index + 1;
+
+                        for (var attribute in window.analyzifyInject[selector]) {
+
+                            var attrValue = window.analyzifyInject[selector][attribute];
+
+                            //get term between braces
+                            var match = attrValue.match(/\{{2}([^}]+)\}{2}/g);
+                            if (typeof match !== 'undefined') {
+                                var attrNames = [];
+                                $.each(match, function (i, el) {
+                                    if ($.inArray(el, attrNames) === -1)
+                                        attrNames.push(el);
+                                });
+                                for (var i in attrNames) {
+                                    var attrName = attrNames[i].replace('{{', '').replace('}}', '');
+                                    var getAttr = $(this).attr(attrName);
+                                    if (typeof getAttr !== 'undefined') {
+                                        var regExp = new RegExp(attrNames[i], 'g');
+                                        attrValue = attrValue.replace(regExp, getAttr);
+                                    } else {
+                                        console.warn('Attribute ' + attrName + ' undefined in ' + selector + '(index: ' + i);
+                                    }
+                                }
+                            }
+
+                            //get index
+                            if (attrValue.indexOf('[[count]]') !== -1) {
+                                attrValue = attrValue.replace(/\[{2}(count)\]{2}/g, counter);
+                            }
+
+                            $(this).attr(attribute, attrValue);
+                        }
+                    });
+                }
+            }
+        } else if (typeof attr !== 'undefined' && typeof value !== 'undefined') {
+
+        } else {
+            console.warn('Attribute and/or value must be defined');
+        }
+    };
+
+    $.analyzifyInjection();
+
+    /**
      * Ações executadas quando a aba do navegador não está em foco, executada pela <b>PAGE VISIBILITY API</b>.
      */
-    function pageVisibilityHidden() {
+    $.pageVisibilityHidden = function () {
         window.hidden = true;
         //YOUTUBE
         if (typeof ytPlayers !== "undefined" && ytPlayers) {
@@ -157,22 +236,22 @@ $(function () {
         if (window.debug === true) {
             console.log('Tab Hidden');
         }
-    }
+    };
 
     /**
      * Ações executadas quando a aba do navegador está em foco, executada pela <b>PAGE VISIBILITY API</b>.
      */
-    function pageVisibility() {
+    $.pageVisibility = function () {
         window.hidden = false;
         //YOUTUBE
         if (typeof ytPlayers !== "undefined" && ytPlayers) {
-            viewEvent('youtube', true);
+            $.viewEvent('youtube', true);
         }
 
         if (window.debug === true) {
             console.log('Tab Visible');
         }
-    }
+    };
 
     /**
      * Ações executadas antes da página encerrar, executada em <b>window.onbeforeunload</b>.
@@ -180,30 +259,32 @@ $(function () {
      * - Envia tempo ativo, inclusive contadores customizados.
      * - Ativa função ytExit da integração com a API do YouTube, que marca como evento o tempo de saída do vídeo.
      */
-    function beforeUnload() {
+    $.beforeUnload = function () {
         //ACTIVE TIME
-        dlPush('Active Time', (window.ajaxPage === false ? window.activeTimerPath : window.ajaxPage.replace(/(https:|http:|)\/\//, '').toLowerCase()), (window.ajaxPage === false ? window.activeTimerFirstPath : null), window.activeTimer, true, 'beacon', null, {
+        dlPush('Active Time', (window.ajaxPage === false ? window.activeTimerPath : window.ajaxPage.replace(/(https:|http:|)\/\//, '').toLowerCase()), (window.ajaxPage === false ? window.activeTimerFirstPath : null), null, true, 'beacon', null, {
             activeTime: window.activeTimer
         });
 
         //CUSTOM TIMES
         for (var name in window['customTimers']) {
-            dlPush('Custom Time', window['customTimers'][name]['name'], window['customTimers'][name]['path'], window['customTimers'][name]['activeTimer'], true, 'beacon', null, {
-                activeTime: window['customTimers'][name]['activeTimer']
-            });
+            if (window['customTimers'][name]['activeListener'] === true) {
+                dlPush('Custom Time', window['customTimers'][name]['name'], window['customTimers'][name]['path'], null, true, 'beacon', null, {
+                    activeTime: window['customTimers'][name]['activeTimer']
+                });
+            }
         }
 
         //YOUTUBE
         if (typeof ytPlayers !== "undefined" && ytPlayers) {
             ytExit();
         }
-    }
+    };
 
     //*****SETUP*****
 
     //
     /**
-     * GLOBAL FUNCTION LISTENER
+     * GLOBAL JQUERY FUNCTION LISTENER
      * 
      * Link para invocar funções do escopo jQuery a partir do escopo global.
      * 
@@ -229,20 +310,13 @@ $(function () {
     $(window).on("load", function () {
         window.load = true;
         window.dataLayer.push({event: 'pageLoad'});
-        if (window.scrollSpyExist === true) { //SCROLLSPY
-            scrollSpyCalc();
-        }
-        if (window.viewEventExist === true) { //VIEWEVENT
-            viewEventCalc();
-        }
-        if (window.jSameHeightExist === true) { //IGUALA ALTURA DE BOX MENORES
-            sameHeight();
-        }
         if (window.hashVal && $('[id="' + window.hashVal + '_go"]').length) {
             var goto = $('[id="' + window.hashVal + '_go"]').offset().top;
             $('html, body').animate({scrollTop: goto - window.menuInitialHeight + window.logoDeltaHeight}, 1000);
             history.pushState("", document.title, window.location.pathname + window.location.search);
         }
+        $.normalize();
+        $.handleVisibilityChange();
     });
 
     //*****END PRESETS*****
@@ -259,20 +333,20 @@ $(function () {
     window.scrollTop = $(window).scrollTop();
     $(window).scroll(function () {
         window.scrollTop = $(this).scrollTop(); //DISTANCIA DO TOPO
-        scrollDirection(); //DIRECAO DA ROLAGEM
-        userNonIdle();
+        $.scrollDirection(); //DIRECAO DA ROLAGEM
+        $.userNonIdle();
 
         if (window.menuFixedTopExist === true) { //REDUZ MENU
-            reduzMenu();
+            $.reduzMenu();
         }
         if (window.botaoTopoExist === true) { //BOTAO TOPO
-            exibeBotaoTopo();
+            $.exibeBotaoTopo();
         }
         if (window.scrollSpyExist === true && window.load === true) { //SCROLLSPY
-            scrollSpy();
+            $.scrollSpy();
         }
         if (window.viewEventExist === true && window.load === true) { //VIEWEVENT
-            viewEvent();
+            $.viewEvent();
         }
 //        if (affixExist === true) { //AFFIX
 //            affixScroll();
@@ -296,13 +370,13 @@ $(function () {
      * Função de suporte para desenvolvimento. Define scrollDir como 1 se rolando para baixo ou como -1 se rolando para cima. 
      */
     window.scrollDir;
-    function scrollDirection() {
+    $.scrollDirection = function () {
         if (window.scrollTop > window.lastScrollTop) {
             window.scrollDir = 1;
         } else if (window.scrollTop < window.lastScrollTop) {
             window.scrollDir = -1;
         }
-    }
+    };
 
     /**
      * RESIZE TRACKING
@@ -313,21 +387,25 @@ $(function () {
         window.height = $(window).height();
         window.width = $(window).width();
 //        if (affixExist === true) { //AFFIX
-//            affixCalc();
-//            affixResize();
+//            $.affixCalc();
+//            $.affixResize();
 //        }
+        $.normalize();
+    });
+
+    $.normalize = function () {
         if (window.load === true) {
             if (window.scrollSpyExist === true) { //SCROLLSPY
-                scrollSpyCalc();
+                $.scrollSpyCalc();
             }
             if (window.viewEventExist === true) { //VIEWEVENT
-                viewEventCalc();
+                $.viewEventCalc();
             }
             if (window.jSameHeightExist === true) { //IGUALA ALTURA DE BOX MENORES
-                sameHeight();
+                $.sameHeight();
             }
         }
-    });
+    };
 
     //*****END WINDOW ACTIONS*****
 
@@ -343,6 +421,7 @@ $(function () {
     window.idleTimer;
     window.activeTimer = 0;
     window.activeMaster = false;
+    window.aliveCounter = 0;
     window.activeTimerId = setInterval(function () {
         if ((window.idle === false || window.activeMaster === true) && (window.firstActive === true)) {
             window.activeTimer += 1;
@@ -353,31 +432,29 @@ $(function () {
     window.activeTimerFirstPath = getUrlPath(1);
 
     /**
-     * Verifica se página está em foco.
+     * Responde ao foco na página mediante clique.
      * 
      * <b>Atenção</b>: Se comporta de forma diferente ao PAGE VISIBILITY API. Mesmo se a aba estiver visível, essa função só ativa se a janela entrar em foco mediante clique.
      */
     $(window).focus(function () {
-        userNonIdle();
-        firstActive();
+        $.userNonIdle();
+        $.firstActive();
     });
 
     /**
-     * Verifica se perdeu foco mediante clique externo.
+     * Responde ao perder foco mediante clique externo.
      */
     $(window).blur(function () {
         window.idle = true;
     });
 
     /**
-     * Verifica se página foi carregada
+     * Responde ao apertar alguma tecla
      */
-
-
     $(window).on('keydown', function () {
         if (window.load === true) {
-            userNonIdle();
-            firstActive();
+            $.userNonIdle();
+            $.firstActive();
         }
     });
 
@@ -385,59 +462,80 @@ $(function () {
      * Responde ao movimento do mouse
      */
     $(window).on('mousemove', function () {
-        userNonIdle();
-        firstActive();
+        $.userNonIdle();
+        $.firstActive();
     });
 
     /**
      * Responde ao clique, especiicamente quando a tecla é apertada, ou segurada.
      */
     $(window).on('mousedown', function () {
-        userNonIdle();
-        firstActive();
+        $.userNonIdle();
+        $.firstActive();
     });
 
     /**
      * Armazena função que será executada antes da sessão terminar.
      */
     $(window).on('beforeunload', function () {
-        beforeUnload();
+        $.beforeUnload();
     });
 
     /**
      * Informa ao framework que o usuário começou a interagir com a página por meio de uma variável e marcando o evento firstActive na camada de dados do GTM, previnindo que Analytics comece a rodar se usuário apenas abriu o navegador.
      */
-    function firstActive() {
+    $.firstActive = function () {
         if (window.firstActive === false) {
             window.dataLayer.push({event: 'firstActive'});
             window.firstActive = true;
+            if (window.viewEventExist === true && window.load === true) {
+                $.viewEvent();
+            }
             if (window.debug === true) {
                 console.log('First Active');
             }
         }
-    }
+    };
 
     /**
      * Marca usuário como não ocioso e continua a contagem do tempo ativo.
      * 
      * Para a contagem se usuário ficar ocioso por 5 segundos.
      */
-    function userNonIdle() {
+    $.userNonIdle = function () {
         window.idle = false;
         clearTimeout(window.idleTimer);
         window.idleTimer = setTimeout(function () {
             window.idle = true;
         }, 5000);
-    }
+    };
 
     /**
      * Define variável activeMaster como true, o que faz o contador de interação não parar após o tempo ocioso. Útil para ativar se o usuário estiver vendo um vídeo, por exemplo.
      * 
      * @param {boolean} state
      */
-    function activeMaster(state) {
+    $.activeMaster = function (state) {
         (state === true || state === "true" || state === 1) ? window.activeMaster = true : window.activeMaster = false;
-    }
+    };
+
+    $.sessionAlive = function () {
+        var getActiveTimer = window.activeTimer;
+        clearTimeout(window.aliveTimer);
+        window.aliveTimer = setTimeout(function () {
+            if (getActiveTimer <= window.activeTimer - 10) {
+                window.aliveCounter = 0;
+                dlPush('Session Alive', (window.ajaxPage === false ? window.activeTimerPath : window.ajaxPage.replace(/(https:|http:|)\/\//, '').toLowerCase()), (window.ajaxPage === false ? window.activeTimerFirstPath : null), null, true, null, 'fb');
+            } else {
+                window.aliveCounter += 1;
+            }
+            if (window.aliveCounter < 1) {
+                $.sessionAlive();
+            }
+        }, 1680000);
+    };
+
+    $.sessionAlive();
 
     /**
      * <b>CUSTOM TIMER</b>
@@ -451,7 +549,7 @@ $(function () {
      * @param {string} funcInterval - (Opcional) Intervalo de tempo em segundos que a função deve ser executada. Se não for setada, a função e parâmetros serão simplesmente ignorados.
      * @param {string} funcLimit - (Opcional) Limite de vezes que a função deve ser executada. Se não setada, a função será executada continuamente a cada intervalo de tempo.
      */
-    function customTimer(name, idleTrack, func, funcParams, funcInterval, funcLimit) {
+    $.customTimer = function (name, idleTrack, func, funcParams, funcInterval, funcLimit) {
         window['customTimers'] = window['customTimers'] || [];
         window['customTimers'][name] = window['customTimers'][name] || [];
         //check if timer is not already initiated
@@ -468,7 +566,7 @@ $(function () {
             func ? func = func.split('||') : '';
             funcLimit = isNaN(parseInt(funcLimit)) === false ? parseInt(funcLimit) : false;
             if (typeof idleTrack === "string") {
-                customActiveListener(name, idleTrack);
+                $.customActiveListener(name, idleTrack);
             }
 
             window['customTimers'][name]['activeTimerId'] = setInterval(function () {
@@ -490,7 +588,7 @@ $(function () {
                 }
             }, 1000);
         }
-    }
+    };
 
     /**
      * Elimina contador um contador ativo.
@@ -498,12 +596,12 @@ $(function () {
      * @param {string} name - Deve ser o mesmo usado para iniciar o contador na função <b>customTimer</b>.
      * @param {boolean} definitive - (Opcional) Se setado como true, não permite que o contador de mesmo <b>name</b> seja iniciado novamente na mesma sessão. Se não setado, o contador pode ser reiniciado do zero executando <b>customTimer</b>.
      */
-    function unsetCustomTimer(name, definitive) {
+    $.unsetCustomTimer = function (name, definitive) {
         if (typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof name !== "undefined") {
             clearInterval(window['customTimers'][name]['activeTimerId']);
             definitive === true || definitive === 'true' || definitive === 1 ? '' : delete window['customTimers'][name]['timerInit'];
         }
-    }
+    };
 
     /**
      * Função que rastreia tempo ativo em um <b>customTimer</b> de mesmo <b>name</b> por meio de determinado seletor CSS.
@@ -513,13 +611,13 @@ $(function () {
      * @param {string} name - Deve ser o mesmo usado para iniciar o contador na função <b>customTimer</b>.
      * @param {string} selector - <b>Seletor CSS</b>. Indica o elemento para rastrear o tempo ativo.
      */
-    function customActiveListener(name, selector) {
+    $.customActiveListener = function (name, selector) {
         if (typeof name !== "undefined" && typeof selector !== "undefined" && $(selector).length && typeof window['customTimers'] !== "undefined" && typeof window['customTimers'][name] !== "undefined" && typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof window['customTimers'][name]['activeListener'] === "undefined") {
 
             window['customTimers'][name]['activeListener'] = true;
 
             $(selector).focus(function () {
-                customUserNonIdle(name, true);
+                $.customUserNonIdle(name, true);
             });
 
             $(selector).blur(function () {
@@ -527,19 +625,19 @@ $(function () {
             });
 
             $(selector).on('keydown', function () {
-                customUserNonIdle(name, true);
+                $.customUserNonIdle(name, true);
             });
 
             $(selector).on('mousemove', function () {
-                customUserNonIdle(name, true);
+                $.customUserNonIdle(name, true);
             });
 
             $(selector).on('mousedown', function () {
-                customUserNonIdle(name, true);
+                $.customUserNonIdle(name, true);
             });
 
             $(selector).scroll(function () {
-                customUserNonIdle(name, true);
+                $.customUserNonIdle(name, true);
             });
 
             var viewPercent = $(selector).attr('data-view-percent') ? parseInt($(selector).attr('data-view-percent')) : 50;
@@ -561,7 +659,7 @@ $(function () {
 
             $(window).scroll(function () {
                 if ((window.scrollTop >= viewPositionTop) && (window.scrollTop <= viewPositionBottom)) {
-                    customUserNonIdle(name, true);
+                    $.customUserNonIdle(name, true);
                 }
             });
 
@@ -584,7 +682,7 @@ $(function () {
                 }
             });
         }
-    }
+    };
 
     /**
      * Continua o contador ativo por 5 segundos ou para imediatamente um <b>customTimer</b> de mesmo <b>name</b>. Semelhante ao <b>userNonIdle</b>.
@@ -592,7 +690,7 @@ $(function () {
      * @param {string} name - Deve ser o mesmo usado para iniciar o contador na função <b>customTimer</b>.
      * @param {boolean} state - Se setado como true, contador ativo deixa de ficar ocioso e continua a contagem. Se setado como false, contador fica ocioso e para de contar imediatamente.
      */
-    function customUserNonIdle(name, state) {
+    $.customUserNonIdle = function (name, state) {
         if (typeof name !== "undefined" && typeof window['customTimers'] !== "undefined" && typeof window['customTimers'][name] !== "undefined" && typeof window['customTimers'][name]['timerInit'] !== "undefined") {
             if (state === true || state === "true" || state === 1) {
                 window['customTimers'][name]['idle'] = false;
@@ -604,7 +702,7 @@ $(function () {
                 window['customTimers'][name]['idle'] = true;
             }
         }
-    }
+    };
 
     /**
      * Ativa ou desativa customTimer permanentemente, ignorando estado ocioso o tempo ocioso definido por <b>customUserNonIdle</b>. Útil para ativar se o usuário estiver vendo um vídeo, por exemplo. Semelhante a <b>activeMaster</b>.
@@ -612,11 +710,11 @@ $(function () {
      * @param {type} name - Deve ser o mesmo usado para iniciar o contador na função <b>customTimer</b>.
      * @param {type} state - Se setado como true, <b>customTimer</b> fica ativo definitivamente. Se setado como false, <b>customTimer</b> volta a lervar <b>customUserNonIdle</b> em consideração.
      */
-    function customActiveMaster(name, state) {
+    $.customActiveMaster = function (name, state) {
         if (typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof name !== "undefined") {
             (state === true || state === "true" || state === 1) ? window['customTimers'][name]['activeMaster'] = true : window['customTimers'][name]['activeMaster'] = false;
         }
-    }
+    };
 
     /**
      * <b>CLICK EVENT</b>
@@ -702,7 +800,7 @@ $(function () {
          * @param {string} view - (Opcional) Se setado, <b>viewEvent</b> verifica apenas se elementos marcados com <b>data-view</b> e valor <b>view</b> estão visíveis. Qualquer outro elemento visível não executará qualquer ação.
          * @param {boolean} ignorealt - (Opcional) Por padrão, as funções são executadas uma vez e só serão executadas novamente caso o elemento marcado não fique visível e venha ma ficar visível novamente. Com o ignorealt setado como true, a função é executada continuamente toda vez que a função <b>viewEvent</b> for invocada. Ex: É utilizado para dar play e pausar vídeo do YouTube quando a janela está ou não ativa, isso evita bugs e reações inesperadas. Não é usado true como padrão pois as funções seriam executadas diversas vezes enquanto o usuário rola pelo elemento visível.
          */
-        function viewEvent(view, ignorealt) {
+        $.viewEvent = function (view, ignorealt) {
             if (window.load === true && window.firstActive === true) {
                 var selector = view ? '[data-view="' + view + '"]' : '[data-view]';
 
@@ -749,14 +847,14 @@ $(function () {
                     }
                 });
             }
-        }
+        };
 
         /**
          * Calcula as posição de cada elemento com data-view.
          * 
          * Executado em scroll e resize.
          */
-        function viewEventCalc() {
+        $.viewEventCalc = function () {
             if (processingViewCalc === false) {
                 $('[data-view]').each(function (i) {
                     var e = $(this).attr('data-view');
@@ -787,12 +885,10 @@ $(function () {
                         }
                     }
                 });
-                viewEvent();
+                $.viewEvent();
                 processingViewCalc = false;
             }
-        }
-
-
+        };
     }
 
     //PAGE VISIBILITY API
@@ -812,17 +908,17 @@ $(function () {
     /**
      * Após página carregada, executa ações das funções <b>pageVisibilityHidden</b>, se página <b>não</b> está visível, ou <b>pageVisibility</b>, se página está visível
      */
-    function handleVisibilityChange() {
+    $.handleVisibilityChange = function () {
         if (document[hidden]) { // If the page is hidden
-            pageVisibilityHidden();
+            $.pageVisibilityHidden();
         } else { // if the page is shown
-            pageVisibility();
+            $.pageVisibility();
         }
-    }
+    };
 
     if (!(typeof document.addEventListener === "undefined" || typeof document[hidden] === "undefined")) {
         // Handle page visibility change
-        document.addEventListener(visibilityChange, handleVisibilityChange, false);
+        document.addEventListener(visibilityChange, $.handleVisibilityChange, false);
     }
 
     /**
@@ -927,40 +1023,39 @@ $(function () {
         if ($(window).scrollTop() > 0) {
             $('[data-menu="fixed-top"]').addClass('main_header_fixed');
         } else {
-            addLogoWhite();
+            $.addLogoWhite();
         }
         /**
          * Reduz a altura do menu se posição do rolamento for maior que zero. E alterna entre logos branca e original na presença da lcasse .transparente
          */
-        function reduzMenu() {
+        $.reduzMenu = function () {
             if (window.scrollTop > 0) {
                 $('[data-menu="fixed-top"]').addClass('main_header_fixed');
-                addLogo();
+                $.addLogo();
             }
             if (window.scrollTop === 0) {
                 $('[data-menu="fixed-top"]').removeClass('main_header_fixed');
-                addLogoWhite();
+                $.addLogoWhite();
             }
-        }
+        };
         /**
          * Se junto ao data-menu estiver presente a class .transparente, a logo será trocada para a versão branca.
          */
-        function addLogoWhite() {
+        $.addLogoWhite = function () {
             if ($('[data-menu="fixed-top"].transparente .img-logo.switch').length) {
                 $('[data-menu="fixed-top"] .img-logo').attr('src', logoWhiteSrc);
                 $('[data-menu="fixed-top"] .mobile_action').addClass('white');
             }
-
-        }
+        };
         /**
          * Se junto ao data-menu estiver presente a class .transparente, a logo será trocada para a versão original.
          */
-        function addLogo() {
+        $.addLogo = function () {
             if ($('[data-menu="fixed-top"].transparente .img-logo.switch').length) {
                 $('[data-menu="fixed-top"] .img-logo').attr('src', logoSrc);
                 $('[data-menu="fixed-top"] .mobile_action').removeClass('white');
             }
-        }
+        };
     }
 
     /**
@@ -985,13 +1080,13 @@ $(function () {
      */
     if ($('.j_back').length) {
         window.botaoTopoExist = true;
-        function exibeBotaoTopo() {
+        $.exibeBotaoTopo = function () {
             if (window.scrollTop > 0) {
                 $('body').append('<div class="j_back backtop round" title="Voltar ao topo"></div>');
             } else {
                 $('.j_back').remove();
             }
-        }
+        };
     }
 
     //SCROLLSPY
@@ -1004,16 +1099,16 @@ $(function () {
         /**
          * Calcula as posição de cada elemento com data-spy.
          */
-        function scrollSpyCalc() {
+        $.scrollSpyCalc = function () {
             if (processingSpyCalc === false) {
                 processingSpyCalc = true;
                 $('[data-spy]').each(function (i) {
                     arraySpy[i] = {dataspy: $(this).attr('id').replace("_go", ""), position: $(this).offset().top - window.menuInitialHeight, height: $(this).outerHeight()};
                 });
-                scrollSpy();
+                $.scrollSpy();
                 processingSpyCalc = false;
             }
-        }
+        };
 
         /**
          * <b>SCROLLSPY</b>
@@ -1022,7 +1117,7 @@ $(function () {
          * 
          * Na presença do atributo <b>data-spy</b> a função busca no mesmo elemento o valor do atributo <b>href</b> e verifica se é equivalente ao href do menu scrollspy. Verifica elementos com sufixo <b>_go</b> também.
          */
-        function scrollSpy() {
+        $.scrollSpy = function () {
             if (processingSpy === false) {
                 processingSpy = true;
                 $('[data-spy]').each(function (i) {
@@ -1034,7 +1129,7 @@ $(function () {
                 });
                 processingSpy = false;
             }
-        }
+        };
     }
 
 //    //AFFIX
@@ -1134,7 +1229,7 @@ $(function () {
          */
         $(document).on('click', function (event) {
             if ($(event.target).has('.j_modal_box').length) {
-                closeModal();
+                $.closeModal();
             }
         });
 
@@ -1142,29 +1237,29 @@ $(function () {
          * Invoca fechamento da modal ao clicar no botão de fechar
          */
         $('.j_modal_close').click(function () {
-            closeModal();
+            $.closeModal();
         });
 
         /**
          * Abre modal onde o valor do atributo <b>data-modal</b> é igual ao parâmetro <b>setDataModal</b>
          * @param {string} setDataModal
          */
-        function openModal(setDataModal) {
+        $.openModal = function (setDataModal) {
             dataModal = '[data-modal="' + setDataModal + '"]';
             if ($(dataModal).length) {
                 $('body').css('overflow', 'hidden');
                 $(dataModal).fadeIn();
                 $(dataModal + ' input:text:visible:first').focus();
             }
-        }
+        };
 
         /**
          * Fecha modais
          */
-        function closeModal() {
+        $.closeModal = function () {
             $('body').css('overflow', '');
             $('[data-modal]').fadeOut(200);
-        }
+        };
 
         /**
          * <b>MODAL BY URL PARAMETER</b>
@@ -1172,7 +1267,7 @@ $(function () {
          * Após carregar a página, abre modal se o parâmetro da URL <b>modal</b> for igual ao valor do atributo <b>data-modal</b>.
          */
         if (($.urlParam('modal')) && ($.urlParam('modal') !== 0)) {
-            openModal($.urlParam('modal'));
+            $.openModal($.urlParam('modal'));
         }
     }
 
@@ -1186,7 +1281,7 @@ $(function () {
         /**
          * Iguala altura de boxes com mesmo valor de atributo <b>data-same-height</b>.
          */
-        function sameHeight() {
+        $.sameHeight = function () {
             if (processingHeights === false) {
                 processingHeights = true;
                 if (window.width > 440) {
@@ -1211,7 +1306,7 @@ $(function () {
                 }
                 processingHeights = false;
             }
-        }
+        };
     }
 
     //*****END FUNCIONALIDADES*****
@@ -1248,80 +1343,105 @@ $(function () {
 
     }
 
-    //SLIDE
-    if ($('.slide_nav').length) {
+    //ACCORDION
+    if ($('[data-accord]').length) {
+        $('[data-accord]').click(function () {
+            var up = false;
+            $('.j_accord_toogle_active').slideUp(200, function () {
+                up = true;
+                $(this).removeClass('j_accord_toogle_active');
+                $.normalize();
+            });
+            $(this).find('.j_accord_toogle:not(.j_accord_toogle_active)').slideToggle(200, function () {
+                up !== true ? $.normalize() : '';
+            }).addClass('j_accord_toogle_active');
+            up = false;
+        });
+    }
+
+
+    //SLIDER
+    if ($('[data-slide]').length) {
         var trackSlideClick;
-        var slideIndicator;
-        $('.slide_nav.go').click(function () {
-            trackSlideClick = '[data-slide="' + $(this).attr('data-slide') + '"]';
-            slideGo();
+        var trackSlideIndicator;
+        var slideOrder;
+        var slideId;
+        $('[data-slide-go]').click(function () {
+            slideId = $(this).attr('data-slide-go');
+            trackSlideClick = '[data-slide="' + slideId + '"]';
+            trackSlideIndicator = '[data-slide-ind="' + slideId + '"]';
+            $.slideGo();
         });
 
-        $('.slide_nav.back').click(function () {
-            trackSlideClick = '[data-slide="' + $(this).attr('data-slide') + '"]';
-            slideBack();
+        $('[data-slide-back]').click(function () {
+            slideId = $(this).attr('data-slide-back');
+            trackSlideClick = '[data-slide="' + slideId + '"]';
+            trackSlideIndicator = '[data-slide-ind="' + slideId + '"]';
+            $.slideBack();
         });
 
-        $('.slide_indicators li').click(function () {
-            trackSlideClick = '[data-slide="' + $(this).attr('data-slide') + '"]';
-            slideIndicator = $(this).attr('data-slide-to');
-            slideIndicators();
+        $('[data-slide-ind]').click(function () {
+            slideId = $(this).attr('data-slide-ind');
+            trackSlideClick = '[data-slide="' + slideId + '"]';
+            trackSlideIndicator = '[data-slide-ind="' + slideId + '"]';
+            slideOrder = $(this).attr('data-order');
+            $.slideIndicators();
         });
 
         /**
          * Avança para o próximo item do slider
          */
-        function slideGo() {
-            if ($('.j_slide' + trackSlideClick + ' .slide_item.first').next().length) {
-                $('.j_slide' + trackSlideClick + ' .slide_item.first').fadeOut(200, function () {
-                    $(this).removeClass('first').next().fadeIn().addClass('first');
-                    $('.slide_indicators li' + trackSlideClick + '[data-slide-to="' + $(this).index() + '"]').removeClass('active').next().addClass('active');
+        $.slideGo = function () {
+            if ($(trackSlideClick + '.first').next().length) {
+                $(trackSlideClick + '.first').fadeOut(200, function () {
+                    $(trackSlideClick + '.first').removeClass('first').next().fadeIn().addClass('first');
+                    $(trackSlideIndicator + '.active').removeClass('active').next().fadeIn().addClass('active');
                 });
             } else {
-                $('.j_slide' + trackSlideClick + ' .slide_item.first').fadeOut(200, function () {
-                    $(this).removeClass('first');
-                    $('.j_slide' + trackSlideClick + ' .slide_item').eq(0).fadeIn().addClass('first');
-                    $('.slide_indicators li' + trackSlideClick + '[data-slide-to="' + $(this).index() + '"]').removeClass('active');
-                    $('.slide_indicators li' + trackSlideClick + '[data-slide-to="' + $('.j_slide' + trackSlideClick + ' .slide_item:eq(0)').index() + '"]').addClass('active');
+                $(trackSlideClick + '.first').fadeOut(200, function () {
+                    $(trackSlideClick + '.first').removeClass('first');
+                    $(trackSlideClick).eq(0).fadeIn().addClass('first');
+                    $(trackSlideIndicator + '.active').removeClass('active');
+                    $(trackSlideIndicator).eq(0).fadeIn().addClass('active');
                 });
             }
             return false;
-        }
+        };
 
         /**
          * Volta para o item anterior do slider
          */
-        function slideBack() {
-            if ($('.j_slide' + trackSlideClick + ' .slide_item.first').index() >= 1) {
-                $('.j_slide' + trackSlideClick + ' .slide_item.first').fadeOut(200, function () {
-                    $(this).removeClass('first').prev().fadeIn().addClass('first');
-                    $('.slide_indicators li' + trackSlideClick + '[data-slide-to="' + $(this).index() + '"]').removeClass('active').prev().addClass('active');
+        $.slideBack = function () {
+            if ($(trackSlideClick + '.first').index() > 1) {
+                $(trackSlideClick + '.first').fadeOut(200, function () {
+                    $(trackSlideClick + '.first').removeClass('first').prev().fadeIn().addClass('first');
+                    $(trackSlideIndicator + '.active').removeClass('active').prev().fadeIn().addClass('active');
                 });
             } else {
-                $('.j_slide' + trackSlideClick + ' .slide_item.first').fadeOut(200, function () {
-                    $(this).removeClass('first');
-                    $('.j_slide' + trackSlideClick + ' .slide_item:last-of-type').fadeIn().addClass('first');
-                    $('.slide_indicators li' + trackSlideClick + '[data-slide-to="' + $(this).index() + '"]').removeClass('active');
-                    $('.slide_indicators li' + trackSlideClick + '[data-slide-to="' + ($('.j_slide' + trackSlideClick + ' .slide_item').length - 1) + '"]').addClass('active');
+                $(trackSlideClick + '.first').fadeOut(200, function () {
+                    $(trackSlideClick + '.first').removeClass('first');
+                    $(trackSlideClick + ':last-of-type').eq(0).fadeIn().addClass('first');
+                    $(trackSlideIndicator + '.active').removeClass('active');
+                    $(trackSlideIndicator + ':last-of-type').eq(0).fadeIn().addClass('active');
                 });
             }
             return false;
-        }
+        };
 
         /**
          * Avança para o item clicado do slider
          */
-        function slideIndicators() {
+        $.slideIndicators = function () {
             if (!($(this).hasClass('active'))) {
-                $('.j_slide' + trackSlideClick + ' .slide_item.first').fadeOut(200, function () {
-                    $(this).removeClass('first');
-                    $('.j_slide' + trackSlideClick + ' .slide_item').eq(slideIndicator).fadeIn().addClass('first');
-                    $('.slide_indicators li' + trackSlideClick + '.active').removeClass('active');
-                    $('.slide_indicators li' + trackSlideClick + '[data-slide-to="' + slideIndicator + '"]').addClass('active');
+                $(trackSlideClick + '.first').fadeOut(200, function () {
+                    $(trackSlideClick + '.first').removeClass('first');
+                    $(trackSlideClick).eq(slideOrder).fadeIn().addClass('first');
+                    $('[data-slide-ind="' + slideId + '"]' + '.active').removeClass('active');
+                    $('[data-slide-ind="' + slideId + '"][data-order="' + slideOrder + '"]').addClass('active');
                 });
             }
             return false;
-        }
+        };
     }
 
     //*****END WIDGETS*****
@@ -1330,33 +1450,33 @@ $(function () {
     if (typeof window.BASE !== 'undefined' && window.BASE === 'localhost' || window.BASE === '127.0.0.1') { //Verifica se está em localhost
 
         $(window).resize(function () {
-            definePrefix();
+            $.definePrefix();
         });
 //        $(window).scroll(function () {
-//            appendScrollTop();
+//            $.appendScrollTop();
 //        });
 
         /**
          * Verifica a resolução, define o prefixo responsivo e exibe na tela.
          */
-        function definePrefix() {
+        $.definePrefix = function () {
             if (window.width < 480) {
                 prefix = '0 (Até 480)';
-                executePrefix();
+                $.executePrefix();
             } else if ((window.width >= 480) && (window.width < 768) && (prefix !== 'xs')) {
                 prefix = 'xs (480 -> 768)';
-                executePrefix();
+                $.executePrefix();
             } else if ((window.width >= 768) && (window.width < 1024) && (prefix !== 'sm')) {
                 prefix = 'sm (768 -> 1024)';
-                executePrefix();
+                $.executePrefix();
             } else if ((window.width >= 1024) && (window.width < 1280) && (prefix !== 'md')) {
                 prefix = 'md (1024 -> 1280)';
-                executePrefix();
+                $.executePrefix();
             } else if ((window.width >= 1280) && (prefix !== 'lg')) {
                 prefix = 'lg (Maior que 1280)';
-                executePrefix();
+                $.executePrefix();
             }
-        }
+        };
 
         //DEBUG
         if ($('.debug').length) {
@@ -1366,34 +1486,34 @@ $(function () {
         }
 
         //SCROLLTOP PRINT
-        function appendScrollTop() {
+        $.appendScrollTop = function () {
             $('body').append('<span class="prefixLabel" style="position: fixed; left: 0; bottom: 0; background-color: rgba(70, 70, 70, 0.8); color: #fff; padding: 10px 16px; border-radius: 0 5px 0 0; text-transform: uppercase;">' + window.scrollTop + '</span>');
-        }
+        };
 
         //RESOLUTION PREFIXES
         var prefix;
         var timerPref;
 
-        function timerPrefix() {
+        $.timerPrefix = function () {
             clearTimeout(timerPref);
             timerPref = setTimeout(function () {
-                removePrefix();
+                $.removePrefix();
             }, 2000);
-        }
+        };
 
-        function removePrefix() {
+        $.removePrefix = function () {
             $('span.prefixLabel').remove();
-        }
+        };
 
-        function appendPrefix() {
+        $.appendPrefix = function () {
             $('body').append('<span class="prefixLabel" style="position: fixed; left: 0; bottom: 0; background-color: rgba(70, 70, 70, 0.8); color: #fff; padding: 10px 16px; border-radius: 0 5px 0 0; text-transform: uppercase;">' + prefix + '</span>');
-        }
+        };
 
-        function executePrefix() {
-            removePrefix();
-            appendPrefix();
-            timerPrefix();
-        }
+        $.executePrefix = function () {
+            $.removePrefix();
+            $.appendPrefix();
+            $.timerPrefix();
+        };
 
 
         /**
@@ -1403,7 +1523,7 @@ $(function () {
          * @param x
          * @param y
          */
-        function echos(x, y) {
+        $.echos = function (x, y) {
             if (x && y) {
                 var echo = '(' + typeof x + ') x: ' + x + ' / ' + '(' + typeof y + ') y: ' + y;
             } else if (x) {
@@ -1424,7 +1544,7 @@ $(function () {
             function alert() {
                 alert(echo);
             }
-        }
+        };
     }
 
     //*****END DEV TOOLS*****
