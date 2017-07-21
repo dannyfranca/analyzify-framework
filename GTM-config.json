@@ -1,13 +1,13 @@
 {
     "exportFormatVersion": 2,
-    "exportTime": "2017-06-27 16:51:06",
+    "exportTime": "2017-07-21 10:43:41",
     "containerVersion": {
-        "path": "accounts/447353382/containers/6978358/versions/7",
+        "path": "accounts/447353382/containers/6978358/versions/8",
         "accountId": "447353382",
         "containerId": "6978358",
-        "containerVersionId": "7",
-        "name": "1.2.2",
-        "description": "Enhanced Link Attribution true como padrão",
+        "containerVersionId": "8",
+        "name": "1.2.3",
+        "description": "- Adição de tempo ativo nos eventos Facebook.\n- Retirada do monitoramento de form jQuery da tag Mautic.",
         "container": {
             "path": "accounts/447353382/containers/6978358",
             "accountId": "447353382",
@@ -17,7 +17,7 @@
             "usageContext": [
                 "WEB"
             ],
-            "fingerprint": "1498576957603",
+            "fingerprint": "1498577035059",
             "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/447353382/containers/6978358/workspaces?apiLink=container"
         },
         "tag": [
@@ -60,7 +60,7 @@
                     {
                         "type": "TEMPLATE",
                         "key": "html",
-                        "value": "<script>\n  (function() {\n    fbq('trackCustom', '{{Event}}', {\n      event_category: {{eventCategory}},\n      event_action: {{eventAction}},\n      event_label: {{eventLabel}},\n      event_value: {{eventValue}},\n      utm_source: {{utmSource}},\n      utm_medium: {{utmMedium}},\n      utm_campaign: {{utmCampaign}},\n      utm_term: {{utmTerm}},\n      utm_content: {{utmContent}},\n      referrer: document.referrer,\n      userAgent: navigator.userAgent,\n      language: navigator.language\n    });\n  })();\n</script>"
+                        "value": "<script>\n  (function() {\n    fbq('trackCustom', '{{Event}}', {\n      //event\n      event_category: {{eventCategory}},\n      event_action: {{eventAction}},\n      event_label: {{eventLabel}},\n      event_value: {{eventValue}},\n      //UTM tags\n      utm_source: {{utmSource}},\n      utm_medium: {{utmMedium}},\n      utm_campaign: {{utmCampaign}},\n      utm_term: {{utmTerm}},\n      utm_content: {{utmContent}},\n      //metrics\n      active_time: {{activeTime}},\n      referrer: document.referrer,\n      userAgent: navigator.userAgent,\n      language: navigator.language\n    });\n  })();\n</script>"
                     },
                     {
                         "type": "BOOLEAN",
@@ -68,7 +68,7 @@
                         "value": "false"
                     }
                 ],
-                "fingerprint": "1498348341432",
+                "fingerprint": "1500467951942",
                 "firingTriggerId": [
                     "23"
                 ],
@@ -376,7 +376,7 @@
                     {
                         "type": "TEMPLATE",
                         "key": "html",
-                        "value": "<script>\n    (function(w,d,t,u,n,a,m){w['MauticTrackingObject']=n;\n        w[n]=w[n]||function(){(w[n].q=w[n].q||[]).push(arguments)},a=d.createElement(t),\n        m=d.getElementsByTagName(t)[0];a.async=1;a.src=u;m.parentNode.insertBefore(a,m)\n    })(window,document,'script','{{mauticDomain}}/mtc.js','mt');\n\n    mt('send', 'pageview');\n</script>"
+                        "value": "<script>\n  (function(w,d,t,u,n,a,m){w['MauticTrackingObject']=n;\n                           w[n]=w[n]||function(){(w[n].q=w[n].q||[]).push(arguments)},a=d.createElement(t),\n                             m=d.getElementsByTagName(t)[0];a.async=1;a.src=u;m.parentNode.insertBefore(a,m)\n                          })(window,document,'script','{{mauticDomain}}/mtc.js','mt');\n\n  mt('send', 'pageview');\n\n  if (typeof window.MauticSDKLoaded === 'undefined') {\n    window.MauticSDKLoaded = true;\n    var head = document.getElementsByTagName('head')[0];\n    var script = document.createElement('script');\n    script.type = 'text/javascript';\n    script.src = '{{mauticDomain}}/media/js/mautic-form.js';\n    script.onload = function () {\n      MauticSDK.onLoad();\n    };\n    head.appendChild(script);\n    var MauticDomain = '{{mauticDomain}}';\n    var MauticLang = {\n      'submittingMessage': \"Por favor, aguarde...\"\n    };\n  }\n</script>"
                     },
                     {
                         "type": "BOOLEAN",
@@ -384,7 +384,7 @@
                         "value": "false"
                     }
                 ],
-                "fingerprint": "1497792101903",
+                "fingerprint": "1498821146145",
                 "firingTriggerId": [
                     "14"
                 ],
@@ -2425,7 +2425,7 @@
                 "name": "Random Number"
             }
         ],
-        "fingerprint": "1498577035029",
-        "tagManagerUrl": "https://tagmanager.google.com/#/versions/accounts/447353382/containers/6978358/versions/7?apiLink=version"
+        "fingerprint": "1500633727671",
+        "tagManagerUrl": "https://tagmanager.google.com/#/versions/accounts/447353382/containers/6978358/versions/8?apiLink=version"
     }
 }

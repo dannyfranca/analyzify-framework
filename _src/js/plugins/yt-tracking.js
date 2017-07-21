@@ -4,9 +4,9 @@ var ytVideos = document.querySelectorAll('[data-ytId]');
 
 if (ytVideos.length) {
 
-    var ytDebug = true;
-    var ytPlayers = [];
-    var ytVideoTime;
+    window.ytDebug = window.ytDebug || false;
+    window.ytPlayers = [];
+    window.ytVideoTime;
 
     // Load IFrame Player API code asynchronously.
     var tag = document.createElement('script');
@@ -20,7 +20,7 @@ if (ytVideos.length) {
      **/
     function onYouTubeIframeAPIReady() {
         for (i = 0; i < ytVideos.length; i++) {
-            ytPlayers.push(new YT.Player(ytVideos[i].id, {
+            window.ytPlayers.push(new YT.Player(ytVideos[i].id, {
                 height: '360',
                 width: '640',
                 videoId: ytVideos[i].getAttribute('data-ytId'),
@@ -52,7 +52,7 @@ if (ytVideos.length) {
 //     * @param event (evento)
 //     **/
     function onPlayerStateChange(event) {
-        ytDebug === false ? '' : console.log('last: ' + event["target"]["lastAction"]);
+        window.ytDebug === false ? '' : console.log('last: ' + event["target"]["lastAction"]);
 
         event.data === YT.PlayerState.PLAYING && setTimeout(onPlayerPercent, 1000, event["target"]);
         var video_data = event.target["getVideoData"](),
@@ -61,44 +61,44 @@ if (ytVideos.length) {
 
         if (event["target"]["lastAction"] === "ready") {
             if (event.data === YT.PlayerState.PLAYING) {
-                ytDebug === false ?
+                window.ytDebug === false ?
                         dlPush('youtube', 'firstplay', vidid + ' - ' + label, window.activeTimer, false, 'beacon') :
                         console.log('FIRSTPLAY: ' + window.activeTimer + ' seg');
                 window.jqLink.func({
-                    customTimer: [vidid],
-                    customActiveMaster: [vidid, true]
+                    '$.customTimer': [vidid],
+                    '$.customActiveMaster': [vidid, true]
                 });
                 event["target"]["lastAction"] = "firstplay";
                 event["target"]["justChanged"] = false;
             }
         } else if (event.data === YT.PlayerState.PLAYING && event["target"]["autoStatChange"] === true && event["target"]["autoPlayed"] === true) {
-            ytVideoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-            ytDebug === false ?
-                    dlPush('youtube', 'autoplay', vidid + ' - ' + label, ytVideoTime, false, 'beacon', 'fb') :
-                    console.log('AUTOPLAY: ' + ytVideoTime + '%  /  ' + vidid + ' - ' + label);
+            window.ytVideoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
+            window.ytDebug === false ?
+                    dlPush('youtube', 'autoplay', vidid + ' - ' + label, window.ytVideoTime, false, 'beacon', 'fb') :
+                    console.log('AUTOPLAY: ' + window.ytVideoTime + '%  /  ' + vidid + ' - ' + label);
             event["target"]["lastAction"] = "play";
             event["target"]["justChanged"] = false;
             event["target"]["autoPlayed"] = false;
         } else if (event.data === YT.PlayerState.PLAYING && event["target"]["lastAction"] === "pause" && event.target.getCurrentTime() - event["target"]["pausedTime"] < 1 && event.target.getCurrentTime() - event["target"]["pausedTime"] >= -1 && event["target"]["justChanged"] === false) {
-            ytVideoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-            ytDebug === false ?
-                    dlPush('youtube', 'play', vidid + ' - ' + label, ytVideoTime, false, 'beacon', 'fb') :
-                    console.log('PLAY: ' + ytVideoTime + '%  /  ' + vidid + ' - ' + label);
+            window.ytVideoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
+            window.ytDebug === false ?
+                    dlPush('youtube', 'play', vidid + ' - ' + label, window.ytVideoTime, false, 'beacon', 'fb') :
+                    console.log('PLAY: ' + window.ytVideoTime + '%  /  ' + vidid + ' - ' + label);
             event["target"]["lastAction"] = "play";
             event["target"]["justChanged"] = false;
         } else if (event.data === YT.PlayerState.PLAYING && event["target"]["lastAction"] === "pause") {
-            ytVideoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-            ytDebug === false ?
-                    dlPush('youtube', 'jump', vidid + ' - ' + label, ytVideoTime, false, 'beacon', 'fb') :
-                    console.log('JUMP: ' + ytVideoTime + '%  /  ' + vidid + ' - ' + label);
+            window.ytVideoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
+            window.ytDebug === false ?
+                    dlPush('youtube', 'jump', vidid + ' - ' + label, window.ytVideoTime, false, 'beacon', 'fb') :
+                    console.log('JUMP: ' + window.ytVideoTime + '%  /  ' + vidid + ' - ' + label);
             event["target"]["lastAction"] = "jump";
             event["target"]["justChanged"] = false;
         } else if (event.data === YT.PlayerState.PAUSED && event["target"]["autoStatChange"] === true && event["target"]["autoPaused"] === true) {
             event["target"]["pausedTime"] = event.target.getCurrentTime();
-            ytVideoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-            ytDebug === false ?
-                    dlPush('youtube', 'autopause', vidid + ' - ' + label, ytVideoTime, false, 'beacon', 'fb') :
-                    console.log('AUTOPAUSE: ' + ytVideoTime + '%  /  ' + vidid + ' - ' + label);
+            window.ytVideoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
+            window.ytDebug === false ?
+                    dlPush('youtube', 'autopause', vidid + ' - ' + label, window.ytVideoTime, false, 'beacon', 'fb') :
+                    console.log('AUTOPAUSE: ' + window.ytVideoTime + '%  /  ' + vidid + ' - ' + label);
             event["target"]["lastAction"] = "pause";
             event["target"]["justChanged"] = false;
             event["target"]["autoPaused"] = false;
@@ -108,10 +108,10 @@ if (ytVideos.length) {
                 if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.BUFFERING || event["target"]["justChanged"] === true) {
                     '';
                 } else {
-                    ytVideoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-                    ytDebug === false ?
-                            dlPush('youtube', 'pause', vidid + ' - ' + label, ytVideoTime, true, 'beacon', 'fb') :
-                            console.log('PAUSE: ' + ytVideoTime + '%  /  ' + vidid + ' - ' + label);
+                    window.ytVideoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
+                    window.ytDebug === false ?
+                            dlPush('youtube', 'pause', vidid + ' - ' + label, window.ytVideoTime, true, 'beacon', 'fb') :
+                            console.log('PAUSE: ' + window.ytVideoTime + '%  /  ' + vidid + ' - ' + label);
                     event["target"]["autoStatChange"] = false;
                 }
             }, 200);
@@ -124,14 +124,14 @@ if (ytVideos.length) {
         if (event.data === YT.PlayerState.PLAYING) {
             window.activeMaster = true;
             window.jqLink.func({
-                customActiveMaster: [vidid, true]
+                '$.customActiveMaster': [vidid, true]
             });
         } else {
             if (event["target"]["lastAction"] !== "ready") {
                 window.activeMaster = false;
                 window.jqLink.func({
-                    customActiveMaster: [vidid, false],
-                    customUserNonIdle: [vidid, false]
+                    '$.customActiveMaster': [vidid, false],
+                    '$.customUserNonIdle': [vidid, false]
                 });
             }
         }
@@ -189,7 +189,7 @@ if (ytVideos.length) {
             if (!event["lastP"] || t > event["lastP"]) {
                 event["lastP"] = t;
                 if (!(t == 0.00)) {
-                    ytDebug === false ?
+                    window.ytDebug === false ?
                             dlPush('youtube', 'watch', vidid + ' - ' + label, t * 100, false, 'beacon') :
                             console.log('ASSISTIDO: ' + t * 100 + '%  /  ' + vidid + ' - ' + label);
                 }
@@ -202,103 +202,103 @@ if (ytVideos.length) {
      * Add unload event listener when user close exit with video playing.
      * @param order (evento)
      **/
-    function ytExit(order) {
-        if (ytPlayers.length) {
+    window.ytExit = function(order) {
+        if (window.ytPlayers.length) {
             if (typeof order === "undefined") {
-                for (var i = 0; i < ytPlayers.length; i++) {
-                    if (ytPlayers[i].ready === true && ytPlayers[i].getPlayerState() === YT.PlayerState.PLAYING) { // playing
-                        var video_data = ytPlayers[i].getVideoData(),
+                for (var i = 0; i < window.ytPlayers.length; i++) {
+                    if (window.ytPlayers[i].ready === true && window.ytPlayers[i].getPlayerState() === YT.PlayerState.PLAYING) { // playing
+                        var video_data = window.ytPlayers[i].getVideoData(),
                                 label = video_data.title,
                                 vidid = video_data.video_id;
-                        ytVideoTime = parseInt(ytPlayers[i].getCurrentTime() / ytPlayers[i].getDuration() * 100);
-                        ytDebug === false ?
-                                dlPush('youtube', 'exit', vidid + ' - ' + label, ytVideoTime, true, 'beacon', 'fb') :
-                                console.log('SAIU: ' + ytVideoTime + '%  /  ' + vidid + ' - ' + label);
+                        window.ytVideoTime = parseInt(window.ytPlayers[i].getCurrentTime() / window.ytPlayers[i].getDuration() * 100);
+                        window.ytDebug === false ?
+                                dlPush('youtube', 'exit', vidid + ' - ' + label, window.ytVideoTime, true, 'beacon', 'fb') :
+                                console.log('SAIU: ' + window.ytVideoTime + '%  /  ' + vidid + ' - ' + label);
                     }
                 }
             } else {
-                if (ytPlayers[order].ready === true && ytPlayers[order].getPlayerState() === YT.PlayerState.PLAYING) { // playing
-                    var video_data = ytPlayers[order].getVideoData(),
+                if (window.ytPlayers[order].ready === true && window.ytPlayers[order].getPlayerState() === YT.PlayerState.PLAYING) { // playing
+                    var video_data = window.ytPlayers[order].getVideoData(),
                             label = video_data.title,
                             vidid = video_data.video_id;
-                    ytVideoTime = parseInt(ytPlayers[order].getCurrentTime() / ytPlayers[order].getDuration() * 100);
-                    ytDebug === false ?
-                            dlPush('youtube', 'exit', vidid + ' - ' + label, ytVideoTime, true, 'beacon', 'fb') :
-                            console.log('SAIU: ' + ytVideoTime + '%  /  ' + vidid + ' - ' + label);
+                    window.ytVideoTime = parseInt(window.ytPlayers[order].getCurrentTime() / window.ytPlayers[order].getDuration() * 100);
+                    window.ytDebug === false ?
+                            dlPush('youtube', 'exit', vidid + ' - ' + label, window.ytVideoTime, true, 'beacon', 'fb') :
+                            console.log('SAIU: ' + window.ytVideoTime + '%  /  ' + vidid + ' - ' + label);
                 }
             }
         }
-    }
+    };
 
     //Pause video
-    function ytPause(order) {
+    window.ytPause = function(order) {
         if (typeof order === "undefined") {
-            for (var i = 0; i < ytPlayers.length; i++) {
-                if (ytPlayers[i].ready === true && ytPlayers[i].getPlayerState() === YT.PlayerState.PLAYING) { // playing
-                    ytPlayers[i].pauseVideo();
-                    ytPlayers[i].autoStatChange = true;
-                    ytPlayers[i].autoPaused = true;
+            for (var i = 0; i < window.ytPlayers.length; i++) {
+                if (window.ytPlayers[i].ready === true && window.ytPlayers[i].getPlayerState() === YT.PlayerState.PLAYING) { // playing
+                    window.ytPlayers[i].pauseVideo();
+                    window.ytPlayers[i].autoStatChange = true;
+                    window.ytPlayers[i].autoPaused = true;
                 }
             }
         } else {
-            if (ytPlayers[order].ready === true && ytPlayers[order].getPlayerState() === YT.PlayerState.PLAYING) { // playing
-                ytPlayers[order].pauseVideo();
-                ytPlayers[order].autoStatChange = true;
-                ytPlayers[order].autoPaused = true;
+            if (window.ytPlayers[order].ready === true && window.ytPlayers[order].getPlayerState() === YT.PlayerState.PLAYING) { // playing
+                window.ytPlayers[order].pauseVideo();
+                window.ytPlayers[order].autoStatChange = true;
+                window.ytPlayers[order].autoPaused = true;
             }
         }
-    }
+    };
 
     //Play video
-    function ytPlay(order) {
+    window.ytPlay = function(order) {
         if (typeof order === "undefined") {
-            for (var i = 0; i < ytPlayers.length; i++) {
-                if (ytPlayers[i].ready === true && ytPlayers[i].getPlayerState() === YT.PlayerState.PAUSED && ytPlayers[i].autoStatChange === true) { // paused and automode
-                    ytPlayers[i].playVideo();
-                    ytPlayers[i].autoPlayed = true;
+            for (var i = 0; i < window.ytPlayers.length; i++) {
+                if (window.ytPlayers[i].ready === true && window.ytPlayers[i].getPlayerState() === YT.PlayerState.PAUSED && window.ytPlayers[i].autoStatChange === true) { // paused and automode
+                    window.ytPlayers[i].playVideo();
+                    window.ytPlayers[i].autoPlayed = true;
                 }
             }
         } else {
-            if (ytPlayers[order].ready === true && ytPlayers[order].getPlayerState() === YT.PlayerState.PAUSED) { // paused 
-                ytPlayers[order].playVideo();
-                ytPlayers[order].autoPlayed = true;
+            if (window.ytPlayers[order].ready === true && window.ytPlayers[order].getPlayerState() === YT.PlayerState.PAUSED) { // paused 
+                window.ytPlayers[order].playVideo();
+                window.ytPlayers[order].autoPlayed = true;
             }
         }
-    }
+    };
 
-    function ytLoad(id, autoplay, start, end, order) {
+    window.ytLoad = function(id, autoplay, start, end, order) {
         order = order || 0;
-        if (ytPlayers.length) {
+        if (window.ytPlayers.length) {
             var load = (autoplay === true || autoplay === 'true' || autoplay === 1 ? 'loadVideoById' : 'cueVideoById');
             if (typeof id !== "undefined") {
-                if (ytPlayers[order]["lastAction"] !== "ready") {
+                if (window.ytPlayers[order]["lastAction"] !== "ready") {
                     //Get Video Data
-                    var video_data = ytPlayers[order].getVideoData(),
+                    var video_data = window.ytPlayers[order].getVideoData(),
                             vidid = video_data.video_id;
                     ytExit(order);
                     //Finish Previous Video Metrics and Unset Previous Custom Timer
                     window.jqLink.func({
-                        unsetCustomTimer: [vidid]
+                        '$.unsetCustomTimer': [vidid]
                     });
                 }
                 if (autoplay === true || autoplay === 'true' || autoplay === 1) {
                     window.jqLink.func({
-                        customTimer: [id],
-                        customActiveMaster: [id, true]
+                        '$.customTimer': [id],
+                        '$.customActiveMaster': [id, true]
                     });
                 }
-                ytPlayers[order][load]({
+                window.ytPlayers[order][load]({
                     videoId: id,
                     startSeconds: parseInt(start),
                     endSeconds: parseInt(end)
                 });
                 if (!(autoplay === true || autoplay === 'true' || autoplay === 1)) {
-                    ytPlayers[order]["lastAction"] = 'ready';
+                    window.ytPlayers[order]["lastAction"] = 'ready';
                 }
             }
         } else {
             ytVideos[order].setAttribute("data-ytId", id);
         }
-    }
+    };
 
 }

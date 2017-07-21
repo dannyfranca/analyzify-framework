@@ -1,4 +1,4 @@
-/* global index, property, param, eval, ytVideos, ytPlayers, YT, parseFloat, dataLayer */
+/* global index, property, param, eval, ytVideos, window.ytPlayers, YT, parseFloat, dataLayer */
 
 //-----PRESETS-----
 window.BASE = document.location.hostname;
@@ -6,7 +6,8 @@ window.page = document.location.protocol + '//' + document.location.hostname + d
 window.ajaxPage = window.ajaxPage || false;
 window.hidden = window.hidden || false;
 window.query_string = QueryStringToJSON();
-window.debug = window.debug || false; //debug switch
+window.fwDebug = window.fwDebug || false; //debug switch
+window.analyzifyInject = window.analyzifyInject || {};
 
 //DATALAYER INIT
 window.dataLayer = window.dataLayer || [];
@@ -101,9 +102,9 @@ function dlPush(cat, act, lab, val, nInt, tran, exc, obj) {
         Object.assign(event, obj);
     }
 
-    if (cat && act && window.debug !== true) {
+    if (cat && act && window.fwDebug !== true) {
         window.dataLayer.push(event);
-    } else if (window.debug === true) {
+    } else if (window.fwDebug === true) {
         console.log(JSON.stringify(event));
     }
 
@@ -151,24 +152,37 @@ $(function () {
     /**
      * Injeta atributos e seus respectivos valores em elementos por meio de seletores jQuery.
      * 
-     * Se select não for definido, usará os dados da variável global analyzifyInject:
-     * window.analyzifyInject = {
-     *   'selector1': {
-     *       'attr1': "value",
-     *       'attr2': "value"
-     *   },
-     *   'selector2': {
-     *       'attr1': "value",
-     *       'attr2': "value"
-     *   }
-     * };
+     * Se select não for definido, usará os dados do objeto global analyzifyInject:
+     *  window.analyzifyInject = {
+     'selector1': {
+     'attr1': "value",
+     'attr2': "value"
+     },
+     'selector2': {
+     'attr1': "value",
+     'attr2': "value"
+     }
+     };
+     * 
+     * OBS: Para evitar sobrescrever o objeto de injeção, utilize o método <b>Object.assign(window.analyzifyInject, {...})</b>, que é uma alternativa ao array.push() para mesclar objetos.
+     * Ex:
+     *  Object.assign(window.analyzifyInject, {
+     'selector1': {
+     'attr1': "value",
+     'attr2': "value"
+     },
+     'selector2': {
+     'attr1': "value",
+     'attr2': "value"
+     }
+     });
      * 
      * Nos valores dos atributos podem ser usados coringas que retornam valores dinamicamente de cada elemento:
      * 
      * - {{attr}}: Essa bloco é substituído pelo valor do atributo descrito. Ex: {{id}} é substituído pelo id do elemento. Se o atributo não existir, nada é substituído.
      * - [[count]]: Esse bloco é substituído pelo índice do seletor, começando de 1. Ex: Se a classe .cta estiver em 3 elemento, [[count]] irá incrementar de 1 a 3 em cada loop.
      * 
-     * @param {Object/String} select - Seletor jQuery para aplicar atributos e respectivos valores ou um Objeto com a mesma estrutura da variável global analyzifyInject.
+     * @param {Object/String} select - Seletor jQuery para aplicar atributos e respectivos valores, vide os outros parâmemetros. Se for um Objeto, deve ter a mesma estrutura da variável global analyzifyInject e injetará apenas os dados setados como parâmetro.
      * @param {String} attr - Nome do atributo a ser injetado
      * @param {String} value - Valor do atributo injetado
      */
@@ -184,29 +198,31 @@ $(function () {
 
                             var attrValue = window.analyzifyInject[selector][attribute];
 
-                            //get term between braces
-                            var match = attrValue.match(/\{{2}([^}]+)\}{2}/g);
-                            if (typeof match !== 'undefined') {
-                                var attrNames = [];
-                                $.each(match, function (i, el) {
-                                    if ($.inArray(el, attrNames) === -1)
-                                        attrNames.push(el);
-                                });
-                                for (var i in attrNames) {
-                                    var attrName = attrNames[i].replace('{{', '').replace('}}', '');
-                                    var getAttr = $(this).attr(attrName);
-                                    if (typeof getAttr !== 'undefined') {
-                                        var regExp = new RegExp(attrNames[i], 'g');
-                                        attrValue = attrValue.replace(regExp, getAttr);
-                                    } else {
-                                        console.warn('Attribute ' + attrName + ' undefined in ' + selector + '(index: ' + i);
+                            if (attrValue !== "") {
+                                //get term between braces
+                                var match = attrValue.match(/\{{2}([^}]+)\}{2}/g);
+                                if (typeof match !== 'undefined') {
+                                    var attrNames = [];
+                                    $.each(match, function (i, el) {
+                                        if ($.inArray(el, attrNames) === -1)
+                                            attrNames.push(el);
+                                    });
+                                    for (var i in attrNames) {
+                                        var attrName = attrNames[i].replace('{{', '').replace('}}', '');
+                                        var getAttr = $(this).attr(attrName);
+                                        if (typeof getAttr !== 'undefined') {
+                                            var regExp = new RegExp(attrNames[i], 'g');
+                                            attrValue = attrValue.replace(regExp, getAttr);
+                                        } else {
+                                            console.warn('Attribute ' + attrName + ' undefined in ' + selector + '(index: ' + i);
+                                        }
                                     }
                                 }
-                            }
 
-                            //get index
-                            if (attrValue.indexOf('[[count]]') !== -1) {
-                                attrValue = attrValue.replace(/\[{2}(count)\]{2}/g, counter);
+                                //get index
+                                if (attrValue.indexOf('[[count]]') !== -1) {
+                                    attrValue = attrValue.replace(/\[{2}(count)\]{2}/g, counter);
+                                }
                             }
 
                             $(this).attr(attribute, attrValue);
@@ -229,11 +245,11 @@ $(function () {
     $.pageVisibilityHidden = function () {
         window.hidden = true;
         //YOUTUBE
-        if (typeof ytPlayers !== "undefined" && ytPlayers) {
+        if (typeof window.ytPlayers !== "undefined" && window.ytPlayers) {
             ytPause();
         }
 
-        if (window.debug === true) {
+        if (window.fwDebug === true) {
             console.log('Tab Hidden');
         }
     };
@@ -244,11 +260,11 @@ $(function () {
     $.pageVisibility = function () {
         window.hidden = false;
         //YOUTUBE
-        if (typeof ytPlayers !== "undefined" && ytPlayers) {
+        if (typeof window.ytPlayers !== "undefined" && window.ytPlayers) {
             $.viewEvent('youtube', true);
         }
 
-        if (window.debug === true) {
+        if (window.fwDebug === true) {
             console.log('Tab Visible');
         }
     };
@@ -275,7 +291,7 @@ $(function () {
         }
 
         //YOUTUBE
-        if (typeof ytPlayers !== "undefined" && ytPlayers) {
+        if (typeof window.ytPlayers !== "undefined" && window.ytPlayers) {
             ytExit();
         }
     };
@@ -491,7 +507,7 @@ $(function () {
             if (window.viewEventExist === true && window.load === true) {
                 $.viewEvent();
             }
-            if (window.debug === true) {
+            if (window.fwDebug === true) {
                 console.log('First Active');
             }
         }
@@ -572,7 +588,7 @@ $(function () {
             window['customTimers'][name]['activeTimerId'] = setInterval(function () {
                 if ((window['customTimers'][name]['idle'] === false || window['customTimers'][name]['activeMaster'] === true) && window.firstActive === true && window.hidden === false) {
                     window['customTimers'][name]['activeTimer'] += 1;
-                    if (window.debug === true) {
+                    if (window.fwDebug === true) {
                         console.log(name + ' - ' + window['customTimers'][name]['activeTimer']);
                     }
                 }
@@ -927,7 +943,9 @@ $(function () {
      * Verifica se clique em um link tem destino fora do site. Se positivo, envia evento ao GTM informando site e link completo.
      */
     if (typeof window.BASE !== 'undefined') {
-        $('a[href^="http"]').click(function () {
+        $('a[href^="http"]').filter(function () {
+            return this.href.match(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/);
+        }).click(function () {
             var href = $(this).attr('href') ? $(this).attr('href') : '';
             if ((href.indexOf('http://') !== -1 || href.indexOf('https://') !== -1) && href.indexOf(window.BASE) === -1) {
                 var site = href.replace(/(https:|http:|)\/\//, '');
@@ -1011,20 +1029,6 @@ $(function () {
      */
 
     if ($('[data-menu="fixed-top"]').length) {
-        window.menuFixedTopExist = true;
-        var logoSrc = $('[data-menu="fixed-top"] .img-logo').attr('src');
-        var logoWhiteSrc = logoSrc.substr(0, logoSrc.indexOf('.')) + '-white.png';
-        if ($('.j_padding_top').length) {
-            $('.j_padding_top').css('padding-top', window.menuInitialHeight);
-        } else {
-            $('body').css('padding-top', window.menuInitialHeight);
-        }
-        $('[data-menu="fixed-top"]').addClass('fixed_top');
-        if ($(window).scrollTop() > 0) {
-            $('[data-menu="fixed-top"]').addClass('main_header_fixed');
-        } else {
-            $.addLogoWhite();
-        }
         /**
          * Reduz a altura do menu se posição do rolamento for maior que zero. E alterna entre logos branca e original na presença da lcasse .transparente
          */
@@ -1056,6 +1060,21 @@ $(function () {
                 $('[data-menu="fixed-top"] .mobile_action').removeClass('white');
             }
         };
+
+        window.menuFixedTopExist = true;
+        var logoSrc = $('[data-menu="fixed-top"] .img-logo').attr('src');
+        var logoWhiteSrc = logoSrc.substr(0, logoSrc.indexOf('.')) + '-white.png';
+        if ($('.j_padding_top').length) {
+            $('.j_padding_top').css('padding-top', window.menuInitialHeight);
+        } else {
+            $('body').css('padding-top', window.menuInitialHeight);
+        }
+        $('[data-menu="fixed-top"]').addClass('fixed_top');
+        if ($(window).scrollTop() > 0) {
+            $('[data-menu="fixed-top"]').addClass('main_header_fixed');
+        } else {
+            $.addLogoWhite();
+        }
     }
 
     /**
@@ -1266,8 +1285,9 @@ $(function () {
          * 
          * Após carregar a página, abre modal se o parâmetro da URL <b>modal</b> for igual ao valor do atributo <b>data-modal</b>.
          */
-        if (($.urlParam('modal')) && ($.urlParam('modal') !== 0)) {
-            $.openModal($.urlParam('modal'));
+        var modalParam = urlParam('modal');
+        if ((modalParam) && (modalParam !== 0)) {
+            $.openModal(modalParam);
         }
     }
 
@@ -1304,6 +1324,7 @@ $(function () {
                         $(this).css('height', '');
                     });
                 }
+                $.normalize();
                 processingHeights = false;
             }
         };
