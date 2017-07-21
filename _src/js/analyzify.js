@@ -818,7 +818,7 @@ $(function () {
                             console.error(er.message);
                         }
                     }
-                    if (checkLimit === true) {
+                    if (clickLimit !== 'notset' && checkLimit === true) {
                         console.warn('attribute data-click-limit must be like a number. check the [data-click="' + e + '"] element');
                     }
                 }
@@ -928,7 +928,7 @@ $(function () {
                                 arrayView[e]['alt'] = true;
                             }
                         } else {
-                            if ((arrayView[e]['alt'] !== false || ignorealt === true) && timerCheck) {
+                            if ((arrayView[e]['alt'] === true || ignorealt === true) && timerCheck) {
                                 if ($(this).attr('data-nonview-act')) {
                                     var viewFunc = $(this).attr('data-nonview-act').split('||');
                                     for (i = 0; i < viewFunc.length; i++) {
@@ -944,8 +944,8 @@ $(function () {
                                     }
                                     ignorealt !== true ? arrayView[e]['nonViewCounter']++ : '';
                                 }
-                                arrayView[e]['alt'] = false;
                             }
+                            arrayView[e]['alt'] = false;
                         }
                     } else {
                         console.warn('You cannot check if element [data-view="' + e + '"] is visible, positions is not calculated yet. You need to execute $.viewEventCalc first');
@@ -962,7 +962,7 @@ $(function () {
         $.viewEventCalc = function (view) {
             if (processingViewCalc === false) {
                 var selector = view ? '[data-view="' + view + '"]' : '[data-view]';
-                
+
                 $(selector).each(function () {
                     var e = $(this).attr('data-view');
                     if (typeof arrayView[e] !== "undefined") {
@@ -971,7 +971,8 @@ $(function () {
                     } else {
                         arrayView[e] = {position: $(this).offset().top, height: $(this).outerHeight()};
                     }
-                    var checkTime = isNaN(parseInt($(this).attr('data-view-time')));
+                    var viewTime = $(this).attr('data-view-time');
+                    var checkTime = isNaN(parseInt(viewTime));
                     arrayView[e]['viewTime'] = checkTime === false ? parseInt($(this).attr('data-view-time')) : 0;
                     arrayView[e]['viewPercent'] = $(this).attr('data-view-percent') ? parseInt($(this).attr('data-view-percent')) : 50;
                     typeof arrayView[e]['viewCounter'] !== "undefined" ? '' : arrayView[e]['viewCounter'] = 0;
@@ -980,8 +981,8 @@ $(function () {
                     arrayView[e]['nonViewLimit'] = $(this).attr('data-nonview-limit') ? $(this).attr('data-nonview-limit').split(',') : 'notset';
                     arrayView[e]['viewHidden'] = $(this).attr('data-view-hidden');
                     arrayView[e]['viewHidden'] = arrayView[e]['viewHidden'] === 1 || arrayView[e]['viewHidden'] === true || arrayView[e]['viewHidden'] === 'true' ? true : false;
-                    if (checkTime === true) {
-                        console.warn('attribute data-click-time must be like a number. Check the [data-view="' + e + '"] element');
+                    if (typeof viewTime !== 'undefined' && checkTime === true) {
+                        console.warn('attribute data-view-time must be like a number. Check the [data-view="' + e + '"] element');
                     }
                     //Percent Test
                     if (isNaN(arrayView[e]['viewPercent']) === false) {
