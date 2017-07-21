@@ -1,7 +1,7 @@
 /* 
-    Author      : https://www.dannyfranca.com.br
-    Repository  : https://github.com/dannyfranca/analyzify-framework
-*/
+ Author      : https://www.dannyfranca.com.br
+ Repository  : https://github.com/dannyfranca/analyzify-framework
+ */
 
 /* global index, property, param, eval, ytVideos, window.ytPlayers, YT, parseFloat, dataLayer */
 
@@ -201,11 +201,11 @@ $(function () {
 
                         for (var attribute in window.analyzifyInject[selector]) {
 
-                            var attrValue = window.analyzifyInject[selector][attribute];
+                            var attrValue = String(window.analyzifyInject[selector][attribute]);
 
                             if (attrValue !== "") {
                                 //get term between braces
-                                var match = attrValue.match(/\{{2}([^}]+)\}{2}/g);
+                                var match = attrValue.match(/\{\%([^}]+)\%\}/g);
                                 if (typeof match !== 'undefined') {
                                     var attrNames = [];
                                     $.each(match, function (i, el) {
@@ -213,11 +213,11 @@ $(function () {
                                             attrNames.push(el);
                                     });
                                     for (var i in attrNames) {
-                                        var attrName = attrNames[i].replace('{{', '').replace('}}', '');
+                                        var attrName = attrNames[i].replace('{%', '').replace('%}', '');
                                         var getAttr = $(this).attr(attrName);
                                         if (typeof getAttr !== 'undefined') {
                                             var regExp = new RegExp(attrNames[i], 'g');
-                                            attrValue = attrValue.replace(regExp, getAttr);
+                                            attrValue = attrValue.replace(regExp, getAttr).replace('_go', '');
                                         } else {
                                             console.warn('Attribute ' + attrName + ' undefined in ' + selector + '(index: ' + i);
                                         }
@@ -321,7 +321,13 @@ $(function () {
     window.jqLink = Create(function (jqObj) {
         if (jqObj) {
             for (property in jqObj) {
-                eval(property).apply(this, jqObj[property]);
+                try {
+                    eval(property).apply(this, jqObj[property]);
+                } catch (e) {
+                    if (e instanceof SyntaxError) {
+                        console.error(e.message);
+                    }
+                }
             }
         }
     });
@@ -574,7 +580,7 @@ $(function () {
         window['customTimers'] = window['customTimers'] || [];
         window['customTimers'][name] = window['customTimers'][name] || [];
         //check if timer is not already initiated
-        if (typeof window['customTimers'][name]['timerInit'] === "undefined" && typeof name !== "undefined") {
+        if (typeof name !== "undefined" && typeof window['customTimers'][name]['timerInit'] === "undefined") {
             window['customTimers'][name]['name'] = name;
             window['customTimers'][name]['path'] = getUrlPath();
             window['customTimers'][name]['firstPath'] = getUrlPath(1);
@@ -600,7 +606,13 @@ $(function () {
                 if (typeof funcInterval !== "undefined" && isNaN(parseInt(funcInterval)) === false && window['customTimers'][name]['activeTimer'] >= funcInterval * counter && funcLimit !== 0) {
                     funcParams = $.isArray(funcParams) ? funcParams : [];
                     for (i = 0; i < func.length; i++) {
-                        eval(func[i]).apply(this, funcParams[i]);
+                        try {
+                            eval(func[i]).apply(this, funcParams[i]);
+                        } catch (e) {
+                            if (e instanceof SyntaxError) {
+                                console.error(e.message);
+                            }
+                        }
                     }
                     counter++;
                     if (funcLimit !== false) {
@@ -608,6 +620,12 @@ $(function () {
                     }
                 }
             }, 1000);
+        } else if (typeof name === "undefined") {
+            console.warn('customTimer: "name" parameter must be defined');
+        } else if (typeof window['customTimers'][name]['timerInit'] !== "undefined") {
+            console.warn('customTimer: Custom Timer ' + name + ' already initiated. Limit execution to 1 to avoid unecessary executions.');
+        } else {
+            console.warn('customTimer: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
         }
     };
 
@@ -618,9 +636,15 @@ $(function () {
      * @param {boolean} definitive - (Opcional) Se setado como true, não permite que o contador de mesmo <b>name</b> seja iniciado novamente na mesma sessão. Se não setado, o contador pode ser reiniciado do zero executando <b>customTimer</b>.
      */
     $.unsetCustomTimer = function (name, definitive) {
-        if (typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof name !== "undefined") {
+        if (typeof name !== "undefined" && typeof window['customTimers'] !== "undefined" && typeof window['customTimers'][name] !== "undefined" && typeof window['customTimers'][name]['timerInit'] !== "undefined") {
             clearInterval(window['customTimers'][name]['activeTimerId']);
             definitive === true || definitive === 'true' || definitive === 1 ? '' : delete window['customTimers'][name]['timerInit'];
+        } else if (typeof name === "undefined") {
+            console.warn('unsetCustomTimer: "name" parameter must be defined');
+        } else if (typeof window['customTimers'] === "undefined" || typeof window['customTimers'][name] === "undefined" || typeof window['customTimers'][name]['timerInit'] === "undefined") {
+            console.warn('unsetCustomTimer: You cannot unset Custom Timer ' + name + ', it is not initiated yet.');
+        } else {
+            console.error('unsetCustomTimer: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
         }
     };
 
@@ -702,6 +726,22 @@ $(function () {
                     }
                 }
             });
+        } else if (typeof name === "undefined") {
+            console.warn('customActiveListener: "name" parameter must be defined');
+        } else if (typeof selector === "undefined") {
+            console.warn('customActiveListener: "selector" parameter must be defined');
+        } else if ($(selector).length) {
+            console.warn('customActiveListener: Selector ' + selector + ' dont exist in this page');
+        } else if (typeof window['customTimers'] === "undefined" || typeof window['customTimers'][name] === "undefined" || typeof window['customTimers'][name]['timerInit'] === "undefined") {
+            console.warn('customActiveListener: You cannot track Custom Timer ' + name + ', it is not initiated yet');
+        } else if (typeof window['customTimers'][name]['activeListener'] !== "undefined") {
+            if (window['customTimers'][name]['activeListener'] === true) {
+                console.warn('customActiveListener: Custom Timer ' + name + ' is already being tracked');
+            } else {
+                console.warn('customActiveListener: Global variable window["customTimers"]["' + name + '"]["activeListener"] only can be setted to true, check if you are accidentally changed this value outside this function');
+            }
+        } else {
+            console.error('customActiveListener: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
         }
     };
 
@@ -722,6 +762,12 @@ $(function () {
             } else {
                 window['customTimers'][name]['idle'] = true;
             }
+        } else if (typeof name === "undefined") {
+            console.warn('customUserNonIdle: "name" parameter must be defined');
+        } else if (typeof window['customTimers'] === "undefined" || typeof window['customTimers'][name] === "undefined" || typeof window['customTimers'][name]['timerInit'] === "undefined") {
+            console.warn('customUserNonIdle: You cannot change idle state of Custom Timer ' + name + ', it is not initiated yet.');
+        } else {
+            console.error('customUserNonIdle: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
         }
     };
 
@@ -732,8 +778,14 @@ $(function () {
      * @param {type} state - Se setado como true, <b>customTimer</b> fica ativo definitivamente. Se setado como false, <b>customTimer</b> volta a lervar <b>customUserNonIdle</b> em consideração.
      */
     $.customActiveMaster = function (name, state) {
-        if (typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof name !== "undefined") {
+        if (typeof name !== "undefined" && typeof window['customTimers'] !== "undefined" && typeof window['customTimers'][name] !== "undefined" && typeof window['customTimers'][name]['timerInit'] !== "undefined") {
             (state === true || state === "true" || state === 1) ? window['customTimers'][name]['activeMaster'] = true : window['customTimers'][name]['activeMaster'] = false;
+        } else if (typeof name === "undefined") {
+            console.warn('customActiveMaster: "name" parameter must be defined');
+        } else if (typeof window['customTimers'] === "undefined" || typeof window['customTimers'][name] === "undefined" || typeof window['customTimers'][name]['timerInit'] === "undefined") {
+            console.warn('customActiveMaster: You cannot cahnge active master state of Custom Timer ' + name + ', it is not initiated yet.');
+        } else {
+            console.error('customActiveMaster: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
         }
     };
 
@@ -757,8 +809,18 @@ $(function () {
             var clickFunc = e.split('||');
             var clickLimit = $(this).attr('data-click-limit') ? $(this).attr('data-click-limit').split(',') : 'notset';
             for (i = 0; i < clickFunc.length; i++) {
-                if (isNaN(parseInt(clickLimit[i])) === false ? clickLimit[i] > arrayClick[e].counter : true) {
-                    eval(clickFunc[i]);
+                var checkLimit = isNaN(parseInt(clickLimit[i]));
+                if (checkLimit === false ? clickLimit[i] > arrayClick[e].counter : true) {
+                    try {
+                        eval(clickFunc[i]);
+                    } catch (er) {
+                        if (er instanceof SyntaxError) {
+                            console.error(er.message);
+                        }
+                    }
+                    if (checkLimit === true) {
+                        console.warn('attribute data-click-limit must be like a number. check the [data-click="' + e + '"] element');
+                    }
                 }
             }
             arrayClick[e].counter++;
@@ -825,46 +887,68 @@ $(function () {
             if (window.load === true && window.firstActive === true) {
                 var selector = view ? '[data-view="' + view + '"]' : '[data-view]';
 
-                $(selector).each(function (i) {
+                $(selector).each(function () {
                     var e = $(this).attr('data-view');
-                    var timerCheck = isNaN(parseInt(arrayView[e]['viewTime'])) === false ? window.activeTimer >= arrayView[e]['viewTime'] : true;
+                    if (typeof arrayView[e] !== "undefined") {
+                        var timerCheck = window.activeTimer >= arrayView[e]['viewTime'];
 
-                    if ((window.scrollTop >= arrayView[e]['viewPositionTop']) && (window.scrollTop < arrayView[e]['viewPositionBottom'])) {
-                        if (arrayView[e]['viewHidden'] !== true) {
-                            if ((arrayView[e]['alt'] !== true || ignorealt === true) && timerCheck) {
-                                if ($(this).attr('data-view-act')) {
-                                    var viewFunc = $(this).attr('data-view-act').split('||');
-                                    for (i = 0; i < viewFunc.length; i++) {
-                                        if (isNaN(parseInt(arrayView[e]['viewLimit'][i])) === false ? arrayView[e]['viewLimit'][i] > arrayView[e]['viewCounter'] : true) {
-                                            eval(viewFunc[i]);
+                        if ((window.scrollTop >= arrayView[e]['viewPositionTop']) && (window.scrollTop < arrayView[e]['viewPositionBottom'])) {
+                            if (arrayView[e]['viewHidden'] !== true && $(this).is(":visible")) {
+                                if ((arrayView[e]['alt'] !== true || ignorealt === true) && timerCheck) {
+                                    if ($(this).attr('data-view-act')) {
+                                        var viewFunc = $(this).attr('data-view-act').split('||');
+                                        for (i = 0; i < viewFunc.length; i++) {
+                                            if (isNaN(parseInt(arrayView[e]['viewLimit'][i])) === false ? arrayView[e]['viewLimit'][i] > arrayView[e]['viewCounter'] : true) {
+                                                try {
+                                                    eval(viewFunc[i]);
+                                                } catch (e) {
+                                                    if (e instanceof SyntaxError) {
+                                                        console.error(e.message);
+                                                    }
+                                                }
+                                            }
                                         }
-                                    }
-                                    ignorealt !== true ? arrayView[e]['viewCounter']++ : '';
-                                } else if (!($(this).attr('data-nonview-act'))) {
-                                    var viewFunc = e.split('||');
-                                    for (i = 0; i < viewFunc.length; i++) {
-                                        if (isNaN(parseInt(arrayView[e]['viewLimit'][i])) === false ? arrayView[e]['viewLimit'][i] > arrayView[e]['viewCounter'] : true) {
-                                            eval(viewFunc[i]);
+                                        ignorealt !== true ? arrayView[e]['viewCounter']++ : '';
+                                    } else if (!($(this).attr('data-nonview-act'))) {
+                                        var viewFunc = e.split('||');
+                                        for (i = 0; i < viewFunc.length; i++) {
+                                            if (isNaN(parseInt(arrayView[e]['viewLimit'][i])) === false ? arrayView[e]['viewLimit'][i] > arrayView[e]['viewCounter'] : true) {
+                                                try {
+                                                    eval(viewFunc[i]);
+                                                } catch (e) {
+                                                    if (e instanceof SyntaxError) {
+                                                        console.error(e.message);
+                                                    }
+                                                }
+                                            }
                                         }
+                                        ignorealt !== true ? arrayView[e]['viewCounter']++ : '';
                                     }
-                                    ignorealt !== true ? arrayView[e]['viewCounter']++ : '';
                                 }
+                                arrayView[e]['alt'] = true;
                             }
-                            arrayView[e]['alt'] = true;
+                        } else {
+                            if ((arrayView[e]['alt'] !== false || ignorealt === true) && timerCheck) {
+                                if ($(this).attr('data-nonview-act')) {
+                                    var viewFunc = $(this).attr('data-nonview-act').split('||');
+                                    for (i = 0; i < viewFunc.length; i++) {
+                                        if (isNaN(parseInt(arrayView[e]['nonViewLimit'][i])) === false ? arrayView[e]['nonViewLimit'][i] > arrayView[e]['nonViewCounter'] : true) {
+                                            try {
+                                                eval(viewFunc[i]);
+                                            } catch (e) {
+                                                if (e instanceof SyntaxError) {
+                                                    console.error(e.message);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    ignorealt !== true ? arrayView[e]['nonViewCounter']++ : '';
+                                }
+                                arrayView[e]['alt'] = false;
+                            }
                         }
                     } else {
-                        if ((arrayView[e]['alt'] !== false || ignorealt === true) && timerCheck) {
-                            if ($(this).attr('data-nonview-act')) {
-                                var viewFunc = $(this).attr('data-nonview-act').split('||');
-                                for (i = 0; i < viewFunc.length; i++) {
-                                    if (isNaN(parseInt(arrayView[e]['nonViewLimit'][i])) === false ? arrayView[e]['nonViewLimit'][i] > arrayView[e]['nonViewCounter'] : true) {
-                                        eval(viewFunc[i]);
-                                    }
-                                }
-                                ignorealt !== true ? arrayView[e]['nonViewCounter']++ : '';
-                            }
-                            arrayView[e]['alt'] = false;
-                        }
+                        console.warn('You cannot check if element [data-view="' + e + '"] is visible, positions is not calculated yet. You need to execute $.viewEventCalc first');
                     }
                 });
             }
@@ -875,9 +959,11 @@ $(function () {
          * 
          * Executado em scroll e resize.
          */
-        $.viewEventCalc = function () {
+        $.viewEventCalc = function (view) {
             if (processingViewCalc === false) {
-                $('[data-view]').each(function (i) {
+                var selector = view ? '[data-view="' + view + '"]' : '[data-view]';
+                
+                $(selector).each(function () {
                     var e = $(this).attr('data-view');
                     if (typeof arrayView[e] !== "undefined") {
                         arrayView[e]['position'] = $(this).offset().top;
@@ -885,7 +971,8 @@ $(function () {
                     } else {
                         arrayView[e] = {position: $(this).offset().top, height: $(this).outerHeight()};
                     }
-                    arrayView[e]['viewTime'] = isNaN(parseInt($(this).attr('data-view-time'))) === false ? parseInt($(this).attr('data-view-time')) : 0;
+                    var checkTime = isNaN(parseInt($(this).attr('data-view-time')));
+                    arrayView[e]['viewTime'] = checkTime === false ? parseInt($(this).attr('data-view-time')) : 0;
                     arrayView[e]['viewPercent'] = $(this).attr('data-view-percent') ? parseInt($(this).attr('data-view-percent')) : 50;
                     typeof arrayView[e]['viewCounter'] !== "undefined" ? '' : arrayView[e]['viewCounter'] = 0;
                     typeof arrayView[e]['nonViewCounter'] !== "undefined" ? '' : arrayView[e]['nonViewCounter'] = 0;
@@ -893,6 +980,9 @@ $(function () {
                     arrayView[e]['nonViewLimit'] = $(this).attr('data-nonview-limit') ? $(this).attr('data-nonview-limit').split(',') : 'notset';
                     arrayView[e]['viewHidden'] = $(this).attr('data-view-hidden');
                     arrayView[e]['viewHidden'] = arrayView[e]['viewHidden'] === 1 || arrayView[e]['viewHidden'] === true || arrayView[e]['viewHidden'] === 'true' ? true : false;
+                    if (checkTime === true) {
+                        console.warn('attribute data-click-time must be like a number. Check the [data-view="' + e + '"] element');
+                    }
                     //Percent Test
                     if (isNaN(arrayView[e]['viewPercent']) === false) {
                         if (arrayView[e]['viewPercent'] >= 0) {
