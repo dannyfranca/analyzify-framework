@@ -76,6 +76,24 @@ function urlParam(name) {
 }
 
 /**
+ * Muda o valor de uma variável global. Útil para atribuir um valor diante um evento, como por exemplo atribuir dinamicamente a window.exitIntent uma função para abrir uma modal específica relevante quando o usuário tentar sair da página.
+ * 
+ * @param {string} variable - Nome de uma varipavel Global
+ * @param {any} value - Novo valor atribuído a variável global
+ */
+function changeVar(variable, value) {
+    if (typeof variable !== "undefined" && typeof value !== "undefined") {
+        window[variable] = value;
+    } else if (typeof variable === "undefined") {
+        console.warn('changeVar: "variable" parameter must be defined');
+    } else if (typeof value === "undefined") {
+        console.warn('changeVar: "value" parameter must be defined');
+    } else {
+        console.error('changeVar: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
+    }
+}
+
+/**
  * DATALAYER PUSH
  * 
  * Envia dados para a camada de dados do Google Tag Manager como evento omeado legacyEvent.
@@ -958,6 +976,8 @@ $(function () {
          * Calcula as posição de cada elemento com data-view.
          * 
          * Executado em scroll e resize.
+         * 
+         * @param {string} view - Para calcular apenas um elemento. Não é recomendado, pois se um elemento muda seus dimensões, outros também mudam como consequência, especialmente os que estão abaixo.
          */
         $.viewEventCalc = function (view) {
             if (processingViewCalc === false) {
@@ -1178,14 +1198,18 @@ $(function () {
      * 
      * Em telas menores, abre menu lateral
      */
-    $('.mobile_action').click(function () {
-        if (!$(this).hasClass('active')) {
-            $(this).addClass('active');
+    $.mobileMenuToggle = function () {
+        if (!$('.mobile_action').hasClass('active')) {
+            $('.mobile_action').addClass('active');
             $('.main_header_nav').animate({'left': '0px'}, 100);
         } else {
-            $(this).removeClass('active');
+            $('.mobile_action').removeClass('active');
             $('.main_header_nav').animate({'left': '-100%'}, 100);
         }
+    };
+
+    $('.mobile_action').click(function () {
+        $.mobileMenuToggle();
     });
 
     /**
@@ -1333,10 +1357,7 @@ $(function () {
 
     //MODAL
     if ($('[data-modal]').length) {
-        var jModalExist = true;
         var dataModal;
-        var modalWidth;
-        var modalHeight;
 
         /**
          * Invoca fechamento de modal ao clicar fora
@@ -1363,8 +1384,11 @@ $(function () {
             dataModal = '[data-modal="' + setDataModal + '"]';
             if ($(dataModal).length) {
                 $('body').css('overflow', 'hidden');
-                $(dataModal).fadeIn();
-                $(dataModal + ' input:text:visible:first').focus();
+                $(dataModal).fadeIn(400, function () {
+                    $(this).children().fadeIn(400, function () {
+                        $(this).find('input:text:visible:first').focus();
+                    });
+                }).css("display", "flex");
             }
         };
 
@@ -1373,7 +1397,9 @@ $(function () {
          */
         $.closeModal = function () {
             $('body').css('overflow', '');
-            $('[data-modal]').fadeOut(200);
+            $('[data-modal]').children().fadeOut(200, function () {
+                $(this).closest('[data-modal]').fadeOut(200);
+            });
         };
 
         /**
@@ -1386,6 +1412,28 @@ $(function () {
             $.openModal(modalParam);
         }
     }
+
+    /**
+     * Executa ação ao mouse sair do documento, desde que variável window.exitIntent esteja definida com uma função escrita como string.
+     */
+    var mouseLeaveCount = 0;
+    $(document).mouseleave(function () {
+        if (typeof window.exitIntent !== "undefined") {
+            var mouseleave = String(window.exitIntent).split('||');
+            for (i = 0; i < mouseleave.length; i++) {
+                if (mouseLeaveCount === 0) {
+                    try {
+                        eval(mouseleave[i]);
+                    } catch (er) {
+                        if (er instanceof SyntaxError) {
+                            console.error(er.message);
+                        }
+                    }
+                }
+            }
+            mouseLeaveCount = 1;
+        }
+    });
 
     //IGUALAR ALTURA DE BOX MENORES
     if ($('[data-same-height]').length) {
