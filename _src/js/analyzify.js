@@ -1,3 +1,8 @@
+/* 
+    Author      : https://www.dannyfranca.com.br
+    Repository  : https://github.com/dannyfranca/analyzify-framework
+*/
+
 /* global index, property, param, eval, ytVideos, window.ytPlayers, YT, parseFloat, dataLayer */
 
 //-----PRESETS-----
