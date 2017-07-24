@@ -3,16 +3,29 @@
  Repository  : https://github.com/dannyfranca/analyzify-framework
  */
 
-/* global index, property, param, eval, ytVideos, window.ytPlayers, YT, parseFloat, dataLayer */
+/* global index, property, param, eval, parseFloat, dataLayer */
 
-//-----PRESETS-----
-window.BASE = document.location.hostname;
-window.page = document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search;
-window.ajaxPage = window.ajaxPage || false;
-window.hidden = window.hidden || false;
-window.query_string = QueryStringToJSON();
-window.fwDebug = window.fwDebug || false; //debug switch
-window.analyzifyInject = window.analyzifyInject || {};
+//ANALYZIFY INIT
+window.ANALYZIFY = window.ANALYZIFY || {};
+window.A = ANALYZIFY;
+
+//PRESETS
+ANALYZIFY.BASE = document.location.hostname;
+ANALYZIFY.page = document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search;
+ANALYZIFY.ajaxPage = ANALYZIFY.ajaxPage || false;
+ANALYZIFY.tabHidden = ANALYZIFY.tabHidden || false;
+ANALYZIFY.debug = ANALYZIFY.debug || {}; //debug switch
+ANALYZIFY.inject = ANALYZIFY.inject || {};
+
+//CUSTOM ENTRIES FOR PLUGINS
+ANALYZIFY.customEntries = ANALYZIFY.customEntries || {};
+ANALYZIFY.customEntries.pageHidden = ANALYZIFY.customEntries.pageHidden || {};
+ANALYZIFY.customEntries.pageShow = ANALYZIFY.customEntries.pageShow || {};
+ANALYZIFY.customEntries.beforeUnload = ANALYZIFY.customEntries.beforeUnload || {};
+ANALYZIFY.customEntries.exitIntent = ANALYZIFY.customEntries.exitIntent || {};
+ANALYZIFY.customEntries.scroll = ANALYZIFY.customEntries.scroll || {};
+ANALYZIFY.customEntries.resize = ANALYZIFY.customEntries.resize || {};
+ANALYZIFY.customEntries.normalize = ANALYZIFY.customEntries.normalize || {};
 
 //DATALAYER INIT
 window.dataLayer = window.dataLayer || [];
@@ -23,16 +36,50 @@ window.dataLayer = window.dataLayer || [];
  * Porta de entrada para invocar funções jQuery a partir do escopo global. Veja mais detalhes em <b>GLOBAL FUNCTION LISTENER</b>.
  * 
  * @param {function} callback
- * @returns {Create.scriptsAnonym$0}
+ * @returns {ANALYZIFY.create.scriptsAnonym$0}
  */
-function Create(callback) {
+ANALYZIFY.create = function (callback) {
     var jqObj = false;
     return {
         func: function (jqObj) {
             callback(jqObj);
         }
     };
+};
+
+function echo() {
+    console.log('echo');
 }
+
+/**
+ * Função que escreve no console em diferentes formatos dependendo dos parâmetros definidos ou não.
+ * Usada para testes em desenvolvimento.
+ *
+ * @param x
+ * @param y
+ */
+ANALYZIFY.echos = function (x, y) {
+    if (x && y) {
+        var echo = '(' + typeof x + ') x: ' + x + ' / ' + '(' + typeof y + ') y: ' + y;
+    } else if (x) {
+        var echo = '(' + typeof x + ') x: ' + x;
+    } else if (y) {
+        var echo = '(' + typeof y + ') y: ' + y;
+    } else {
+        var echo = 'no param';
+    }
+
+    consoleLog();
+//        alert();
+
+    function consoleLog() {
+        console.log(echo);
+    }
+
+    function alert() {
+        alert(echo);
+    }
+};
 
 /**
  * Função para pegar o path, inteiro ou uma parte, da URL.
@@ -40,15 +87,15 @@ function Create(callback) {
  * @param {integer} n (Opcional) Ordem específica do URL Path.
  * @returns Retorna URL Path inteira ou fragmentada se n for definido.
  */
-function getUrlPath(n) {
+ANALYZIFY.getUrlPath = function (n) {
     var path = window.location.pathname.toLowerCase();
     if (n) {
         path = path.split("/")[n];
     }
     return path;
-}
+};
 
-function QueryStringToJSON() {
+ANALYZIFY.QueryStringToJSON = function () {
     var pairs = location.search.slice(1).split('&');
 
     var result = {};
@@ -58,7 +105,7 @@ function QueryStringToJSON() {
     });
 
     return JSON.parse(JSON.stringify(result));
-}
+};
 
 //GET PARAMETERS
 /**
@@ -66,14 +113,14 @@ function QueryStringToJSON() {
  * @param {string} name - Nome do parâmetro
  * @returns Valor do parâmetro setado em <b>name</b>
  */
-function urlParam(name) {
+ANALYZIFY.urlParam = function (name) {
     var results = new RegExp('[\?&]' + name + '=([^]*)').exec(window.location.href);
     if (results === null) {
         return null;
     } else {
         return results[1] || 0;
     }
-}
+};
 
 /**
  * Muda o valor de uma variável global. Útil para atribuir um valor diante um evento, como por exemplo atribuir dinamicamente a window.exitIntent uma função para abrir uma modal específica relevante quando o usuário tentar sair da página.
@@ -81,17 +128,17 @@ function urlParam(name) {
  * @param {string} variable - Nome de uma varipavel Global
  * @param {any} value - Novo valor atribuído a variável global
  */
-function changeVar(variable, value) {
+ANALYZIFY.changeVar = function (variable, value) {
     if (typeof variable !== "undefined" && typeof value !== "undefined") {
         window[variable] = value;
     } else if (typeof variable === "undefined") {
-        console.warn('changeVar: "variable" parameter must be defined');
+        console.error('changeVar: "variable" parameter must be defined');
     } else if (typeof value === "undefined") {
-        console.warn('changeVar: "value" parameter must be defined');
+        console.error('changeVar: "value" parameter must be defined');
     } else {
         console.error('changeVar: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
     }
-}
+};
 
 /**
  * DATALAYER PUSH
@@ -108,7 +155,7 @@ function changeVar(variable, value) {
  * @param {string} exc - (Opcional) Se definido, informará ao Google Tag Manager quais tags de <b>evento não disparar</b>. se setado como <b>'fb'</b>, o evento apenas será enviado ao Analytics, se setado como <b>'ga'</b>, o evento apenas será enviado ao Facebook. Se setado como <b>'fbga' ou 'fb ga'</b> não será enviado evento algum, o que é válido se você apenas quiser enviar para suas outras integrações no GTM.
  * @param {object} obj - (Opcional) Objeto com métricas customizadas para expandir os dados enviados pelo dlPush().
  */
-function dlPush(cat, act, lab, val, nInt, tran, exc, obj) {
+ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
 
     var event = {
         eventCategory: checkType(cat),
@@ -125,10 +172,16 @@ function dlPush(cat, act, lab, val, nInt, tran, exc, obj) {
         Object.assign(event, obj);
     }
 
-    if (cat && act && window.fwDebug !== true) {
+    if (cat && act && ANALYZIFY.debug !== true && ANALYZIFY.debug.dlPush !== true) {
         window.dataLayer.push(event);
-    } else if (window.fwDebug === true) {
+    } else if (ANALYZIFY.debug === true || ANALYZIFY.debug.dlPush === true) {
         console.log(JSON.stringify(event));
+    } else if (!cat) {
+        console.error('dlPush: Event Category param must be defined');
+    } else if (!act) {
+        console.error('dlPush: Event Action param must be defined');
+    } else {
+        console.error('dlPush: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
     }
 
     function checkType(param) {
@@ -136,39 +189,39 @@ function dlPush(cat, act, lab, val, nInt, tran, exc, obj) {
     }
 
     $(function () {
-        window.jqLink.func({
-            '$.sessionAlive': []
+        ANALYZIFY.jqLink.func({
+            'sessionAlive': []
         });
     });
-}
+};
 
 //INÍCIO FUNÇÕES JQUERY
 $(function () {
 
     //-----JQUERY PRESETS-----
-    window.height = $(window).height();
-    window.width = $(window).width();
-    window.hashVal = window.location.hash.replace(/^#/, "");
-    window.menuInitialHeight = $('[data-menu*="fixed-"]').length ? $('[data-menu*="fixed-"]').outerHeight() : 0;
-    window.logoDeltaHeight = $('[data-menu*="fixed-"]').length ? 27 : 0; //variação da altura da logo
-    window.menuHeight = window.menuInitialHeight - window.logoDeltaHeight;
+    ANALYZIFY.height = $(window).outerHeight();
+    ANALYZIFY.width = $(window).outerWidth();
+    ANALYZIFY.hashVal = window.location.hash.replace(/^#/, "");
+    ANALYZIFY.menuInitialHeight = $('[data-menu*="fixed-"]').length ? $('[data-menu*="fixed-"]').outerHeight() : 0;
+    ANALYZIFY.logoDeltaHeight = $('[data-menu*="fixed-"]').length ? 27 : 0; //variação da altura da logo
+    ANALYZIFY.menuHeight = ANALYZIFY.menuInitialHeight - ANALYZIFY.logoDeltaHeight;
 
     //-----GET UTM TAGS-----
-    window.utmSource = urlParam('utm_source');
-    window.utmMedium = urlParam('utm_medium');
-    window.utmCampaign = urlParam('utm_campaign');
-    window.utmTerm = urlParam('utm_term');
-    window.utmContent = urlParam('utm_content');
+    ANALYZIFY.utmSource = ANALYZIFY.urlParam('utm_source');
+    ANALYZIFY.utmMedium = ANALYZIFY.urlParam('utm_medium');
+    ANALYZIFY.utmCampaign = ANALYZIFY.urlParam('utm_campaign');
+    ANALYZIFY.utmTerm = ANALYZIFY.urlParam('utm_term');
+    ANALYZIFY.utmContent = ANALYZIFY.urlParam('utm_content');
 
     //-----DATALAYER INITIAL PUSH-----
     window.dataLayer.push(
             {
-                originalLocation: window.page,
-                utmSource: window.utmSource,
-                utmMedium: window.utmMedium,
-                utmCampaign: window.utmCampaign,
-                utmTerm: window.utmTerm,
-                utmContent: window.utmContent
+                originalLocation: ANALYZIFY.page,
+                utmSource: ANALYZIFY.utmSource,
+                utmMedium: ANALYZIFY.utmMedium,
+                utmCampaign: ANALYZIFY.utmCampaign,
+                utmTerm: ANALYZIFY.utmTerm,
+                utmContent: ANALYZIFY.utmContent
             }
     );
 
@@ -176,7 +229,7 @@ $(function () {
      * Injeta atributos e seus respectivos valores em elementos por meio de seletores jQuery.
      * 
      * Se select não for definido, usará os dados do objeto global analyzifyInject:
-     *  window.analyzifyInject = {
+     *  analyzifyInject = {
      'selector1': {
      'attr1': "value",
      'attr2': "value"
@@ -187,9 +240,9 @@ $(function () {
      }
      };
      * 
-     * OBS: Para evitar sobrescrever o objeto de injeção, utilize o método <b>Object.assign(window.analyzifyInject, {...})</b>, que é uma alternativa ao array.push() para mesclar objetos.
+     * OBS: Para evitar sobrescrever o objeto de injeção, utilize o método <b>Object.assign(analyzifyInject, {...})</b>, que é uma alternativa ao array.push() para mesclar objetos.
      * Ex:
-     *  Object.assign(window.analyzifyInject, {
+     *  Object.assign(analyzifyInject, {
      'selector1': {
      'attr1': "value",
      'attr2': "value"
@@ -209,17 +262,17 @@ $(function () {
      * @param {String} attr - Nome do atributo a ser injetado
      * @param {String} value - Valor do atributo injetado
      */
-    $.analyzifyInjection = function (select, attr, value) {
+    ANALYZIFY.analyzifyInjection = function (select, attr, value) {
         if (typeof select === 'undefined') {
-            if (typeof window.analyzifyInject !== undefined) {
-                for (var selector in window.analyzifyInject) {
+            if (typeof ANALYZIFY.inject === 'object' && ANALYZIFY.inject !== null) {
+                for (var selector in ANALYZIFY.inject) {
                     $(selector).each(function (index) {
 
                         var counter = index + 1;
 
-                        for (var attribute in window.analyzifyInject[selector]) {
+                        for (var attribute in ANALYZIFY.inject[selector]) {
 
-                            var attrValue = String(window.analyzifyInject[selector][attribute]);
+                            var attrValue = String(ANALYZIFY.inject[selector][attribute]);
 
                             if (attrValue !== "") {
                                 //get term between braces
@@ -235,9 +288,15 @@ $(function () {
                                         var getAttr = $(this).attr(attrName);
                                         if (typeof getAttr !== 'undefined') {
                                             var regExp = new RegExp(attrNames[i], 'g');
-                                            attrValue = attrValue.replace(regExp, getAttr).replace('_go', '');
+                                            attrValue = attrValue.replace(regExp, getAttr);
                                         } else {
-                                            console.warn('Attribute ' + attrName + ' undefined in ' + selector + '(index: ' + i);
+                                            getAttr = $(this).find('[' + attrName + ']').attr(attrName);
+                                            if (typeof getAttr !== 'undefined') {
+                                                var regExp = new RegExp(attrNames[i], 'g');
+                                                attrValue = attrValue.replace(regExp, getAttr);
+                                            } else {
+                                                console.error('Attribute ' + attrName + ' undefined in ' + selector + '(index: ' + i + ') and his children');
+                                            }
                                         }
                                     }
                                 }
@@ -256,68 +315,53 @@ $(function () {
         } else if (typeof attr !== 'undefined' && typeof value !== 'undefined') {
 
         } else {
-            console.warn('Attribute and/or value must be defined');
-        }
-    };
-
-    $.analyzifyInjection();
-
-    /**
-     * Ações executadas quando a aba do navegador não está em foco, executada pela <b>PAGE VISIBILITY API</b>.
-     */
-    $.pageVisibilityHidden = function () {
-        window.hidden = true;
-        //YOUTUBE
-        if (typeof window.ytPlayers !== "undefined" && window.ytPlayers) {
-            ytPause();
-        }
-
-        if (window.fwDebug === true) {
-            console.log('Tab Hidden');
+            console.error('Attribute and/or value must be defined');
         }
     };
 
     /**
-     * Ações executadas quando a aba do navegador está em foco, executada pela <b>PAGE VISIBILITY API</b>.
-     */
-    $.pageVisibility = function () {
-        window.hidden = false;
-        //YOUTUBE
-        if (typeof window.ytPlayers !== "undefined" && window.ytPlayers) {
-            $.viewEvent('youtube', true);
-        }
-
-        if (window.fwDebug === true) {
-            console.log('Tab Visible');
-        }
-    };
-
-    /**
-     * Ações executadas antes da página encerrar, executada em <b>window.onbeforeunload</b>.
+     * Função de entrada para criação de plugins do Analyzify
      * 
-     * - Envia tempo ativo, inclusive contadores customizados.
-     * - Ativa função ytExit da integração com a API do YouTube, que marca como evento o tempo de saída do vídeo.
+     * @param {string} name - Nome do objeto filho de ANALYZIFY.customEntries
      */
-    $.beforeUnload = function () {
-        //ACTIVE TIME
-        dlPush('Active Time', (window.ajaxPage === false ? window.activeTimerPath : window.ajaxPage.replace(/(https:|http:|)\/\//, '').toLowerCase()), (window.ajaxPage === false ? window.activeTimerFirstPath : null), null, true, 'beacon', null, {
-            activeTime: window.activeTimer
-        });
-
-        //CUSTOM TIMES
-        for (var name in window['customTimers']) {
-            if (window['customTimers'][name]['activeListener'] === true) {
-                dlPush('Custom Time', window['customTimers'][name]['name'], window['customTimers'][name]['path'], null, true, 'beacon', null, {
-                    activeTime: window['customTimers'][name]['activeTimer']
-                });
+    ANALYZIFY.setCustomEntry = function (name) {
+        if (typeof name !== 'undefined') {
+            if (typeof ANALYZIFY.customEntries[name] === 'object' && ANALYZIFY.customEntries[name] !== null) {
+                for (property in ANALYZIFY.customEntries[name]) {
+                    ANALYZIFY.customEntries[name][property]['count'] = ANALYZIFY.customEntries[name][property]['count'] || 0;
+                    if (typeof ANALYZIFY.customEntries[name][property]['limit'] === 'undefined' || ANALYZIFY.customEntries[name][property]['count'] < ANALYZIFY.customEntries[name][property]['limit']) {
+                        if (typeof ANALYZIFY[property] === 'function') {
+                            if (typeof ANALYZIFY.customEntries[name][property]['params'] !== 'undefined') {
+                                if (jQuery.isArray(ANALYZIFY.customEntries[name][property]['params'])) {
+                                    var params = ANALYZIFY.customEntries[name][property]['params'];
+                                } else {
+                                    console.warn('Custom entrie params from ' + name + '.' + property + ' is not an array');
+                                }
+                            } else {
+                                var params = [];
+                            }
+                            try {
+                                ANALYZIFY[property].apply(this, params);
+                            } catch (e) {
+                                if (e instanceof SyntaxError) {
+                                    console.error(e.message);
+                                }
+                            }
+                        } else {
+                            console.error(name + ': ANALYZIFY.' + property + ' is not a function');
+                        }
+                    }
+                    if (typeof ANALYZIFY.customEntries[name][property]['limit'] !== 'undefined') {
+                        ANALYZIFY.customEntries[name][property]['count']++;
+                    }
+                }
             }
-        }
-
-        //YOUTUBE
-        if (typeof window.ytPlayers !== "undefined" && window.ytPlayers) {
-            ytExit();
+        } else {
+            console.error('setCustomEntry: "name" parameter must be an object');
         }
     };
+
+    ANALYZIFY.analyzifyInjection();
 
     //*****SETUP*****
 
@@ -331,16 +375,16 @@ $(function () {
      * 
      * Para ativar funções jquery externamente:
      * 
-     * <b>window.jqLink.func({
-     *      functionName1: [param1, param2, ...],
-     *      functionName2: [param1, param2, ...]
-     * });</b>
+     *  <b>window.jqLink.func({
+     functionName1: [param1, param2, ...],
+     functionName2: [param1, param2, ...]
+     });</b>
      */
-    window.jqLink = Create(function (jqObj) {
+    ANALYZIFY.jqLink = ANALYZIFY.create(function (jqObj) {
         if (jqObj) {
             for (property in jqObj) {
                 try {
-                    eval(property).apply(this, jqObj[property]);
+                    ANALYZIFY[property].apply(this, jqObj[property]);
                 } catch (e) {
                     if (e instanceof SyntaxError) {
                         console.error(e.message);
@@ -350,18 +394,18 @@ $(function () {
         }
     });
 
-    window.load = false;
+    ANALYZIFY.load = false;
 
     $(window).on("load", function () {
-        window.load = true;
+        ANALYZIFY.load = true;
         window.dataLayer.push({event: 'pageLoad'});
-        if (window.hashVal && $('[id="' + window.hashVal + '_go"]').length) {
-            var goto = $('[id="' + window.hashVal + '_go"]').offset().top;
-            $('html, body').animate({scrollTop: goto - window.menuInitialHeight + window.logoDeltaHeight}, 1000);
+        if (ANALYZIFY.hashVal && $('[id="' + ANALYZIFY.hashVal + '_go"]').length) {
+            var goto = $('[id="' + ANALYZIFY.hashVal + '_go"]').offset().top;
+            $('html, body').animate({scrollTop: goto - ANALYZIFY.menuInitialHeight + ANALYZIFY.logoDeltaHeight}, 1000);
             history.pushState("", document.title, window.location.pathname + window.location.search);
         }
-        $.normalize();
-        $.handleVisibilityChange();
+        ANALYZIFY.normalize();
+        ANALYZIFY.handleVisibilityChange();
     });
 
     //*****END PRESETS*****
@@ -374,24 +418,24 @@ $(function () {
      * Responde ao rolamento de página e executando funções do framework após verificar se estão disponíveis.
      */
 
-    window.lastScrollTop = $(window).scrollTop();
-    window.scrollTop = $(window).scrollTop();
+    ANALYZIFY.lastScrollTop = $(window).scrollTop();
+    ANALYZIFY.scrollTop = $(window).scrollTop();
     $(window).scroll(function () {
-        window.scrollTop = $(this).scrollTop(); //DISTANCIA DO TOPO
-        $.scrollDirection(); //DIRECAO DA ROLAGEM
-        $.userNonIdle();
+        ANALYZIFY.scrollTop = $(this).scrollTop(); //DISTANCIA DO TOPO
+        ANALYZIFY.scrollDirection(); //DIRECAO DA ROLAGEM
+        ANALYZIFY.userNonIdle();
 
-        if (window.menuFixedTopExist === true) { //REDUZ MENU
-            $.reduzMenu();
+        if (ANALYZIFY.menuFixedTopExist === true) { //REDUZ MENU
+            ANALYZIFY.reduzMenu();
         }
-        if (window.botaoTopoExist === true) { //BOTAO TOPO
-            $.exibeBotaoTopo();
+        if (ANALYZIFY.botaoTopoExist === true) { //BOTAO TOPO
+            ANALYZIFY.exibeBotaoTopo();
         }
-        if (window.scrollSpyExist === true && window.load === true) { //SCROLLSPY
-            $.scrollSpy();
+        if (ANALYZIFY.scrollSpyExist === true && ANALYZIFY.load === true) { //SCROLLSPY
+            ANALYZIFY.scrollSpy();
         }
-        if (window.viewEventExist === true && window.load === true) { //VIEWEVENT
-            $.viewEvent();
+        if (ANALYZIFY.viewEventExist === true && ANALYZIFY.load === true) { //VIEWEVENT
+            ANALYZIFY.viewEvent();
         }
 //        if (affixExist === true) { //AFFIX
 //            affixScroll();
@@ -405,8 +449,9 @@ $(function () {
 //
 //            }
 //        }
+        ANALYZIFY.setCustomEntry('scroll');
 
-        window.lastScrollTop = window.scrollTop; //ULTIMA DISTANCIA DO TOPO
+        ANALYZIFY.lastScrollTop = ANALYZIFY.scrollTop; //ULTIMA DISTANCIA DO TOPO
     });
 
     /**
@@ -414,12 +459,12 @@ $(function () {
      * 
      * Função de suporte para desenvolvimento. Define scrollDir como 1 se rolando para baixo ou como -1 se rolando para cima. 
      */
-    window.scrollDir;
-    $.scrollDirection = function () {
-        if (window.scrollTop > window.lastScrollTop) {
-            window.scrollDir = 1;
-        } else if (window.scrollTop < window.lastScrollTop) {
-            window.scrollDir = -1;
+    ANALYZIFY.scrollDirDir;
+    ANALYZIFY.scrollDirection = function () {
+        if (ANALYZIFY.scrollTop > ANALYZIFY.lastScrollTop) {
+            ANALYZIFY.scrollDirDir = 1;
+        } else if (ANALYZIFY.scrollTop < ANALYZIFY.lastScrollTop) {
+            ANALYZIFY.scrollDirDir = -1;
         }
     };
 
@@ -429,26 +474,28 @@ $(function () {
      * Responde ao redimensionamento do navegador e executa funções do framework após verificar se estão disponíveis.
      */
     $(window).resize(function () {
-        window.height = $(window).height();
-        window.width = $(window).width();
+        ANALYZIFY.height = $(window).outerHeight();
+        ANALYZIFY.width = $(window).outerWidth();
 //        if (affixExist === true) { //AFFIX
-//            $.affixCalc();
-//            $.affixResize();
+//            ANALYZIFY.affixCalc();
+//            ANALYZIFY.affixResize();
 //        }
-        $.normalize();
+        ANALYZIFY.setCustomEntry('resize');
+        ANALYZIFY.normalize();
     });
 
-    $.normalize = function () {
-        if (window.load === true) {
-            if (window.scrollSpyExist === true) { //SCROLLSPY
-                $.scrollSpyCalc();
+    ANALYZIFY.normalize = function () {
+        if (ANALYZIFY.load === true) {
+            if (ANALYZIFY.scrollSpyExist === true) { //SCROLLSPY
+                ANALYZIFY.scrollSpyCalc();
             }
-            if (window.viewEventExist === true) { //VIEWEVENT
-                $.viewEventCalc();
+            if (ANALYZIFY.viewEventExist === true) { //VIEWEVENT
+                ANALYZIFY.viewEventCalc();
             }
-            if (window.jSameHeightExist === true) { //IGUALA ALTURA DE BOX MENORES
-                $.sameHeight();
+            if (ANALYZIFY.jSameHeightExist === true) { //IGUALA ALTURA DE BOX MENORES
+                ANALYZIFY.sameHeight();
             }
+            ANALYZIFY.setCustomEntry('normalize');
         }
     };
 
@@ -461,20 +508,24 @@ $(function () {
      * 
      * Rastreamento de tempo ativo do usuário.
      */
-    window.idle = true;
-    window.firstActive = false;
-    window.idleTimer;
-    window.activeTimer = 0;
-    window.activeMaster = false;
-    window.aliveCounter = 0;
-    window.activeTimerId = setInterval(function () {
-        if ((window.idle === false || window.activeMaster === true) && (window.firstActive === true)) {
-            window.activeTimer += 1;
-//            console.log('window.activeTimer');
+    ANALYZIFY.activeTimer = {};
+    ANALYZIFY.activeTimer.firstActive = false;
+    ANALYZIFY.activeTimer.idle = true;
+    ANALYZIFY.activeTimer.idleTimer;
+    ANALYZIFY.activeTimer.counter = 0;
+    ANALYZIFY.activeTimer.aliveTimer;
+    ANALYZIFY.activeTimer.activeMaster = false;
+    ANALYZIFY.activeTimer.aliveCounter = 0;
+    ANALYZIFY.activeTimer.activeTimer = setInterval(function () {
+        if ((ANALYZIFY.activeTimer.idle === false || ANALYZIFY.activeTimer.activeMaster === true) && (ANALYZIFY.activeTimer.firstActive === true)) {
+            ANALYZIFY.activeTimer.counter += 1;
+            if (ANALYZIFY.debug === true || ANALYZIFY.debug.activeTimer === true) {
+                console.log(ANALYZIFY.activeTimer.counter);
+            }
         }
     }, 1000);
-    window.activeTimerPath = getUrlPath();
-    window.activeTimerFirstPath = getUrlPath(1);
+    ANALYZIFY.activeTimer.path = ANALYZIFY.getUrlPath();
+    ANALYZIFY.activeTimer.firstPath = ANALYZIFY.getUrlPath(1);
 
     /**
      * Responde ao foco na página mediante clique.
@@ -482,24 +533,24 @@ $(function () {
      * <b>Atenção</b>: Se comporta de forma diferente ao PAGE VISIBILITY API. Mesmo se a aba estiver visível, essa função só ativa se a janela entrar em foco mediante clique.
      */
     $(window).focus(function () {
-        $.userNonIdle();
-        $.firstActive();
+        ANALYZIFY.userNonIdle();
+        ANALYZIFY.firstActive();
     });
 
     /**
      * Responde ao perder foco mediante clique externo.
      */
     $(window).blur(function () {
-        window.idle = true;
+        ANALYZIFY.activeTimer.idle = true;
     });
 
     /**
      * Responde ao apertar alguma tecla
      */
     $(window).on('keydown', function () {
-        if (window.load === true) {
-            $.userNonIdle();
-            $.firstActive();
+        if (ANALYZIFY.load === true) {
+            ANALYZIFY.userNonIdle();
+            ANALYZIFY.firstActive();
         }
     });
 
@@ -507,36 +558,54 @@ $(function () {
      * Responde ao movimento do mouse
      */
     $(window).on('mousemove', function () {
-        $.userNonIdle();
-        $.firstActive();
+        ANALYZIFY.userNonIdle();
+        ANALYZIFY.firstActive();
     });
 
     /**
      * Responde ao clique, especiicamente quando a tecla é apertada, ou segurada.
      */
     $(window).on('mousedown', function () {
-        $.userNonIdle();
-        $.firstActive();
+        ANALYZIFY.userNonIdle();
+        ANALYZIFY.firstActive();
     });
 
     /**
      * Armazena função que será executada antes da sessão terminar.
      */
     $(window).on('beforeunload', function () {
-        $.beforeUnload();
+        //ACTIVE TIME
+        ANALYZIFY.dlPush('Active Time', (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.path : ANALYZIFY.ajaxPage.replace(/(https:|http:|)\/\//, '').toLowerCase()), (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.firstPath : null), null, true, 'beacon', null, {
+            activeTime: ANALYZIFY.activeTimer.counter
+        });
+
+        //CUSTOM TIMES
+        for (var name in ANALYZIFY.customTimers) {
+            if (ANALYZIFY.customTimers[name]['activeListener'] === true) {
+                ANALYZIFY.dlPush('Custom Time', ANALYZIFY.customTimers[name]['name'], ANALYZIFY.customTimers[name]['path'], null, true, 'beacon', null, {
+                    activeTime: ANALYZIFY.customTimers[name]['activeTimer']
+                });
+            }
+        }
+
+        ANALYZIFY.setCustomEntry('beforeUnload');
+    });
+
+    $(document).mouseleave(function () {
+        ANALYZIFY.setCustomEntry('exitIntent');
     });
 
     /**
      * Informa ao framework que o usuário começou a interagir com a página por meio de uma variável e marcando o evento firstActive na camada de dados do GTM, previnindo que Analytics comece a rodar se usuário apenas abriu o navegador.
      */
-    $.firstActive = function () {
-        if (window.firstActive === false) {
+    ANALYZIFY.firstActive = function () {
+        if (ANALYZIFY.activeTimer.firstActive === false) {
             window.dataLayer.push({event: 'firstActive'});
-            window.firstActive = true;
-            if (window.viewEventExist === true && window.load === true) {
-                $.viewEvent();
+            ANALYZIFY.activeTimer.firstActive = true;
+            if (ANALYZIFY.viewEventExist === true && ANALYZIFY.load === true) {
+                ANALYZIFY.viewEvent();
             }
-            if (window.fwDebug === true) {
+            if (ANALYZIFY.debug === true || ANALYZIFY.debug.activity === true) {
                 console.log('First Active');
             }
         }
@@ -547,11 +616,11 @@ $(function () {
      * 
      * Para a contagem se usuário ficar ocioso por 5 segundos.
      */
-    $.userNonIdle = function () {
-        window.idle = false;
-        clearTimeout(window.idleTimer);
-        window.idleTimer = setTimeout(function () {
-            window.idle = true;
+    ANALYZIFY.userNonIdle = function () {
+        ANALYZIFY.activeTimer.idle = false;
+        clearTimeout(ANALYZIFY.activeTimer.idleTimer);
+        ANALYZIFY.activeTimer.idleTimer = setTimeout(function () {
+            ANALYZIFY.activeTimer.idle = true;
         }, 5000);
     };
 
@@ -560,27 +629,27 @@ $(function () {
      * 
      * @param {boolean} state
      */
-    $.activeMaster = function (state) {
-        (state === true || state === "true" || state === 1) ? window.activeMaster = true : window.activeMaster = false;
+    ANALYZIFY.activeMaster = function (state) {
+        (state === true || state === "true" || state === 1) ? ANALYZIFY.activeTimer.activeMaster = true : ANALYZIFY.activeTimer.activeMaster = false;
     };
 
-    $.sessionAlive = function () {
-        var getActiveTimer = window.activeTimer;
-        clearTimeout(window.aliveTimer);
-        window.aliveTimer = setTimeout(function () {
-            if (getActiveTimer <= window.activeTimer - 10) {
-                window.aliveCounter = 0;
-                dlPush('Session Alive', (window.ajaxPage === false ? window.activeTimerPath : window.ajaxPage.replace(/(https:|http:|)\/\//, '').toLowerCase()), (window.ajaxPage === false ? window.activeTimerFirstPath : null), null, true, null, 'fb');
+    ANALYZIFY.sessionAlive = function () {
+        var getActiveTimer = ANALYZIFY.activeTimer.counter;
+        clearTimeout(ANALYZIFY.activeTimer.aliveTimer);
+        ANALYZIFY.activeTimer.aliveTimer = setTimeout(function () {
+            if (getActiveTimer <= ANALYZIFY.activeTimer.counter - 10) {
+                ANALYZIFY.activeTimer.aliveCounter = 0;
+                ANALYZIFY.dlPush('Session Alive', (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.path : ANALYZIFY.ajaxPage.replace(/(https:|http:|)\/\//, '').toLowerCase()), (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.firstPath : null), null, true, null, 'fb');
             } else {
-                window.aliveCounter += 1;
+                ANALYZIFY.activeTimer.aliveCounter += 1;
             }
-            if (window.aliveCounter < 1) {
-                $.sessionAlive();
+            if (ANALYZIFY.activeTimer.aliveCounter < 1) {
+                ANALYZIFY.sessionAlive();
             }
         }, 1680000);
     };
 
-    $.sessionAlive();
+    ANALYZIFY.sessionAlive();
 
     /**
      * <b>CUSTOM TIMER</b>
@@ -594,38 +663,40 @@ $(function () {
      * @param {string} funcInterval - (Opcional) Intervalo de tempo em segundos que a função deve ser executada. Se não for setada, a função e parâmetros serão simplesmente ignorados.
      * @param {string} funcLimit - (Opcional) Limite de vezes que a função deve ser executada. Se não setada, a função será executada continuamente a cada intervalo de tempo.
      */
-    $.customTimer = function (name, idleTrack, func, funcParams, funcInterval, funcLimit) {
-        window['customTimers'] = window['customTimers'] || [];
-        window['customTimers'][name] = window['customTimers'][name] || [];
+    ANALYZIFY.customTimer = function (name, idleTrack, func, funcParams, funcInterval, funcLimit) {
+        ANALYZIFY.customTimers = ANALYZIFY.customTimers || [];
+        ANALYZIFY.customTimers[name] = ANALYZIFY.customTimers[name] || [];
+        ANALYZIFY.customTimers[name]['exeNumber'] = ANALYZIFY.customTimers[name]['exeNumber'] || 0;
+        ANALYZIFY.customTimers[name]['exeNumber']++;
         //check if timer is not already initiated
-        if (typeof name !== "undefined" && typeof window['customTimers'][name]['timerInit'] === "undefined") {
-            window['customTimers'][name]['name'] = name;
-            window['customTimers'][name]['path'] = getUrlPath();
-            window['customTimers'][name]['firstPath'] = getUrlPath(1);
+        if (typeof name !== "undefined" && typeof ANALYZIFY.customTimers[name]['timerInit'] === "undefined") {
+            ANALYZIFY.customTimers[name]['name'] = name;
+            ANALYZIFY.customTimers[name]['path'] = ANALYZIFY.getUrlPath();
+            ANALYZIFY.customTimers[name]['firstPath'] = ANALYZIFY.getUrlPath(1);
             //setup
-            window['customTimers'][name]['timerInit'] = true;
-            window['customTimers'][name]['idle'] = false;
-            window['customTimers'][name]['activeMaster'] = false;
-            window['customTimers'][name]['activeTimer'] = 0;
+            ANALYZIFY.customTimers[name]['timerInit'] = true;
+            ANALYZIFY.customTimers[name]['idle'] = false;
+            ANALYZIFY.customTimers[name]['activeMaster'] = false;
+            ANALYZIFY.customTimers[name]['activeTimer'] = 0;
             var counter = 1;
             func ? func = func.split('||') : '';
             funcLimit = isNaN(parseInt(funcLimit)) === false ? parseInt(funcLimit) : false;
             if (typeof idleTrack === "string") {
-                $.customActiveListener(name, idleTrack);
+                ANALYZIFY.customActiveListener(name, idleTrack);
             }
 
-            window['customTimers'][name]['activeTimerId'] = setInterval(function () {
-                if ((window['customTimers'][name]['idle'] === false || window['customTimers'][name]['activeMaster'] === true) && window.firstActive === true && window.hidden === false) {
-                    window['customTimers'][name]['activeTimer'] += 1;
-                    if (window.fwDebug === true) {
-                        console.log(name + ' - ' + window['customTimers'][name]['activeTimer']);
+            ANALYZIFY.customTimers[name]['activeTimerId'] = setInterval(function () {
+                if ((ANALYZIFY.customTimers[name]['idle'] === false || ANALYZIFY.customTimers[name]['activeMaster'] === true) && ANALYZIFY.activeTimer.firstActive === true && ANALYZIFY.tabHidden === false) {
+                    ANALYZIFY.customTimers[name]['activeTimer'] += 1;
+                    if (ANALYZIFY.debug === true || ANALYZIFY.debug.customTimers === true) {
+                        console.log(name + ' - ' + ANALYZIFY.customTimers[name]['activeTimer']);
                     }
                 }
-                if (typeof funcInterval !== "undefined" && isNaN(parseInt(funcInterval)) === false && window['customTimers'][name]['activeTimer'] >= funcInterval * counter && funcLimit !== 0) {
+                if (typeof funcInterval !== "undefined" && isNaN(parseInt(funcInterval)) === false && ANALYZIFY.customTimers[name]['activeTimer'] >= funcInterval * counter && funcLimit !== 0) {
                     funcParams = $.isArray(funcParams) ? funcParams : [];
                     for (i = 0; i < func.length; i++) {
                         try {
-                            eval(func[i]).apply(this, funcParams[i]);
+                            ANALYZIFY.func[i].apply(this, funcParams[i]);
                         } catch (e) {
                             if (e instanceof SyntaxError) {
                                 console.error(e.message);
@@ -639,11 +710,13 @@ $(function () {
                 }
             }, 1000);
         } else if (typeof name === "undefined") {
-            console.warn('customTimer: "name" parameter must be defined');
-        } else if (typeof window['customTimers'][name]['timerInit'] !== "undefined") {
-            console.warn('customTimer: Custom Timer ' + name + ' already initiated. Limit execution to 1 to avoid unecessary executions.');
+            console.error('customTimer: "name" parameter must be defined');
+        } else if (typeof ANALYZIFY.customTimers[name]['timerInit'] !== "undefined") {
+            if (ANALYZIFY.customTimers[name]['exeNumber'] >= 5) {
+                console.warn('customTimer: Custom Timer ' + name + ' already initiated. Function fired ' + ANALYZIFY.customTimers[name]['exeNumber'] + ' times. Limit execution number.');
+            }
         } else {
-            console.warn('customTimer: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
+            console.error('customTimer: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
         }
     };
 
@@ -653,13 +726,13 @@ $(function () {
      * @param {string} name - Deve ser o mesmo usado para iniciar o contador na função <b>customTimer</b>.
      * @param {boolean} definitive - (Opcional) Se setado como true, não permite que o contador de mesmo <b>name</b> seja iniciado novamente na mesma sessão. Se não setado, o contador pode ser reiniciado do zero executando <b>customTimer</b>.
      */
-    $.unsetCustomTimer = function (name, definitive) {
-        if (typeof name !== "undefined" && typeof window['customTimers'] !== "undefined" && typeof window['customTimers'][name] !== "undefined" && typeof window['customTimers'][name]['timerInit'] !== "undefined") {
-            clearInterval(window['customTimers'][name]['activeTimerId']);
-            definitive === true || definitive === 'true' || definitive === 1 ? '' : delete window['customTimers'][name]['timerInit'];
+    ANALYZIFY.unsetCustomTimer = function (name, definitive) {
+        if (typeof name !== "undefined" && typeof ANALYZIFY.customTimers !== "undefined" && typeof ANALYZIFY.customTimers[name] !== "undefined" && typeof ANALYZIFY.customTimers[name]['timerInit'] !== "undefined") {
+            clearInterval(ANALYZIFY.customTimers[name]['activeTimerId']);
+            definitive === true || definitive === 'true' || definitive === 1 ? '' : delete ANALYZIFY.customTimers[name]['timerInit'];
         } else if (typeof name === "undefined") {
-            console.warn('unsetCustomTimer: "name" parameter must be defined');
-        } else if (typeof window['customTimers'] === "undefined" || typeof window['customTimers'][name] === "undefined" || typeof window['customTimers'][name]['timerInit'] === "undefined") {
+            console.error('unsetCustomTimer: "name" parameter must be defined');
+        } else if (typeof ANALYZIFY.customTimers === "undefined" || typeof ANALYZIFY.customTimers[name] === "undefined" || typeof ANALYZIFY.customTimers[name]['timerInit'] === "undefined") {
             console.warn('unsetCustomTimer: You cannot unset Custom Timer ' + name + ', it is not initiated yet.');
         } else {
             console.error('unsetCustomTimer: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
@@ -674,34 +747,10 @@ $(function () {
      * @param {string} name - Deve ser o mesmo usado para iniciar o contador na função <b>customTimer</b>.
      * @param {string} selector - <b>Seletor CSS</b>. Indica o elemento para rastrear o tempo ativo.
      */
-    $.customActiveListener = function (name, selector) {
-        if (typeof name !== "undefined" && typeof selector !== "undefined" && $(selector).length && typeof window['customTimers'] !== "undefined" && typeof window['customTimers'][name] !== "undefined" && typeof window['customTimers'][name]['timerInit'] !== "undefined" && typeof window['customTimers'][name]['activeListener'] === "undefined") {
+    ANALYZIFY.customActiveListener = function (name, selector) {
+        if (typeof name !== "undefined" && typeof selector !== "undefined" && $(selector).length !== 0 && typeof ANALYZIFY.customTimers !== "undefined" && typeof ANALYZIFY.customTimers[name] !== "undefined" && typeof ANALYZIFY.customTimers[name]['timerInit'] !== "undefined" && typeof ANALYZIFY.customTimers[name]['activeListener'] === "undefined") {
 
-            window['customTimers'][name]['activeListener'] = true;
-
-            $(selector).focus(function () {
-                $.customUserNonIdle(name, true);
-            });
-
-            $(selector).blur(function () {
-                window['customTimers'][name]['idle'] = true;
-            });
-
-            $(selector).on('keydown', function () {
-                $.customUserNonIdle(name, true);
-            });
-
-            $(selector).on('mousemove', function () {
-                $.customUserNonIdle(name, true);
-            });
-
-            $(selector).on('mousedown', function () {
-                $.customUserNonIdle(name, true);
-            });
-
-            $(selector).scroll(function () {
-                $.customUserNonIdle(name, true);
-            });
+            ANALYZIFY.customTimers[name]['activeListener'] = true;
 
             var viewPercent = $(selector).attr('data-view-percent') ? parseInt($(selector).attr('data-view-percent')) : 50;
             var position = $(selector).offset().top;
@@ -711,18 +760,44 @@ $(function () {
             if (isNaN(viewPercent) === false) {
                 if (viewPercent >= 0) {
                     viewPercent = (viewPercent <= 100 && viewPercent >= 0 ? viewPercent : 50);
-                    var viewPositionTop = position - window.height + height * viewPercent / 100;
-                    var viewPositionBottom = position - window.menuHeight + height * (100 - viewPercent) / 100;
+                    var viewPositionTop = position - ANALYZIFY.height + height * viewPercent / 100;
+                    var viewPositionBottom = position - ANALYZIFY.menuHeight + height * (100 - viewPercent) / 100;
                 } else {
                     viewPercent = -(viewPercent >= -100 && viewPercent <= 0 ? viewPercent : -50);
-                    var viewPositionTop = position - window.height * (100 - viewPercent) / 100;
-                    var viewPositionBottom = position + height - window.height * viewPercent / 100;
+                    var viewPositionTop = position - ANALYZIFY.height * (100 - viewPercent) / 100;
+                    var viewPositionBottom = position + height - ANALYZIFY.height * viewPercent / 100;
                 }
             }
 
+            $(selector).focus(function () {
+                ANALYZIFY.customUserNonIdle(name, true);
+            });
+
+            $(selector).blur(function () {
+                ANALYZIFY.customUserNonIdle(name, false);
+            });
+
+            $(selector).on('keydown', function () {
+                ANALYZIFY.customUserNonIdle(name, true);
+            });
+
+            $(selector).on('mousemove', function () {
+                if ((ANALYZIFY.scrollTop >= viewPositionTop) && (ANALYZIFY.scrollTop <= viewPositionBottom)) {
+                    ANALYZIFY.customUserNonIdle(name, true);
+                }
+            });
+
+            $(selector).on('mousedown', function () {
+                ANALYZIFY.customUserNonIdle(name, true);
+            });
+
+            $(selector).scroll(function () {
+                ANALYZIFY.customUserNonIdle(name, true);
+            });
+
             $(window).scroll(function () {
-                if ((window.scrollTop >= viewPositionTop) && (window.scrollTop <= viewPositionBottom)) {
-                    $.customUserNonIdle(name, true);
+                if ((ANALYZIFY.scrollTop >= viewPositionTop) && (ANALYZIFY.scrollTop <= viewPositionBottom)) {
+                    ANALYZIFY.customUserNonIdle(name, true);
                 }
             });
 
@@ -735,12 +810,12 @@ $(function () {
                 if (isNaN(viewPercent) === false) {
                     if (viewPercent >= 0) {
                         viewPercent = (viewPercent <= 100 && viewPercent >= 0 ? viewPercent : 50);
-                        var viewPositionTop = position - window.height + height * viewPercent / 100;
-                        var viewPositionBottom = position - window.menuHeight + height * (100 - viewPercent) / 100;
+                        var viewPositionTop = position - ANALYZIFY.height + height * viewPercent / 100;
+                        var viewPositionBottom = position - ANALYZIFY.menuHeight + height * (100 - viewPercent) / 100;
                     } else {
                         viewPercent = -(viewPercent >= -100 && viewPercent <= 0 ? viewPercent : -50);
-                        var viewPositionTop = position - window.height * (100 - viewPercent) / 100;
-                        var viewPositionBottom = position + height - window.height * viewPercent / 100;
+                        var viewPositionTop = position - ANALYZIFY.height * (100 - viewPercent) / 100;
+                        var viewPositionBottom = position + height - ANALYZIFY.height * viewPercent / 100;
                     }
                 }
             });
@@ -748,12 +823,12 @@ $(function () {
             console.warn('customActiveListener: "name" parameter must be defined');
         } else if (typeof selector === "undefined") {
             console.warn('customActiveListener: "selector" parameter must be defined');
-        } else if ($(selector).length) {
+        } else if ($(selector).length === 0) {
             console.warn('customActiveListener: Selector ' + selector + ' dont exist in this page');
-        } else if (typeof window['customTimers'] === "undefined" || typeof window['customTimers'][name] === "undefined" || typeof window['customTimers'][name]['timerInit'] === "undefined") {
+        } else if (typeof ANALYZIFY.customTimers === "undefined" || typeof ANALYZIFY.customTimers[name] === "undefined" || typeof ANALYZIFY.customTimers[name]['timerInit'] === "undefined") {
             console.warn('customActiveListener: You cannot track Custom Timer ' + name + ', it is not initiated yet');
-        } else if (typeof window['customTimers'][name]['activeListener'] !== "undefined") {
-            if (window['customTimers'][name]['activeListener'] === true) {
+        } else if (typeof ANALYZIFY.customTimers[name]['activeListener'] !== "undefined") {
+            if (ANALYZIFY.customTimers[name]['activeListener'] === true) {
                 console.warn('customActiveListener: Custom Timer ' + name + ' is already being tracked');
             } else {
                 console.warn('customActiveListener: Global variable window["customTimers"]["' + name + '"]["activeListener"] only can be setted to true, check if you are accidentally changed this value outside this function');
@@ -769,20 +844,20 @@ $(function () {
      * @param {string} name - Deve ser o mesmo usado para iniciar o contador na função <b>customTimer</b>.
      * @param {boolean} state - Se setado como true, contador ativo deixa de ficar ocioso e continua a contagem. Se setado como false, contador fica ocioso e para de contar imediatamente.
      */
-    $.customUserNonIdle = function (name, state) {
-        if (typeof name !== "undefined" && typeof window['customTimers'] !== "undefined" && typeof window['customTimers'][name] !== "undefined" && typeof window['customTimers'][name]['timerInit'] !== "undefined") {
+    ANALYZIFY.customUserNonIdle = function (name, state) {
+        if (typeof name !== "undefined" && typeof ANALYZIFY.customTimers !== "undefined" && typeof ANALYZIFY.customTimers[name] !== "undefined" && typeof ANALYZIFY.customTimers[name]['timerInit'] !== "undefined") {
             if (state === true || state === "true" || state === 1) {
-                window['customTimers'][name]['idle'] = false;
-                clearTimeout(window['customTimers'][name]['idleTimer']);
-                window['customTimers'][name]['idleTimer'] = setTimeout(function () {
-                    window['customTimers'][name]['idle'] = true;
+                ANALYZIFY.customTimers[name]['idle'] = false;
+                clearTimeout(ANALYZIFY.customTimers[name]['idleTimer']);
+                ANALYZIFY.customTimers[name]['idleTimer'] = setTimeout(function () {
+                    ANALYZIFY.customTimers[name]['idle'] = true;
                 }, 5000);
             } else {
-                window['customTimers'][name]['idle'] = true;
+                ANALYZIFY.customTimers[name]['idle'] = true;
             }
         } else if (typeof name === "undefined") {
             console.warn('customUserNonIdle: "name" parameter must be defined');
-        } else if (typeof window['customTimers'] === "undefined" || typeof window['customTimers'][name] === "undefined" || typeof window['customTimers'][name]['timerInit'] === "undefined") {
+        } else if (typeof ANALYZIFY.customTimers === "undefined" || typeof ANALYZIFY.customTimers[name] === "undefined" || typeof ANALYZIFY.customTimers[name]['timerInit'] === "undefined") {
             console.warn('customUserNonIdle: You cannot change idle state of Custom Timer ' + name + ', it is not initiated yet.');
         } else {
             console.error('customUserNonIdle: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
@@ -795,12 +870,12 @@ $(function () {
      * @param {type} name - Deve ser o mesmo usado para iniciar o contador na função <b>customTimer</b>.
      * @param {type} state - Se setado como true, <b>customTimer</b> fica ativo definitivamente. Se setado como false, <b>customTimer</b> volta a lervar <b>customUserNonIdle</b> em consideração.
      */
-    $.customActiveMaster = function (name, state) {
-        if (typeof name !== "undefined" && typeof window['customTimers'] !== "undefined" && typeof window['customTimers'][name] !== "undefined" && typeof window['customTimers'][name]['timerInit'] !== "undefined") {
-            (state === true || state === "true" || state === 1) ? window['customTimers'][name]['activeMaster'] = true : window['customTimers'][name]['activeMaster'] = false;
+    ANALYZIFY.customActiveMaster = function (name, state) {
+        if (typeof name !== "undefined" && typeof ANALYZIFY.customTimers !== "undefined" && typeof ANALYZIFY.customTimers[name] !== "undefined" && typeof ANALYZIFY.customTimers[name]['timerInit'] !== "undefined") {
+            (state === true || state === "true" || state === 1) ? ANALYZIFY.customTimers[name]['activeMaster'] = true : ANALYZIFY.customTimers[name]['activeMaster'] = false;
         } else if (typeof name === "undefined") {
             console.warn('customActiveMaster: "name" parameter must be defined');
-        } else if (typeof window['customTimers'] === "undefined" || typeof window['customTimers'][name] === "undefined" || typeof window['customTimers'][name]['timerInit'] === "undefined") {
+        } else if (typeof ANALYZIFY.customTimers === "undefined" || typeof ANALYZIFY.customTimers[name] === "undefined" || typeof ANALYZIFY.customTimers[name]['timerInit'] === "undefined") {
             console.warn('customActiveMaster: You cannot cahnge active master state of Custom Timer ' + name + ', it is not initiated yet.');
         } else {
             console.error('customActiveMaster: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
@@ -830,7 +905,7 @@ $(function () {
                 var checkLimit = isNaN(parseInt(clickLimit[i]));
                 if (checkLimit === false ? clickLimit[i] > arrayClick[e].counter : true) {
                     try {
-                        eval(clickFunc[i]);
+                        eval('ANALYZIFY.' + clickFunc[i]);
                     } catch (er) {
                         if (er instanceof SyntaxError) {
                             console.error(er.message);
@@ -847,8 +922,8 @@ $(function () {
 
     //VIEW EVENT
     if ($('[data-view]').length) {
-        window.viewEventExist = true;
-        window.arrayView = {};
+        ANALYZIFY.viewEventExist = true;
+        ANALYZIFY.arrayView = {};
         var processingViewCalc = false;
 
         /**
@@ -901,72 +976,81 @@ $(function () {
          * @param {string} view - (Opcional) Se setado, <b>viewEvent</b> verifica apenas se elementos marcados com <b>data-view</b> e valor <b>view</b> estão visíveis. Qualquer outro elemento visível não executará qualquer ação.
          * @param {boolean} ignorealt - (Opcional) Por padrão, as funções são executadas uma vez e só serão executadas novamente caso o elemento marcado não fique visível e venha ma ficar visível novamente. Com o ignorealt setado como true, a função é executada continuamente toda vez que a função <b>viewEvent</b> for invocada. Ex: É utilizado para dar play e pausar vídeo do YouTube quando a janela está ou não ativa, isso evita bugs e reações inesperadas. Não é usado true como padrão pois as funções seriam executadas diversas vezes enquanto o usuário rola pelo elemento visível.
          */
-        $.viewEvent = function (view, ignorealt) {
-            if (window.load === true && window.firstActive === true) {
+        ANALYZIFY.viewEvent = function (view, ignorealt) {
+            if (ANALYZIFY.load === true && ANALYZIFY.activeTimer.firstActive === true) {
                 var selector = view ? '[data-view="' + view + '"]' : '[data-view]';
 
                 $(selector).each(function () {
                     var e = $(this).attr('data-view');
-                    if (typeof arrayView[e] !== "undefined") {
-                        var timerCheck = window.activeTimer >= arrayView[e]['viewTime'];
+                    if (typeof ANALYZIFY.arrayView[e] !== "undefined") {
+                        var timerCheck = ANALYZIFY.activeTimer.counter >= ANALYZIFY.arrayView[e]['viewTime'];
 
-                        if ((window.scrollTop >= arrayView[e]['viewPositionTop']) && (window.scrollTop < arrayView[e]['viewPositionBottom'])) {
-                            if (arrayView[e]['viewHidden'] !== true && $(this).is(":visible")) {
-                                if ((arrayView[e]['alt'] !== true || ignorealt === true) && timerCheck) {
+                        if ((ANALYZIFY.scrollTop >= ANALYZIFY.arrayView[e]['viewPositionTop']) && (ANALYZIFY.scrollTop < ANALYZIFY.arrayView[e]['viewPositionBottom'])) {
+                            if (ANALYZIFY.arrayView[e]['viewHidden'] !== true && $(this).is(":visible")) {
+                                if ((ANALYZIFY.arrayView[e]['alt'] !== true || ignorealt === true) && timerCheck) {
                                     if ($(this).attr('data-view-act')) {
                                         var viewFunc = $(this).attr('data-view-act').split('||');
                                         for (i = 0; i < viewFunc.length; i++) {
-                                            if (isNaN(parseInt(arrayView[e]['viewLimit'][i])) === false ? arrayView[e]['viewLimit'][i] > arrayView[e]['viewCounter'] : true) {
+                                            if (isNaN(parseInt(ANALYZIFY.arrayView[e]['viewLimit'][i])) === false ? ANALYZIFY.arrayView[e]['viewLimit'][i] > ANALYZIFY.arrayView[e]['viewCounter'] : true) {
                                                 try {
-                                                    eval(viewFunc[i]);
+                                                    eval('ANALYZIFY.' + viewFunc[i]);
                                                 } catch (e) {
                                                     if (e instanceof SyntaxError) {
                                                         console.error(e.message);
                                                     }
                                                 }
+                                                if (ANALYZIFY.debug === true || ANALYZIFY.debug.view === true) {
+                                                    console.log(viewFunc[i]);
+                                                }
                                             }
                                         }
-                                        ignorealt !== true ? arrayView[e]['viewCounter']++ : '';
+                                        ignorealt !== true ? ANALYZIFY.arrayView[e]['viewCounter']++ : '';
                                     } else if (!($(this).attr('data-nonview-act'))) {
                                         var viewFunc = e.split('||');
                                         for (i = 0; i < viewFunc.length; i++) {
-                                            if (isNaN(parseInt(arrayView[e]['viewLimit'][i])) === false ? arrayView[e]['viewLimit'][i] > arrayView[e]['viewCounter'] : true) {
+                                            if (isNaN(parseInt(ANALYZIFY.arrayView[e]['viewLimit'][i])) === false ? ANALYZIFY.arrayView[e]['viewLimit'][i] > ANALYZIFY.arrayView[e]['viewCounter'] : true) {
                                                 try {
-                                                    eval(viewFunc[i]);
+                                                    eval('ANALYZIFY.' + viewFunc[i]);
                                                 } catch (e) {
                                                     if (e instanceof SyntaxError) {
                                                         console.error(e.message);
                                                     }
                                                 }
+                                                if (ANALYZIFY.debug === true || ANALYZIFY.debug.view === true) {
+                                                    console.log(viewFunc[i]);
+                                                }
                                             }
                                         }
-                                        ignorealt !== true ? arrayView[e]['viewCounter']++ : '';
+                                        ignorealt !== true ? ANALYZIFY.arrayView[e]['viewCounter']++ : '';
                                     }
                                 }
-                                arrayView[e]['alt'] = true;
+                                ANALYZIFY.arrayView[e]['alt'] = true;
                             }
                         } else {
-                            if ((arrayView[e]['alt'] === true || ignorealt === true) && timerCheck) {
+                            if ((ANALYZIFY.arrayView[e]['alt'] === true || ignorealt === true) && timerCheck) {
                                 if ($(this).attr('data-nonview-act')) {
                                     var viewFunc = $(this).attr('data-nonview-act').split('||');
                                     for (i = 0; i < viewFunc.length; i++) {
-                                        if (isNaN(parseInt(arrayView[e]['nonViewLimit'][i])) === false ? arrayView[e]['nonViewLimit'][i] > arrayView[e]['nonViewCounter'] : true) {
+                                        if (isNaN(parseInt(ANALYZIFY.arrayView[e]['nonViewLimit'][i])) === false ? ANALYZIFY.arrayView[e]['nonViewLimit'][i] > ANALYZIFY.arrayView[e]['nonViewCounter'] : true) {
                                             try {
-                                                eval(viewFunc[i]);
+                                                eval('ANALYZIFY.' + viewFunc[i]);
                                             } catch (e) {
                                                 if (e instanceof SyntaxError) {
                                                     console.error(e.message);
                                                 }
                                             }
+                                            if (ANALYZIFY.debug === true || ANALYZIFY.debug.view === true) {
+                                                console.log(viewFunc[i]);
+                                            }
                                         }
                                     }
-                                    ignorealt !== true ? arrayView[e]['nonViewCounter']++ : '';
+                                    ignorealt !== true ? ANALYZIFY.arrayView[e]['nonViewCounter']++ : '';
                                 }
                             }
-                            arrayView[e]['alt'] = false;
+                            ANALYZIFY.arrayView[e]['alt'] = false;
                         }
                     } else {
-                        console.warn('You cannot check if element [data-view="' + e + '"] is visible, positions is not calculated yet. You need to execute $.viewEventCalc first');
+                        console.warn('You cannot check if element [data-view="' + e + '"] is visible, positions is not calculated yet. You need to execute ANALYZIFY.viewEventCalc first');
                     }
                 });
             }
@@ -979,51 +1063,78 @@ $(function () {
          * 
          * @param {string} view - Para calcular apenas um elemento. Não é recomendado, pois se um elemento muda seus dimensões, outros também mudam como consequência, especialmente os que estão abaixo.
          */
-        $.viewEventCalc = function (view) {
+        ANALYZIFY.viewEventCalc = function (view) {
             if (processingViewCalc === false) {
                 var selector = view ? '[data-view="' + view + '"]' : '[data-view]';
 
                 $(selector).each(function () {
                     var e = $(this).attr('data-view');
-                    if (typeof arrayView[e] !== "undefined") {
-                        arrayView[e]['position'] = $(this).offset().top;
-                        arrayView[e]['height'] = $(this).outerHeight();
+                    if (typeof ANALYZIFY.arrayView[e] !== "undefined") {
+                        ANALYZIFY.arrayView[e]['position'] = $(this).offset().top;
+                        ANALYZIFY.arrayView[e]['height'] = $(this).outerHeight();
                     } else {
-                        arrayView[e] = {position: $(this).offset().top, height: $(this).outerHeight()};
+                        ANALYZIFY.arrayView[e] = {position: $(this).offset().top, height: $(this).outerHeight()};
                     }
                     var viewTime = $(this).attr('data-view-time');
                     var checkTime = isNaN(parseInt(viewTime));
-                    arrayView[e]['viewTime'] = checkTime === false ? parseInt($(this).attr('data-view-time')) : 0;
-                    arrayView[e]['viewPercent'] = $(this).attr('data-view-percent') ? parseInt($(this).attr('data-view-percent')) : 50;
-                    typeof arrayView[e]['viewCounter'] !== "undefined" ? '' : arrayView[e]['viewCounter'] = 0;
-                    typeof arrayView[e]['nonViewCounter'] !== "undefined" ? '' : arrayView[e]['nonViewCounter'] = 0;
-                    arrayView[e]['viewLimit'] = $(this).attr('data-view-limit') ? $(this).attr('data-view-limit').split(',') : 'notset';
-                    arrayView[e]['nonViewLimit'] = $(this).attr('data-nonview-limit') ? $(this).attr('data-nonview-limit').split(',') : 'notset';
-                    arrayView[e]['viewHidden'] = $(this).attr('data-view-hidden');
-                    arrayView[e]['viewHidden'] = arrayView[e]['viewHidden'] === 1 || arrayView[e]['viewHidden'] === true || arrayView[e]['viewHidden'] === 'true' ? true : false;
+                    ANALYZIFY.arrayView[e]['viewTime'] = checkTime === false ? parseInt($(this).attr('data-view-time')) : 0;
+                    ANALYZIFY.arrayView[e]['viewPercent'] = $(this).attr('data-view-percent') ? parseInt($(this).attr('data-view-percent')) : 50;
+                    typeof ANALYZIFY.arrayView[e]['viewCounter'] !== "undefined" ? '' : ANALYZIFY.arrayView[e]['viewCounter'] = 0;
+                    typeof ANALYZIFY.arrayView[e]['nonViewCounter'] !== "undefined" ? '' : ANALYZIFY.arrayView[e]['nonViewCounter'] = 0;
+                    ANALYZIFY.arrayView[e]['viewLimit'] = $(this).attr('data-view-limit') ? $(this).attr('data-view-limit').split(',') : 'notset';
+                    ANALYZIFY.arrayView[e]['nonViewLimit'] = $(this).attr('data-nonview-limit') ? $(this).attr('data-nonview-limit').split(',') : 'notset';
+                    ANALYZIFY.arrayView[e]['viewHidden'] = $(this).attr('data-view-hidden');
+                    ANALYZIFY.arrayView[e]['viewHidden'] = ANALYZIFY.arrayView[e]['viewHidden'] === 1 || ANALYZIFY.arrayView[e]['viewHidden'] === true || ANALYZIFY.arrayView[e]['viewHidden'] === 'true' ? true : false;
                     if (typeof viewTime !== 'undefined' && checkTime === true) {
                         console.warn('attribute data-view-time must be like a number. Check the [data-view="' + e + '"] element');
                     }
                     //Percent Test
-                    if (isNaN(arrayView[e]['viewPercent']) === false) {
-                        if (arrayView[e]['viewPercent'] >= 0) {
-                            arrayView[e]['viewPercent'] = (arrayView[e]['viewPercent'] <= 100 && arrayView[e]['viewPercent'] >= 0 ? arrayView[e]['viewPercent'] : 50);
-                            arrayView[e]['viewPositionTop'] = arrayView[e]['position'] - window.height + arrayView[e]['height'] * arrayView[e]['viewPercent'] / 100;
-                            arrayView[e]['viewPositionBottom'] = arrayView[e]['position'] - window.menuHeight + arrayView[e]['height'] * (100 - arrayView[e]['viewPercent']) / 100;
+                    if (isNaN(ANALYZIFY.arrayView[e]['viewPercent']) === false) {
+                        if (ANALYZIFY.arrayView[e]['viewPercent'] >= 0) {
+                            ANALYZIFY.arrayView[e]['viewPercent'] = (ANALYZIFY.arrayView[e]['viewPercent'] <= 100 && ANALYZIFY.arrayView[e]['viewPercent'] >= 0 ? ANALYZIFY.arrayView[e]['viewPercent'] : 50);
+                            ANALYZIFY.arrayView[e]['viewPositionTop'] = ANALYZIFY.arrayView[e]['position'] - ANALYZIFY.height + ANALYZIFY.arrayView[e]['height'] * ANALYZIFY.arrayView[e]['viewPercent'] / 100;
+                            ANALYZIFY.arrayView[e]['viewPositionBottom'] = ANALYZIFY.arrayView[e]['position'] - ANALYZIFY.menuHeight + ANALYZIFY.arrayView[e]['height'] * (100 - ANALYZIFY.arrayView[e]['viewPercent']) / 100;
                         } else {
-                            arrayView[e]['viewPercent'] = -(arrayView[e]['viewPercent'] >= -100 && arrayView[e]['viewPercent'] <= 0 ? arrayView[e]['viewPercent'] : -50);
-                            arrayView[e]['viewPositionTop'] = arrayView[e]['position'] - window.height * (100 - arrayView[e]['viewPercent']) / 100;
-                            arrayView[e]['viewPositionBottom'] = arrayView[e]['position'] + arrayView[e]['height'] - window.height * arrayView[e]['viewPercent'] / 100;
+                            ANALYZIFY.arrayView[e]['viewPercent'] = -(ANALYZIFY.arrayView[e]['viewPercent'] >= -100 && ANALYZIFY.arrayView[e]['viewPercent'] <= 0 ? ANALYZIFY.arrayView[e]['viewPercent'] : -50);
+                            ANALYZIFY.arrayView[e]['viewPositionTop'] = ANALYZIFY.arrayView[e]['position'] - ANALYZIFY.height * (100 - ANALYZIFY.arrayView[e]['viewPercent']) / 100;
+                            ANALYZIFY.arrayView[e]['viewPositionBottom'] = ANALYZIFY.arrayView[e]['position'] + ANALYZIFY.arrayView[e]['height'] - ANALYZIFY.height * ANALYZIFY.arrayView[e]['viewPercent'] / 100;
                         }
                     }
                 });
-                $.viewEvent();
+                ANALYZIFY.viewEvent();
                 processingViewCalc = false;
             }
         };
     }
 
     //PAGE VISIBILITY API
+
+    /**
+     * Ações executadas quando a aba do navegador não está em foco, executada pela <b>PAGE VISIBILITY API</b>.
+     */
+    ANALYZIFY.pageVisibilityHidden = function () {
+        ANALYZIFY.tabHidden = true;
+
+        if (ANALYZIFY.debug === true || ANALYZIFY.debug.activity === true) {
+            console.log('Tab Hidden');
+        }
+
+        ANALYZIFY.setCustomEntry('pageHidden');
+    };
+
+    /**
+     * Ações executadas quando a aba do navegador está em foco, executada pela <b>PAGE VISIBILITY API</b>.
+     */
+    ANALYZIFY.pageVisibility = function () {
+        ANALYZIFY.tabHidden = false;
+
+        if (ANALYZIFY.debug === true || ANALYZIFY.debug.activity === true) {
+            console.log('Tab Visible');
+        }
+
+        ANALYZIFY.setCustomEntry('pageShow');
+    };
+
     // Set the name of the hidden property and the change event for visibility
     var hidden, visibilityChange;
     if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support 
@@ -1040,17 +1151,17 @@ $(function () {
     /**
      * Após página carregada, executa ações das funções <b>pageVisibilityHidden</b>, se página <b>não</b> está visível, ou <b>pageVisibility</b>, se página está visível
      */
-    $.handleVisibilityChange = function () {
+    ANALYZIFY.handleVisibilityChange = function () {
         if (document[hidden]) { // If the page is hidden
-            $.pageVisibilityHidden();
+            ANALYZIFY.pageVisibilityHidden();
         } else { // if the page is shown
-            $.pageVisibility();
+            ANALYZIFY.pageVisibility();
         }
     };
 
     if (!(typeof document.addEventListener === "undefined" || typeof document[hidden] === "undefined")) {
         // Handle page visibility change
-        document.addEventListener(visibilityChange, $.handleVisibilityChange, false);
+        document.addEventListener(visibilityChange, ANALYZIFY.handleVisibilityChange, false);
     }
 
     /**
@@ -1058,16 +1169,16 @@ $(function () {
      * 
      * Verifica se clique em um link tem destino fora do site. Se positivo, envia evento ao GTM informando site e link completo.
      */
-    if (typeof window.BASE !== 'undefined') {
+    if (typeof ANALYZIFY.BASE !== 'undefined') {
         $('a[href^="http"]').filter(function () {
             return this.href.match(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/);
         }).click(function () {
             var href = $(this).attr('href') ? $(this).attr('href') : '';
-            if ((href.indexOf('http://') !== -1 || href.indexOf('https://') !== -1) && href.indexOf(window.BASE) === -1) {
+            if ((href.indexOf('http://') !== -1 || href.indexOf('https://') !== -1) && href.indexOf(ANALYZIFY.BASE) === -1) {
                 var site = href.replace(/(https:|http:|)\/\//, '');
                 var n = site.indexOf('/');
                 site = site.substring(0, n !== -1 ? n : site.length);
-                dlPush('Click', 'Outgoing', site, href);
+                ANALYZIFY.dlPush('Click', 'Outgoing', site, href);
             }
         });
     }
@@ -1089,7 +1200,7 @@ $(function () {
             var selector = $('[id="' + $(this).attr('href').replace('#', '') + '_go"]');
             if (selector.length) {
                 var goto = selector.offset().top;
-                $('html, body').stop().animate({scrollTop: goto - window.menuInitialHeight + window.logoDeltaHeight}, 1000);
+                $('html, body').stop().animate({scrollTop: goto - ANALYZIFY.menuInitialHeight + ANALYZIFY.logoDeltaHeight}, 1000);
                 return false;
             }
         });
@@ -1148,20 +1259,20 @@ $(function () {
         /**
          * Reduz a altura do menu se posição do rolamento for maior que zero. E alterna entre logos branca e original na presença da lcasse .transparente
          */
-        $.reduzMenu = function () {
-            if (window.scrollTop > 0) {
+        ANALYZIFY.reduzMenu = function () {
+            if (ANALYZIFY.scrollTop > 0) {
                 $('[data-menu="fixed-top"]').addClass('main_header_fixed');
-                $.addLogo();
+                ANALYZIFY.addLogo();
             }
-            if (window.scrollTop === 0) {
+            if (ANALYZIFY.scrollTop === 0) {
                 $('[data-menu="fixed-top"]').removeClass('main_header_fixed');
-                $.addLogoWhite();
+                ANALYZIFY.addLogoWhite();
             }
         };
         /**
          * Se junto ao data-menu estiver presente a class .transparente, a logo será trocada para a versão branca.
          */
-        $.addLogoWhite = function () {
+        ANALYZIFY.addLogoWhite = function () {
             if ($('[data-menu="fixed-top"].transparente .img-logo.switch').length) {
                 $('[data-menu="fixed-top"] .img-logo').attr('src', logoWhiteSrc);
                 $('[data-menu="fixed-top"] .mobile_action').addClass('white');
@@ -1170,26 +1281,26 @@ $(function () {
         /**
          * Se junto ao data-menu estiver presente a class .transparente, a logo será trocada para a versão original.
          */
-        $.addLogo = function () {
+        ANALYZIFY.addLogo = function () {
             if ($('[data-menu="fixed-top"].transparente .img-logo.switch').length) {
                 $('[data-menu="fixed-top"] .img-logo').attr('src', logoSrc);
                 $('[data-menu="fixed-top"] .mobile_action').removeClass('white');
             }
         };
 
-        window.menuFixedTopExist = true;
+        ANALYZIFY.menuFixedTopExist = true;
         var logoSrc = $('[data-menu="fixed-top"] .img-logo').attr('src');
         var logoWhiteSrc = logoSrc.substr(0, logoSrc.indexOf('.')) + '-white.png';
         if ($('.j_padding_top').length) {
-            $('.j_padding_top').css('padding-top', window.menuInitialHeight);
+            $('.j_padding_top').css('padding-top', ANALYZIFY.menuInitialHeight);
         } else {
-            $('body').css('padding-top', window.menuInitialHeight);
+            $('body').css('padding-top', ANALYZIFY.menuInitialHeight);
         }
         $('[data-menu="fixed-top"]').addClass('fixed_top');
         if ($(window).scrollTop() > 0) {
             $('[data-menu="fixed-top"]').addClass('main_header_fixed');
         } else {
-            $.addLogoWhite();
+            ANALYZIFY.addLogoWhite();
         }
     }
 
@@ -1198,7 +1309,7 @@ $(function () {
      * 
      * Em telas menores, abre menu lateral
      */
-    $.mobileMenuToggle = function () {
+    ANALYZIFY.mobileMenuToggle = function () {
         if (!$('.mobile_action').hasClass('active')) {
             $('.mobile_action').addClass('active');
             $('.main_header_nav').animate({'left': '0px'}, 100);
@@ -1209,7 +1320,7 @@ $(function () {
     };
 
     $('.mobile_action').click(function () {
-        $.mobileMenuToggle();
+        ANALYZIFY.mobileMenuToggle();
     });
 
     /**
@@ -1218,9 +1329,9 @@ $(function () {
      * Exibe botão para voltar ao topo
      */
     if ($('.j_back').length) {
-        window.botaoTopoExist = true;
-        $.exibeBotaoTopo = function () {
-            if (window.scrollTop > 0) {
+        ANALYZIFY.botaoTopoExist = true;
+        ANALYZIFY.exibeBotaoTopo = function () {
+            if (ANALYZIFY.scrollTop > 0) {
                 $('body').append('<div class="j_back backtop round" title="Voltar ao topo"></div>');
             } else {
                 $('.j_back').remove();
@@ -1230,7 +1341,7 @@ $(function () {
 
     //SCROLLSPY
     if ($('[data-spy]').length) {
-        window.scrollSpyExist = true;
+        ANALYZIFY.scrollSpyExist = true;
         var arraySpy = {};
         var processingSpy = false;
         var processingSpyCalc = false;
@@ -1238,13 +1349,13 @@ $(function () {
         /**
          * Calcula as posição de cada elemento com data-spy.
          */
-        $.scrollSpyCalc = function () {
+        ANALYZIFY.scrollSpyCalc = function () {
             if (processingSpyCalc === false) {
                 processingSpyCalc = true;
                 $('[data-spy]').each(function (i) {
-                    arraySpy[i] = {dataspy: $(this).attr('id').replace("_go", ""), position: $(this).offset().top - window.menuInitialHeight, height: $(this).outerHeight()};
+                    arraySpy[i] = {dataspy: $(this).attr('id').replace("_go", ""), position: $(this).offset().top - ANALYZIFY.menuInitialHeight, height: $(this).outerHeight()};
                 });
-                $.scrollSpy();
+                ANALYZIFY.scrollSpy();
                 processingSpyCalc = false;
             }
         };
@@ -1256,11 +1367,11 @@ $(function () {
          * 
          * Na presença do atributo <b>data-spy</b> a função busca no mesmo elemento o valor do atributo <b>href</b> e verifica se é equivalente ao href do menu scrollspy. Verifica elementos com sufixo <b>_go</b> também.
          */
-        $.scrollSpy = function () {
+        ANALYZIFY.scrollSpy = function () {
             if (processingSpy === false) {
                 processingSpy = true;
                 $('[data-spy]').each(function (i) {
-                    if ((window.scrollTop >= arraySpy[i].position - 5) && (window.scrollTop < arraySpy[i].position + arraySpy[i].height - 5)) {
+                    if ((ANALYZIFY.scrollTop >= arraySpy[i].position - 5) && (ANALYZIFY.scrollTop < arraySpy[i].position + arraySpy[i].height - 5)) {
                         $('[scrollspy] [href="#' + arraySpy[i].dataspy + '"]').addClass('active');
                     } else {
                         $('[scrollspy] [href="#' + arraySpy[i].dataspy + '"]').removeClass('active');
@@ -1365,7 +1476,7 @@ $(function () {
          */
         $(document).on('click', function (event) {
             if ($(event.target).has('.j_modal_box').length) {
-                $.closeModal();
+                ANALYZIFY.closeModal();
             }
         });
 
@@ -1373,14 +1484,14 @@ $(function () {
          * Invoca fechamento da modal ao clicar no botão de fechar
          */
         $('.j_modal_close').click(function () {
-            $.closeModal();
+            ANALYZIFY.closeModal();
         });
 
         /**
          * Abre modal onde o valor do atributo <b>data-modal</b> é igual ao parâmetro <b>setDataModal</b>
          * @param {string} setDataModal
          */
-        $.openModal = function (setDataModal) {
+        ANALYZIFY.openModal = function (setDataModal) {
             dataModal = '[data-modal="' + setDataModal + '"]';
             if ($(dataModal).length) {
                 $('body').css('overflow', 'hidden');
@@ -1395,7 +1506,7 @@ $(function () {
         /**
          * Fecha modais
          */
-        $.closeModal = function () {
+        ANALYZIFY.closeModal = function () {
             $('body').css('overflow', '');
             $('[data-modal]').children().fadeOut(200, function () {
                 $(this).closest('[data-modal]').fadeOut(200);
@@ -1407,37 +1518,15 @@ $(function () {
          * 
          * Após carregar a página, abre modal se o parâmetro da URL <b>modal</b> for igual ao valor do atributo <b>data-modal</b>.
          */
-        var modalParam = urlParam('modal');
+        var modalParam = ANALYZIFY.urlParam('modal');
         if ((modalParam) && (modalParam !== 0)) {
-            $.openModal(modalParam);
+            ANALYZIFY.openModal(modalParam);
         }
     }
 
-    /**
-     * Executa ação ao mouse sair do documento, desde que variável window.exitIntent esteja definida com uma função escrita como string.
-     */
-    var mouseLeaveCount = 0;
-    $(document).mouseleave(function () {
-        if (typeof window.exitIntent !== "undefined") {
-            var mouseleave = String(window.exitIntent).split('||');
-            for (i = 0; i < mouseleave.length; i++) {
-                if (mouseLeaveCount === 0) {
-                    try {
-                        eval(mouseleave[i]);
-                    } catch (er) {
-                        if (er instanceof SyntaxError) {
-                            console.error(er.message);
-                        }
-                    }
-                }
-            }
-            mouseLeaveCount = 1;
-        }
-    });
-
     //IGUALAR ALTURA DE BOX MENORES
     if ($('[data-same-height]').length) {
-        window.jSameHeightExist = true;
+        ANALYZIFY.jSameHeightExist = true;
         var jSameHeight = {};
         var GreaterSameHeight = {};
         var processingHeights = false;
@@ -1445,22 +1534,30 @@ $(function () {
         /**
          * Iguala altura de boxes com mesmo valor de atributo <b>data-same-height</b>.
          */
-        $.sameHeight = function () {
+        ANALYZIFY.sameHeight = function () {
             if (processingHeights === false) {
                 processingHeights = true;
-                if (window.width > 440) {
+                if (ANALYZIFY.width > 460) {
                     $('[data-same-height]').each(function (i) {
+                        jSameHeight[i] = jSameHeight[i] || {};
                         $(this).css('height', '');
-                        var order = $(this).attr('data-same-height');
-                        typeof GreaterSameHeight[order] !== "undefined" ? '' : GreaterSameHeight[order] = 0;
-                        jSameHeight[i] = {height: $(this).height()};
-                        if (jSameHeight[i].height > GreaterSameHeight[order]) {
-                            GreaterSameHeight[order] = jSameHeight[i].height;
+                        if ($(this).outerWidth() / ANALYZIFY.width < 0.8) {
+                            jSameHeight[i].check = true;
+                            var order = $(this).attr('data-same-height');
+                            typeof GreaterSameHeight[order] !== "undefined" ? '' : GreaterSameHeight[order] = 0;
+                            jSameHeight[i].height = $(this).height();
+                            if (jSameHeight[i].height > GreaterSameHeight[order]) {
+                                GreaterSameHeight[order] = jSameHeight[i].height;
+                            }
+                        } else {
+                            jSameHeight[i].check = false;
                         }
                     });
                     $('[data-same-height]').each(function (i) {
-                        var order = $(this).attr('data-same-height');
-                        $(this).css('height', GreaterSameHeight[order]);
+                        if (jSameHeight[i].check === true) {
+                            var order = $(this).attr('data-same-height');
+                            $(this).css('height', GreaterSameHeight[order]);
+                        }
                     });
                     GreaterSameHeight = {};
                 } else {
@@ -1468,7 +1565,7 @@ $(function () {
                         $(this).css('height', '');
                     });
                 }
-                $.normalize();
+                ANALYZIFY.normalize();
                 processingHeights = false;
             }
         };
@@ -1515,10 +1612,10 @@ $(function () {
             $('.j_accord_toogle_active').slideUp(200, function () {
                 up = true;
                 $(this).removeClass('j_accord_toogle_active');
-                $.normalize();
+                ANALYZIFY.normalize();
             });
             $(this).find('.j_accord_toogle:not(.j_accord_toogle_active)').slideToggle(200, function () {
-                up !== true ? $.normalize() : '';
+                up !== true ? ANALYZIFY.normalize() : '';
             }).addClass('j_accord_toogle_active');
             up = false;
         });
@@ -1535,14 +1632,14 @@ $(function () {
             slideId = $(this).attr('data-slide-go');
             trackSlideClick = '[data-slide="' + slideId + '"]';
             trackSlideIndicator = '[data-slide-ind="' + slideId + '"]';
-            $.slideGo();
+            ANALYZIFY.slideGo();
         });
 
         $('[data-slide-back]').click(function () {
             slideId = $(this).attr('data-slide-back');
             trackSlideClick = '[data-slide="' + slideId + '"]';
             trackSlideIndicator = '[data-slide-ind="' + slideId + '"]';
-            $.slideBack();
+            ANALYZIFY.slideBack();
         });
 
         $('[data-slide-ind]').click(function () {
@@ -1550,13 +1647,13 @@ $(function () {
             trackSlideClick = '[data-slide="' + slideId + '"]';
             trackSlideIndicator = '[data-slide-ind="' + slideId + '"]';
             slideOrder = $(this).attr('data-order');
-            $.slideIndicators();
+            ANALYZIFY.slideIndicators();
         });
 
         /**
          * Avança para o próximo item do slider
          */
-        $.slideGo = function () {
+        ANALYZIFY.slideGo = function () {
             if ($(trackSlideClick + '.first').next().length) {
                 $(trackSlideClick + '.first').fadeOut(200, function () {
                     $(trackSlideClick + '.first').removeClass('first').next().fadeIn().addClass('first');
@@ -1576,7 +1673,7 @@ $(function () {
         /**
          * Volta para o item anterior do slider
          */
-        $.slideBack = function () {
+        ANALYZIFY.slideBack = function () {
             if ($(trackSlideClick + '.first').index() > 1) {
                 $(trackSlideClick + '.first').fadeOut(200, function () {
                     $(trackSlideClick + '.first').removeClass('first').prev().fadeIn().addClass('first');
@@ -1596,7 +1693,7 @@ $(function () {
         /**
          * Avança para o item clicado do slider
          */
-        $.slideIndicators = function () {
+        ANALYZIFY.slideIndicators = function () {
             if (!($(this).hasClass('active'))) {
                 $(trackSlideClick + '.first').fadeOut(200, function () {
                     $(trackSlideClick + '.first').removeClass('first');
@@ -1612,34 +1709,34 @@ $(function () {
     //*****END WIDGETS*****
 
     //-----DEV TOOLS-----
-    if (typeof window.BASE !== 'undefined' && window.BASE === 'localhost' || window.BASE === '127.0.0.1') { //Verifica se está em localhost
+    if (typeof ANALYZIFY.BASE !== 'undefined' && ANALYZIFY.BASE === 'localhost' || ANALYZIFY.BASE === '127.0.0.1') { //Verifica se está em localhost
 
         $(window).resize(function () {
-            $.definePrefix();
+            ANALYZIFY.definePrefix();
         });
 //        $(window).scroll(function () {
-//            $.appendScrollTop();
+//            ANALYZIFY.appendScrollTop();
 //        });
 
         /**
          * Verifica a resolução, define o prefixo responsivo e exibe na tela.
          */
-        $.definePrefix = function () {
-            if (window.width < 480) {
+        ANALYZIFY.definePrefix = function () {
+            if (ANALYZIFY.width < 480) {
                 prefix = '0 (Até 480)';
-                $.executePrefix();
-            } else if ((window.width >= 480) && (window.width < 768) && (prefix !== 'xs')) {
+                ANALYZIFY.executePrefix();
+            } else if ((ANALYZIFY.width >= 480) && (ANALYZIFY.width < 768) && (prefix !== 'xs')) {
                 prefix = 'xs (480 -> 768)';
-                $.executePrefix();
-            } else if ((window.width >= 768) && (window.width < 1024) && (prefix !== 'sm')) {
+                ANALYZIFY.executePrefix();
+            } else if ((ANALYZIFY.width >= 768) && (ANALYZIFY.width < 1024) && (prefix !== 'sm')) {
                 prefix = 'sm (768 -> 1024)';
-                $.executePrefix();
-            } else if ((window.width >= 1024) && (window.width < 1280) && (prefix !== 'md')) {
+                ANALYZIFY.executePrefix();
+            } else if ((ANALYZIFY.width >= 1024) && (ANALYZIFY.width < 1280) && (prefix !== 'md')) {
                 prefix = 'md (1024 -> 1280)';
-                $.executePrefix();
-            } else if ((window.width >= 1280) && (prefix !== 'lg')) {
+                ANALYZIFY.executePrefix();
+            } else if ((ANALYZIFY.width >= 1280) && (prefix !== 'lg')) {
                 prefix = 'lg (Maior que 1280)';
-                $.executePrefix();
+                ANALYZIFY.executePrefix();
             }
         };
 
@@ -1651,64 +1748,33 @@ $(function () {
         }
 
         //SCROLLTOP PRINT
-        $.appendScrollTop = function () {
-            $('body').append('<span class="prefixLabel" style="position: fixed; left: 0; bottom: 0; background-color: rgba(70, 70, 70, 0.8); color: #fff; padding: 10px 16px; border-radius: 0 5px 0 0; text-transform: uppercase;">' + window.scrollTop + '</span>');
+        ANALYZIFY.appendScrollTop = function () {
+            $('body').append('<span class="prefixLabel" style="position: fixed; left: 0; bottom: 0; background-color: rgba(70, 70, 70, 0.8); color: #fff; padding: 10px 16px; border-radius: 0 5px 0 0; text-transform: uppercase;">' + ANALYZIFY.scrollTop + '</span>');
         };
 
         //RESOLUTION PREFIXES
         var prefix;
         var timerPref;
 
-        $.timerPrefix = function () {
+        ANALYZIFY.timerPrefix = function () {
             clearTimeout(timerPref);
             timerPref = setTimeout(function () {
-                $.removePrefix();
+                ANALYZIFY.removePrefix();
             }, 2000);
         };
 
-        $.removePrefix = function () {
+        ANALYZIFY.removePrefix = function () {
             $('span.prefixLabel').remove();
         };
 
-        $.appendPrefix = function () {
+        ANALYZIFY.appendPrefix = function () {
             $('body').append('<span class="prefixLabel" style="position: fixed; left: 0; bottom: 0; background-color: rgba(70, 70, 70, 0.8); color: #fff; padding: 10px 16px; border-radius: 0 5px 0 0; text-transform: uppercase;">' + prefix + '</span>');
         };
 
-        $.executePrefix = function () {
-            $.removePrefix();
-            $.appendPrefix();
-            $.timerPrefix();
-        };
-
-
-        /**
-         * Função que escreve no console em diferentes formatos dependendo dos parâmetros definidos ou não.
-         * Usada para testes em desenvolvimento.
-         *
-         * @param x
-         * @param y
-         */
-        $.echos = function (x, y) {
-            if (x && y) {
-                var echo = '(' + typeof x + ') x: ' + x + ' / ' + '(' + typeof y + ') y: ' + y;
-            } else if (x) {
-                var echo = '(' + typeof x + ') x: ' + x;
-            } else if (y) {
-                var echo = '(' + typeof y + ') y: ' + y;
-            } else {
-                var echo = 'no param';
-            }
-
-            consoleLog();
-//        alert();
-
-            function consoleLog() {
-                console.log(echo);
-            }
-
-            function alert() {
-                alert(echo);
-            }
+        ANALYZIFY.executePrefix = function () {
+            ANALYZIFY.removePrefix();
+            ANALYZIFY.appendPrefix();
+            ANALYZIFY.timerPrefix();
         };
     }
 
