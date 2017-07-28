@@ -1,13 +1,13 @@
 {
     "exportFormatVersion": 2,
-    "exportTime": "2017-07-21 10:43:41",
+    "exportTime": "2017-07-28 14:43:00",
     "containerVersion": {
-        "path": "accounts/447353382/containers/6978358/versions/8",
+        "path": "accounts/447353382/containers/6978358/versions/9",
         "accountId": "447353382",
         "containerId": "6978358",
-        "containerVersionId": "8",
-        "name": "1.2.3",
-        "description": "- Adição de tempo ativo nos eventos Facebook.\n- Retirada do monitoramento de form jQuery da tag Mautic.",
+        "containerVersionId": "9",
+        "name": "1.2.4",
+        "description": "Remoção do Smartlook como padrão",
         "container": {
             "path": "accounts/447353382/containers/6978358",
             "accountId": "447353382",
@@ -17,7 +17,7 @@
             "usageContext": [
                 "WEB"
             ],
-            "fingerprint": "1498577035059",
+            "fingerprint": "1500633727770",
             "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/447353382/containers/6978358/workspaces?apiLink=container"
         },
         "tag": [
@@ -450,34 +450,6 @@
             {
                 "accountId": "447353382",
                 "containerId": "6978358",
-                "tagId": "15",
-                "name": "Smartlook",
-                "type": "html",
-                "parameter": [
-                    {
-                        "type": "TEMPLATE",
-                        "key": "html",
-                        "value": "<script type=\"text/javascript\">\n    window.smartlook||(function(d) {\n    var o=smartlook=function(){ o.api.push(arguments)},h=d.getElementsByTagName('head')[0];\n    var c=d.createElement('script');o.api=new Array();c.async=true;c.type='text/javascript';\n    c.charset='utf-8';c.src='//rec.smartlook.com/recorder.js';h.appendChild(c);\n    })(document);\n    smartlook('init', '{{smartlookID}}');\n</script>"
-                    },
-                    {
-                        "type": "BOOLEAN",
-                        "key": "supportDocumentWrite",
-                        "value": "false"
-                    }
-                ],
-                "fingerprint": "1497792145592",
-                "firingTriggerId": [
-                    "14"
-                ],
-                "blockingTriggerId": [
-                    "18"
-                ],
-                "parentFolderId": "11",
-                "tagFiringOption": "ONCE_PER_EVENT"
-            },
-            {
-                "accountId": "447353382",
-                "containerId": "6978358",
                 "tagId": "16",
                 "name": "Social Shares",
                 "type": "html",
@@ -688,49 +660,6 @@
                                 "type": "TEMPLATE",
                                 "key": "arg0",
                                 "value": "{{naveggID}}"
-                            },
-                            {
-                                "type": "TEMPLATE",
-                                "key": "arg1",
-                                "value": "0"
-                            }
-                        ]
-                    }
-                ],
-                "fingerprint": "1497796051972",
-                "parentFolderId": "11"
-            },
-            {
-                "accountId": "447353382",
-                "containerId": "6978358",
-                "triggerId": "18",
-                "name": "Exception - Smartlook",
-                "type": "CUSTOM_EVENT",
-                "customEventFilter": [
-                    {
-                        "type": "EQUALS",
-                        "parameter": [
-                            {
-                                "type": "TEMPLATE",
-                                "key": "arg0",
-                                "value": "{{_event}}"
-                            },
-                            {
-                                "type": "TEMPLATE",
-                                "key": "arg1",
-                                "value": "firstActive"
-                            }
-                        ]
-                    }
-                ],
-                "filter": [
-                    {
-                        "type": "EQUALS",
-                        "parameter": [
-                            {
-                                "type": "TEMPLATE",
-                                "key": "arg0",
-                                "value": "{{smartlookID}}"
                             },
                             {
                                 "type": "TEMPLATE",
@@ -1868,22 +1797,6 @@
             {
                 "accountId": "447353382",
                 "containerId": "6978358",
-                "variableId": "4",
-                "name": "smartlookID",
-                "type": "c",
-                "parameter": [
-                    {
-                        "type": "TEMPLATE",
-                        "key": "value",
-                        "value": "0"
-                    }
-                ],
-                "fingerprint": "1496154414825",
-                "parentFolderId": "9"
-            },
-            {
-                "accountId": "447353382",
-                "containerId": "6978358",
                 "variableId": "27",
                 "name": "socialAction",
                 "type": "v",
@@ -2425,7 +2338,7 @@
                 "name": "Random Number"
             }
         ],
-        "fingerprint": "1500633727671",
-        "tagManagerUrl": "https://tagmanager.google.com/#/versions/accounts/447353382/containers/6978358/versions/8?apiLink=version"
+        "fingerprint": "1501252960886",
+        "tagManagerUrl": "https://tagmanager.google.com/#/versions/accounts/447353382/containers/6978358/versions/9?apiLink=version"
     }
 }

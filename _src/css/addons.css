@@ -28,8 +28,8 @@
 }
 
 /*MODAL*/
-.modal{display: none; width: 100%; height: 100%; position: fixed; top: 0; right: 0; bottom: 0; left: 0; outline: 0; background: rgba(0,0,0,0.5); z-index: 99; overflow-x: hidden; overflow-y: auto;}
-.modal_box{position: relative; margin: 20px auto; width: 600px; max-width: calc(100% - 40px);}
+.modal{display: none; background: rgba(0,0,0,0.8); width: 100%; height: 100%; position: fixed; top: 0; right: 0; bottom: 0; left: 0; outline: 0; z-index: 99; overflow-x: hidden; overflow-y: auto;}
+.modal_box{display: none; position: relative; margin: 20px auto; width: 600px; max-width: calc(100% - 40px);}
 .modal_content{position: relative; background-clip: padding-box; outline: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.5); border: 1px solid rgba(0,0,0,0.2);}
 .modal_box_close{position: absolute; top: 2px; right: 2px; font-size: 0.9em; font-weight: bold; padding: 14px; cursor: pointer; border-radius: 50%; background-image: url(icons/cross-white.svg); background-repeat: no-repeat; background-position: center center; background-size: 60%; transition: all ease 0.2s}
 .modal_box_close.black{background-image: url(icons/cross.svg);}

@@ -14,14 +14,11 @@
 .mobile_action.white.active{background-image: url(icons/cross-white.svg);}
 .main_header_nav_item{font-size: 1em}
 .main_header_nav .active{color: #02b5ff; transition: all 0.5s ease;}
-.main_header_nav .main_header_nav_social{display: inline-block; float: right;}
+.main_header_nav .main_header_nav_social{display: inline-block;}
 .main_header_nav_social li{display: inline-block}
 .main_header_nav_social img{width: 37px; padding: 4px;}
-
-/*MOD TRANSPARENTE*/
 .transparente.main_header:not(.main_header_fixed){background: rgba(250,250,250,0);}
 .transparente.main_header:not(.main_header_fixed) a{color: #eee}
-.transparente.main_header:not(.main_header_fixed) .submenu > a{background-image: url(icons/arrow-down-white.svg)}
 .transparente.main_header:not(.main_header_fixed) .main_header_nav_sub{background-color: rgba(0,0,0,0.5);}
 .transparente.main_header:not(.main_header_fixed) .main_header_nav_sub_item a:hover{background: rgba(237,237,237,0.8); color: #444}
 
@@ -47,10 +44,13 @@
     .main_header_nav_item.submenu{background-image: url(icons/arrow-down-888.svg); background-size: 0;}
     .main_header_nav_item.submenu > a{padding-right: 15px; background-size: auto 70%; background-image: url(icons/arrow-down.svg); background-position: right center; background-repeat: no-repeat;}
     .main_header_nav_item.submenu > a:hover{background-image: url(icons/arrow-down-888.svg);}
+
+    /*MOD TRANSPARENTE*/
+    .transparente.main_header:not(.main_header_fixed) .submenu > a{background-image: url(icons/arrow-down-white.svg)}
 }
 
 /*nav lateral ate 1024px*/
-@media (max-width: 63em){
+@media (max-width: 62.99em){
     .search_button{display: none;}
     .main_header_nav{position: fixed; left: -100%; top: 0; width: 70%; height: 100%; min-width: 200px; max-width: 360px; background: #444; z-index: 99; overflow: hidden; overflow-y: auto;}
     .main_header_nav_search{float: left; width: 100%; background: #000; padding: 15px 15px;}
@@ -65,7 +65,7 @@
     .main_header_nav_sub.active{display: block}
     /*hidden submenu*/
     .main_header_nav a{position: relative;}
-    .main_header_nav_item.submenu{background-position: right 7% top 15px; background-repeat: no-repeat; background-size: auto 20px; background-image: url(icons/plus-white.svg); transition: all 0.2s ease;}
+    .main_header_nav_item.submenu{background-position: right 7% top 13px; background-repeat: no-repeat; background-size: auto 20px; background-image: url(icons/plus-white.svg); transition: all 0.2s ease;}
     .main_header_nav_item.submenu.active{background-image: url(icons/minus-white.svg)}
     .main_header_nav_item.submenu > a{width: 80%;}
     .main_header_nav .main_header_nav_social{display:flex; width: 100%; margin-top: 10px; flex-wrap: wrap; flex-flow: row wrap;}
@@ -94,17 +94,17 @@
 
 /*BUTONS*/
 .btn_clean{
-  display: block;
-  text-align: center;
-  padding: 20px;
-  background: #FAAD50;
-  color: #fff;
-  font-size: 1.2em;
-  font-weight: bold;
-  text-decoration: none !important;
-  cursor: pointer;
-  border: none;
-  border-radius: 3px;
+    display: block;
+    text-align: center;
+    padding: 20px;
+    background: #FAAD50;
+    color: #fff;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-decoration: none !important;
+    cursor: pointer;
+    border: none;
+    border-radius: 3px;
 }
 .btn_conversion{
     background: #FAAD50;
@@ -121,21 +121,21 @@
 }
 
 .btn_cta {
-  display: block;
-  text-align: center;
-  padding: 20px;
-  background: #FAAD50;
-  border: 1px #CC8D41 solid;
-  color: #fff;
-  text-shadow: 1px 1px 1px #333;
-  font-size: 1.2em;
-  font-weight: bold;
-  text-decoration: none !important;
-  cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-  border-radius: 3px;
+    display: block;
+    text-align: center;
+    padding: 20px;
+    background: #FAAD50;
+    border: 1px #CC8D41 solid;
+    color: #fff;
+    text-shadow: 1px 1px 1px #333;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-decoration: none !important;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
 }
-.btn_clean:hover, .btn_cta:hover, .btn_conversion:hover{background: #CC8D41; border-color: #a8702d;}
+.btn_clean:hover, .btn_cta:hover, .btn_conversion:hover{background: #CC8D41; border-color: #a8702d !important;}
 .btn_medium{padding: 15px !important;}
 .btn_small{padding: 10px !important;}
 

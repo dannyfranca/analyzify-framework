@@ -1,1 +1,0 @@
-Aqui ficam os plugins comprimidos do framework.

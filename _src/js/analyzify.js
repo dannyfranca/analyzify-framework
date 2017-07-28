@@ -136,7 +136,7 @@ ANALYZIFY.changeVar = function (variable, value) {
     } else if (typeof value === "undefined") {
         console.error('changeVar: "value" parameter must be defined');
     } else {
-        console.error('changeVar: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
+        console.error('changeVar: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues.what changes you made');
     }
 };
 
@@ -181,7 +181,7 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
     } else if (!act) {
         console.error('dlPush: Event Action param must be defined');
     } else {
-        console.error('dlPush: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
+        console.error('dlPush: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues.what changes you made');
     }
 
     function checkType(param) {
@@ -275,9 +275,8 @@ $(function () {
                             var attrValue = String(ANALYZIFY.inject[selector][attribute]);
 
                             if (attrValue !== "") {
-                                //get term between braces
                                 var match = attrValue.match(/\{\%([^}]+)\%\}/g);
-                                if (typeof match !== 'undefined') {
+                                if (match !== null) {
                                     var attrNames = [];
                                     $.each(match, function (i, el) {
                                         if ($.inArray(el, attrNames) === -1)
@@ -295,7 +294,7 @@ $(function () {
                                                 var regExp = new RegExp(attrNames[i], 'g');
                                                 attrValue = attrValue.replace(regExp, getAttr);
                                             } else {
-                                                console.error('Attribute ' + attrName + ' undefined in ' + selector + '(index: ' + i + ') and his children');
+                                                console.error('Attribute ' + attrName + ' undefined in ' + selector + '(index: ' + index + ') and his children');
                                             }
                                         }
                                     }
@@ -319,13 +318,15 @@ $(function () {
         }
     };
 
+    ANALYZIFY.analyzifyInjection();
+
     /**
      * Função de entrada para criação de plugins do Analyzify
      * 
      * @param {string} name - Nome do objeto filho de ANALYZIFY.customEntries
      */
     ANALYZIFY.setCustomEntry = function (name) {
-        if (typeof name !== 'undefined') {
+        if (typeof name === 'string') {
             if (typeof ANALYZIFY.customEntries[name] === 'object' && ANALYZIFY.customEntries[name] !== null) {
                 for (property in ANALYZIFY.customEntries[name]) {
                     ANALYZIFY.customEntries[name][property]['count'] = ANALYZIFY.customEntries[name][property]['count'] || 0;
@@ -357,11 +358,37 @@ $(function () {
                 }
             }
         } else {
-            console.error('setCustomEntry: "name" parameter must be an object');
+            console.error('setCustomEntry: "name" parameter must be seted and a string');
         }
     };
 
-    ANALYZIFY.analyzifyInjection();
+    /**
+     * (NÃO USE) Função em desenvolvimento para substituir eval(), não está pronta ainda.
+     * 
+     * @param {type} func
+     */
+    ANALYZIFY.functionify = function (func) {
+        if (typeof name === 'string') {
+
+            var match = func.match(/[a-zA-Z_$][0-9a-zA-Z_$]*\((['].*['])*[^()]*(['].*['])*\)/g);
+            console.log(match);
+            if (match !== null && match[0] === func) {
+                func = func.substring(0, func.length - 1).split(/([^"']+)\(/).filter(Boolean);
+                console.log(func[1]);
+                func[1] = func[1].split(',');
+                console.log(func[1]);
+                if (typeof func[2] === 'undefined') {
+                    ANALYZIFY[func[0]].apply(this, func[1]);
+                } else {
+                    console.log('something wrong');
+                }
+            } else {
+                console.error('functionify: "func" parameter must be function like. You seted: ' + func + ' PS: You cannot use parenthesis and/or commas in parameter.');
+            }
+        } else {
+            console.error('functionify: "func" parameter must be seted and an string');
+        }
+    };
 
     //*****SETUP*****
 
@@ -716,7 +743,7 @@ $(function () {
                 console.warn('customTimer: Custom Timer ' + name + ' already initiated. Function fired ' + ANALYZIFY.customTimers[name]['exeNumber'] + ' times. Limit execution number.');
             }
         } else {
-            console.error('customTimer: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
+            console.error('customTimer: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues.what changes you made');
         }
     };
 
@@ -735,7 +762,7 @@ $(function () {
         } else if (typeof ANALYZIFY.customTimers === "undefined" || typeof ANALYZIFY.customTimers[name] === "undefined" || typeof ANALYZIFY.customTimers[name]['timerInit'] === "undefined") {
             console.warn('unsetCustomTimer: You cannot unset Custom Timer ' + name + ', it is not initiated yet.');
         } else {
-            console.error('unsetCustomTimer: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
+            console.error('unsetCustomTimer: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues.what changes you made');
         }
     };
 
@@ -834,7 +861,7 @@ $(function () {
                 console.warn('customActiveListener: Global variable window["customTimers"]["' + name + '"]["activeListener"] only can be setted to true, check if you are accidentally changed this value outside this function');
             }
         } else {
-            console.error('customActiveListener: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
+            console.error('customActiveListener: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues.what changes you made');
         }
     };
 
@@ -860,7 +887,7 @@ $(function () {
         } else if (typeof ANALYZIFY.customTimers === "undefined" || typeof ANALYZIFY.customTimers[name] === "undefined" || typeof ANALYZIFY.customTimers[name]['timerInit'] === "undefined") {
             console.warn('customUserNonIdle: You cannot change idle state of Custom Timer ' + name + ', it is not initiated yet.');
         } else {
-            console.error('customUserNonIdle: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
+            console.error('customUserNonIdle: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues.what changes you made');
         }
     };
 
@@ -876,9 +903,9 @@ $(function () {
         } else if (typeof name === "undefined") {
             console.warn('customActiveMaster: "name" parameter must be defined');
         } else if (typeof ANALYZIFY.customTimers === "undefined" || typeof ANALYZIFY.customTimers[name] === "undefined" || typeof ANALYZIFY.customTimers[name]['timerInit'] === "undefined") {
-            console.warn('customActiveMaster: You cannot cahnge active master state of Custom Timer ' + name + ', it is not initiated yet.');
+            console.warn('customActiveMaster: You cannot change active master state of Custom Timer ' + name + ', it is not initiated yet.');
         } else {
-            console.error('customActiveMaster: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues. Clue your code and explain whats changes you made.');
+            console.error('customActiveMaster: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues.what changes you made');
         }
     };
 
@@ -910,9 +937,6 @@ $(function () {
                         if (er instanceof SyntaxError) {
                             console.error(er.message);
                         }
-                    }
-                    if (clickLimit !== 'notset' && checkLimit === true) {
-                        console.warn('attribute data-click-limit must be like a number. check the [data-click="' + e + '"] element');
                     }
                 }
             }
@@ -1050,7 +1074,7 @@ $(function () {
                             ANALYZIFY.arrayView[e]['alt'] = false;
                         }
                     } else {
-                        console.warn('You cannot check if element [data-view="' + e + '"] is visible, positions is not calculated yet. You need to execute ANALYZIFY.viewEventCalc first');
+                        console.warn('viewEvent: You cannot check if element [data-view="' + e + '"] is visible, positions is not calculated yet. You need to execute ANALYZIFY.viewEventCalc first');
                     }
                 });
             }
@@ -1228,28 +1252,6 @@ $(function () {
     });
 
     /**
-     * <b>YOUTUBE DYNAMIC PLAY</b>
-     * 
-     * Abre modal para carregar vídeos dinamicamente (Semelhante ao Active Pages). Em breve será modificada para aceitar a API do YouTube
-     */
-    $('.play_take_start').click(function () {
-        var Testimony = $(this).attr('id');
-        var Headding = $(this).find('h1').html();
-        $('.play_take_content h1').html(Headding);
-        $('.play_take_content .embed-container').html('<iframe width="640" height="360" src="https://www.youtube.com/embed/' + Testimony + '?rel=0&amp;showinfo=0&autoplay=1&origin=https://wspp.upinside.com.br" frameborder="0" allowfullscreen></iframe>');
-        $('.play_take').fadeIn(200);
-    });
-
-    /**
-     * Fecha a modal YOUTUBE DYNAMIC PLAY aberta
-     */
-    $('.play_take_close').click(function () {
-        $('.play_take').fadeOut(200, function () {
-            $('.play_take_content .embed-container').html('');
-        });
-    });
-
-    /**
      * <b>REDUZ MENU</b>
      * 
      * Reduz altura do menu fixo suavemente, desde qeu devidamente marcado com data-menu e valor iniciado com "fixed-"
@@ -1353,7 +1355,10 @@ $(function () {
             if (processingSpyCalc === false) {
                 processingSpyCalc = true;
                 $('[data-spy]').each(function (i) {
-                    arraySpy[i] = {dataspy: $(this).attr('id').replace("_go", ""), position: $(this).offset().top - ANALYZIFY.menuInitialHeight, height: $(this).outerHeight()};
+                    var id = $(this).attr('id');
+                    if (typeof id !== 'undefined') {
+                        arraySpy[i] = {dataspy: id.replace("_go", ""), position: $(this).offset().top - ANALYZIFY.menuInitialHeight, height: $(this).outerHeight()};
+                    }
                 });
                 ANALYZIFY.scrollSpy();
                 processingSpyCalc = false;
@@ -1371,10 +1376,12 @@ $(function () {
             if (processingSpy === false) {
                 processingSpy = true;
                 $('[data-spy]').each(function (i) {
-                    if ((ANALYZIFY.scrollTop >= arraySpy[i].position - 5) && (ANALYZIFY.scrollTop < arraySpy[i].position + arraySpy[i].height - 5)) {
-                        $('[scrollspy] [href="#' + arraySpy[i].dataspy + '"]').addClass('active');
-                    } else {
-                        $('[scrollspy] [href="#' + arraySpy[i].dataspy + '"]').removeClass('active');
+                    if (typeof arraySpy[i] !== 'undefined') {
+                        if (ANALYZIFY.scrollTop >= arraySpy[i].position - 5 && ANALYZIFY.scrollTop < arraySpy[i].position + arraySpy[i].height - 5) {
+                            $('[scrollspy] [href="#' + arraySpy[i].dataspy + '"]').addClass('active');
+                        } else {
+                            $('[scrollspy] [href="#' + arraySpy[i].dataspy + '"]').removeClass('active');
+                        }
                     }
                 });
                 processingSpy = false;

@@ -33,9 +33,9 @@ iframe[name="google_conversion_frame"]{display: none;}
 .boxshadowg{box-shadow: 4px 12px 12px 4px rgba(0,0,0,0.3);}
 .boxshadowg-hv:hover{box-shadow: 4px 12px 12px 4px rgba(0,0,0,0.3);}
 .boxshadow-none{box-shadow: none;}
-.radius{border-radius: 5px;}
-.radius2{border-radius: 20px;}
-.radius3{border-radius: 50px;}
+.radius{border-radius: 5px !important;}
+.radius2{border-radius: 20px !important;}
+.radius3{border-radius: 50px !important;}
 .round{border-radius: 50%;}
 .transition{transition: all 0.5s ease;}
 .transition_fast{transition: all 0.2s ease;}

@@ -1,1 +1,0 @@
-Aqui ficam partes dos scripts comprimidos do framework.
