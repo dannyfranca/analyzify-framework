@@ -9,24 +9,6 @@
 window.ANALYZIFY = window.ANALYZIFY || {};
 window.A = ANALYZIFY;
 
-//PRESETS
-ANALYZIFY.BASE = document.location.hostname;
-ANALYZIFY.page = document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search;
-ANALYZIFY.ajaxPage = ANALYZIFY.ajaxPage || false;
-ANALYZIFY.tabHidden = ANALYZIFY.tabHidden || false;
-ANALYZIFY.debug = ANALYZIFY.debug || {}; //debug switch
-ANALYZIFY.inject = ANALYZIFY.inject || {};
-
-//CUSTOM ENTRIES FOR PLUGINS
-ANALYZIFY.customEntries = ANALYZIFY.customEntries || {};
-ANALYZIFY.customEntries.pageHidden = ANALYZIFY.customEntries.pageHidden || {};
-ANALYZIFY.customEntries.pageShow = ANALYZIFY.customEntries.pageShow || {};
-ANALYZIFY.customEntries.beforeUnload = ANALYZIFY.customEntries.beforeUnload || {};
-ANALYZIFY.customEntries.exitIntent = ANALYZIFY.customEntries.exitIntent || {};
-ANALYZIFY.customEntries.scroll = ANALYZIFY.customEntries.scroll || {};
-ANALYZIFY.customEntries.resize = ANALYZIFY.customEntries.resize || {};
-ANALYZIFY.customEntries.normalize = ANALYZIFY.customEntries.normalize || {};
-
 //DATALAYER INIT
 window.dataLayer = window.dataLayer || [];
 
@@ -55,10 +37,11 @@ function echo() {
  * Função que escreve no console em diferentes formatos dependendo dos parâmetros definidos ou não.
  * Usada para testes em desenvolvimento.
  *
- * @param x
+ * @param x - primeiro valor a ser logado
  * @param y
+ * @param alert - se for true, executa alert() ao invés de console.log().
  */
-ANALYZIFY.echos = function (x, y) {
+ANALYZIFY.echos = function (x, y, alert) {
     if (x && y) {
         var echo = '(' + typeof x + ') x: ' + x + ' / ' + '(' + typeof y + ') y: ' + y;
     } else if (x) {
@@ -69,16 +52,7 @@ ANALYZIFY.echos = function (x, y) {
         var echo = 'no param';
     }
 
-    consoleLog();
-//        alert();
-
-    function consoleLog() {
-        console.log(echo);
-    }
-
-    function alert() {
-        alert(echo);
-    }
+    alert !== true ? console.log(echo) : alert(echo);
 };
 
 /**
@@ -121,6 +95,29 @@ ANALYZIFY.urlParam = function (name) {
         return results[1] || 0;
     }
 };
+
+//PRESETS
+ANALYZIFY.BASE = document.location.hostname;
+ANALYZIFY.page = document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search;
+ANALYZIFY.ajaxPage = ANALYZIFY.ajaxPage || false;
+ANALYZIFY.tabHidden = ANALYZIFY.tabHidden || false;
+ANALYZIFY.inject = ANALYZIFY.inject || {};
+//debug switch
+ANALYZIFY.debug = ANALYZIFY.debug || {};
+ANALYZIFY.debugParam = ANALYZIFY.urlParam('debug');
+if (ANALYZIFY.debugParam !== null) {
+    ANALYZIFY.debug[ANALYZIFY.debugParam] = true;
+}
+
+//CUSTOM ENTRIES FOR PLUGINS
+ANALYZIFY.customEntries = ANALYZIFY.customEntries || {};
+ANALYZIFY.customEntries.pageHidden = ANALYZIFY.customEntries.pageHidden || {};
+ANALYZIFY.customEntries.pageShow = ANALYZIFY.customEntries.pageShow || {};
+ANALYZIFY.customEntries.beforeUnload = ANALYZIFY.customEntries.beforeUnload || {};
+ANALYZIFY.customEntries.exitIntent = ANALYZIFY.customEntries.exitIntent || {};
+ANALYZIFY.customEntries.scroll = ANALYZIFY.customEntries.scroll || {};
+ANALYZIFY.customEntries.resize = ANALYZIFY.customEntries.resize || {};
+ANALYZIFY.customEntries.normalize = ANALYZIFY.customEntries.normalize || {};
 
 /**
  * Muda o valor de uma variável global. Útil para atribuir um valor diante um evento, como por exemplo atribuir dinamicamente a window.exitIntent uma função para abrir uma modal específica relevante quando o usuário tentar sair da página.
