@@ -96,19 +96,6 @@ ANALYZIFY.urlParam = function (name) {
     }
 };
 
-//PRESETS
-ANALYZIFY.BASE = document.location.hostname;
-ANALYZIFY.page = document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search;
-ANALYZIFY.ajaxPage = ANALYZIFY.ajaxPage || false;
-ANALYZIFY.tabHidden = ANALYZIFY.tabHidden || false;
-ANALYZIFY.inject = ANALYZIFY.inject || {};
-//debug switch
-ANALYZIFY.debug = ANALYZIFY.debug || {};
-ANALYZIFY.debugParam = ANALYZIFY.urlParam('debug');
-if (ANALYZIFY.debugParam !== null) {
-    ANALYZIFY.debug[ANALYZIFY.debugParam] = true;
-}
-
 //CUSTOM ENTRIES FOR PLUGINS
 ANALYZIFY.customEntries = ANALYZIFY.customEntries || {};
 ANALYZIFY.customEntries.pageHidden = ANALYZIFY.customEntries.pageHidden || {};
@@ -154,25 +141,44 @@ ANALYZIFY.changeVar = function (variable, value) {
  */
 ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
 
+    cat = checkType(cat);
+    act = checkType(act);
+    lab = checkType(lab);
+    val = checkType(val);
+    nInt = nInt ? (nInt === true || nInt === 'true' || nInt === 1 ? true : false) : false;
+    tran = tran ? 'beacon' : null;
+    exc = exc ? String(exc) : null;
+
     var event = {
-        eventCategory: checkType(cat),
-        eventAction: checkType(act),
-        eventLabel: checkType(lab),
-        eventValue: checkType(val),
-        nonInteraction: nInt ? (nInt === true || nInt === 'true' || nInt === 1 ? true : false) : false,
-        transport: tran ? 'beacon' : null,
-        exceptions: exc ? String(exc) : null,
+        eventCategory: cat,
+        eventAction: act,
+        eventLabel: lab,
+        eventValue: val
+    };
+
+    var push = {
+        eventCategory: cat,
+        eventAction: act,
+        eventLabel: lab,
+        eventValue: val,
+        nonInteraction: nInt,
+        transport: tran,
+        exceptions: exc,
         event: 'legacyEvent'
     };
 
     if (typeof obj === 'object' && obj !== null) {
-        Object.assign(event, obj);
+        Object.assign(push, obj);
     }
 
     if (cat && act && ANALYZIFY.debug !== true && ANALYZIFY.debug.dlPush !== true) {
-        window.dataLayer.push(event);
+        if (typeof obj === 'object' && obj !== null) {
+            Object.assign(event, obj);
+        }
+        Object.assign(push, {pushObject: event});
+        window.dataLayer.push(push);
     } else if (ANALYZIFY.debug === true || ANALYZIFY.debug.dlPush === true) {
-        console.log(JSON.stringify(event));
+        console.log(JSON.stringify(push));
     } else if (!cat) {
         console.error('dlPush: Event Category param must be defined');
     } else if (!act) {
@@ -192,6 +198,37 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
     });
 };
 
+//---- PRESETS -----
+ANALYZIFY.BASE = document.location.hostname;
+ANALYZIFY.page = document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search;
+ANALYZIFY.ajaxPage = ANALYZIFY.ajaxPage || false;
+ANALYZIFY.tabHidden = ANALYZIFY.tabHidden || false;
+ANALYZIFY.inject = ANALYZIFY.inject || {};
+ANALYZIFY.timerIntervalObj = ANALYZIFY.timerIntervalObj || {300: 30, 600: 60, 3600: 300};
+//DEBUG SWITCH
+ANALYZIFY.debug = ANALYZIFY.debug || {};
+ANALYZIFY.debugParam = ANALYZIFY.urlParam('debug');
+if (ANALYZIFY.debugParam !== null) {
+    ANALYZIFY.debug[ANALYZIFY.debugParam] = true;
+}
+//UTM PARAMETERS
+ANALYZIFY.utmSource = ANALYZIFY.urlParam('utm_source');
+ANALYZIFY.utmMedium = ANALYZIFY.urlParam('utm_medium');
+ANALYZIFY.utmCampaign = ANALYZIFY.urlParam('utm_campaign');
+ANALYZIFY.utmTerm = ANALYZIFY.urlParam('utm_term');
+ANALYZIFY.utmContent = ANALYZIFY.urlParam('utm_content');
+//DATALAYER INITIAL PUSH
+window.dataLayer.push(
+        {
+            originalLocation: ANALYZIFY.page,
+            utmSource: ANALYZIFY.utmSource,
+            utmMedium: ANALYZIFY.utmMedium,
+            utmCampaign: ANALYZIFY.utmCampaign,
+            utmTerm: ANALYZIFY.utmTerm,
+            utmContent: ANALYZIFY.utmContent
+        }
+);
+
 //INÍCIO FUNÇÕES JQUERY
 $(function () {
 
@@ -202,25 +239,6 @@ $(function () {
     ANALYZIFY.menuInitialHeight = $('[data-menu*="fixed-"]').length ? $('[data-menu*="fixed-"]').outerHeight() : 0;
     ANALYZIFY.logoDeltaHeight = $('[data-menu*="fixed-"]').length ? 27 : 0; //variação da altura da logo
     ANALYZIFY.menuHeight = ANALYZIFY.menuInitialHeight - ANALYZIFY.logoDeltaHeight;
-
-    //-----GET UTM TAGS-----
-    ANALYZIFY.utmSource = ANALYZIFY.urlParam('utm_source');
-    ANALYZIFY.utmMedium = ANALYZIFY.urlParam('utm_medium');
-    ANALYZIFY.utmCampaign = ANALYZIFY.urlParam('utm_campaign');
-    ANALYZIFY.utmTerm = ANALYZIFY.urlParam('utm_term');
-    ANALYZIFY.utmContent = ANALYZIFY.urlParam('utm_content');
-
-    //-----DATALAYER INITIAL PUSH-----
-    window.dataLayer.push(
-            {
-                originalLocation: ANALYZIFY.page,
-                utmSource: ANALYZIFY.utmSource,
-                utmMedium: ANALYZIFY.utmMedium,
-                utmCampaign: ANALYZIFY.utmCampaign,
-                utmTerm: ANALYZIFY.utmTerm,
-                utmContent: ANALYZIFY.utmContent
-            }
-    );
 
     /**
      * Injeta atributos e seus respectivos valores em elementos por meio de seletores jQuery.
@@ -595,19 +613,74 @@ $(function () {
     });
 
     /**
+     * 
+     * @param {integer/object} interval - Tempo em segundos do intervalo de tempo a ser retornado ou Objeto com limites de tempo em segundos e intervalos a serem retornados.
+     * @param {string} scope - Escopo de tempo registrado. Deve ser "min" para minutos ou "h" para horas.
+     * @param {number} counter - Valor do contador.
+     * @returns {String} String que representa os intervalos de tempo. Ex: 8 - 9 min
+     */
+    ANALYZIFY.timerInterval = function (interval, scope, counter) {
+        if (typeof interval === 'number') {
+            return getInterval(interval);
+        } else if (typeof interval === 'object' && interval !== null) {
+            var limits = Object.keys(interval);
+            var limitsLength = limits.length;
+            for (var i = 0; i <= limitsLength; i++) {
+                if (!(i === limitsLength)) {
+                    if (counter < parseInt(limits[i])) {
+                        return getInterval(interval[limits[i]]);
+                    }
+                } else {
+                    return getInterval(interval[limits[i - 1]], true);
+                }
+            }
+        } else if (typeof interval === 'undefined' || interval === null) {
+            console.error('timerInterval: "interval" parameter must be defined');
+        } else {
+            console.error('timerInterval: "interval" parameter must be a number or object');
+        }
+
+        function getInterval(int, last) {
+            var stringScope = String(scope);
+            if (stringScope === 'min') {
+                var timerScope = 60;
+            } else if (stringScope === 'h') {
+                var timerScope = 3600;
+            } else if (stringScope === '%' || stringScope === 'sec') {
+                var timerScope = 1;
+            } else {
+                console.error('timerInterval: "scope" parameter must be defined as string \'sec\', \'min\', \'h\' or \'%\'');
+            }
+            if (typeof timerScope === 'number') {
+                var divider = timerScope / int;
+                var unities = parseInt(counter / int);
+                var minutes = unities / divider;
+                var margin = minutes + (1 / divider);
+                if (last !== true) {
+                    return minutes + ' - ' + margin + ' ' + stringScope;
+                } else {
+                    return minutes + '+ ' + stringScope;
+                }
+            }
+        }
+    };
+
+    /**
      * Armazena função que será executada antes da sessão terminar.
      */
     $(window).on('beforeunload', function () {
         //ACTIVE TIME
-        ANALYZIFY.dlPush('Active Time', (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.path : ANALYZIFY.ajaxPage.replace(/(https:|http:|)\/\//, '').toLowerCase()), (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.firstPath : null), null, true, 'beacon', null, {
+        var eventLabel = ANALYZIFY.timerInterval(ANALYZIFY.timerIntervalObj, 'min', ANALYZIFY.activeTimer.counter);
+        ANALYZIFY.dlPush('Active Time', (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.path.toLowerCase() : ANALYZIFY.ajaxPage.toLowerCase().replace(/(https:|http:|)\/\//, '').replace(ANALYZIFY.BASE, '')), (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.firstPath.toLowerCase() : null), eventLabel, true, 'beacon', null, {
             activeTime: ANALYZIFY.activeTimer.counter
         });
 
         //CUSTOM TIMES
         for (var name in ANALYZIFY.customTimers) {
             if (ANALYZIFY.customTimers[name]['activeListener'] === true) {
-                ANALYZIFY.dlPush('Custom Time', ANALYZIFY.customTimers[name]['name'], ANALYZIFY.customTimers[name]['path'], null, true, 'beacon', null, {
-                    activeTime: ANALYZIFY.customTimers[name]['activeTimer']
+                var eventLabel = ANALYZIFY.timerInterval(ANALYZIFY.timerIntervalObj, 'min', ANALYZIFY.customTimers[name]['counter']);
+                ANALYZIFY.dlPush('Custom Time', ANALYZIFY.customTimers[name]['name'], ANALYZIFY.customTimers[name]['path'], eventLabel, true, 'beacon', null, {
+                    activeTime: ANALYZIFY.customTimers[name]['counter']
                 });
             }
         }
@@ -663,7 +736,7 @@ $(function () {
         ANALYZIFY.activeTimer.aliveTimer = setTimeout(function () {
             if (getActiveTimer <= ANALYZIFY.activeTimer.counter - 10) {
                 ANALYZIFY.activeTimer.aliveCounter = 0;
-                ANALYZIFY.dlPush('Session Alive', (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.path : ANALYZIFY.ajaxPage.replace(/(https:|http:|)\/\//, '').toLowerCase()), (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.firstPath : null), null, true, null, 'fb');
+                ANALYZIFY.dlPush('Session Alive', (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.path : ANALYZIFY.ajaxPage.toLowerCase().replace(/(https:|http:|)\/\//, '').replace(ANALYZIFY.BASE, '')), (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.firstPath : null), null, true, null, 'fb');
             } else {
                 ANALYZIFY.activeTimer.aliveCounter += 1;
             }
@@ -701,22 +774,22 @@ $(function () {
             ANALYZIFY.customTimers[name]['timerInit'] = true;
             ANALYZIFY.customTimers[name]['idle'] = false;
             ANALYZIFY.customTimers[name]['activeMaster'] = false;
-            ANALYZIFY.customTimers[name]['activeTimer'] = 0;
-            var counter = 1;
+            ANALYZIFY.customTimers[name]['counter'] = 0;
+            var intervalCounter = 1;
             func ? func = func.split('||') : '';
             funcLimit = isNaN(parseInt(funcLimit)) === false ? parseInt(funcLimit) : false;
             if (typeof idleTrack === "string") {
                 ANALYZIFY.customActiveListener(name, idleTrack);
             }
 
-            ANALYZIFY.customTimers[name]['activeTimerId'] = setInterval(function () {
+            ANALYZIFY.customTimers[name]['activeTimer'] = setInterval(function () {
                 if ((ANALYZIFY.customTimers[name]['idle'] === false || ANALYZIFY.customTimers[name]['activeMaster'] === true) && ANALYZIFY.activeTimer.firstActive === true && ANALYZIFY.tabHidden === false) {
-                    ANALYZIFY.customTimers[name]['activeTimer'] += 1;
+                    ANALYZIFY.customTimers[name]['counter'] += 1;
                     if (ANALYZIFY.debug === true || ANALYZIFY.debug.customTimers === true) {
-                        console.log(name + ' - ' + ANALYZIFY.customTimers[name]['activeTimer']);
+                        console.log(name + ' - ' + ANALYZIFY.customTimers[name]['counter']);
                     }
                 }
-                if (typeof funcInterval !== "undefined" && isNaN(parseInt(funcInterval)) === false && ANALYZIFY.customTimers[name]['activeTimer'] >= funcInterval * counter && funcLimit !== 0) {
+                if (typeof funcInterval !== "undefined" && isNaN(parseInt(funcInterval)) === false && ANALYZIFY.customTimers[name]['counter'] >= funcInterval * intervalCounter && funcLimit !== 0) {
                     funcParams = $.isArray(funcParams) ? funcParams : [];
                     for (i = 0; i < func.length; i++) {
                         try {
@@ -727,7 +800,7 @@ $(function () {
                             }
                         }
                     }
-                    counter++;
+                    intervalCounter++;
                     if (funcLimit !== false) {
                         funcLimit--;
                     }
@@ -752,7 +825,7 @@ $(function () {
      */
     ANALYZIFY.unsetCustomTimer = function (name, definitive) {
         if (typeof name !== "undefined" && typeof ANALYZIFY.customTimers !== "undefined" && typeof ANALYZIFY.customTimers[name] !== "undefined" && typeof ANALYZIFY.customTimers[name]['timerInit'] !== "undefined") {
-            clearInterval(ANALYZIFY.customTimers[name]['activeTimerId']);
+            clearInterval(ANALYZIFY.customTimers[name]['activeTimer']);
             definitive === true || definitive === 'true' || definitive === 1 ? '' : delete ANALYZIFY.customTimers[name]['timerInit'];
         } else if (typeof name === "undefined") {
             console.error('unsetCustomTimer: "name" parameter must be defined');

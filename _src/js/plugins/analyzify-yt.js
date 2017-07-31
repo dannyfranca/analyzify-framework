@@ -63,15 +63,7 @@ if (typeof window.ANALYZIFY !== 'undefined') {
 
             if (event["target"]["lastAction"] === "ready") {
                 if (event.data === YT.PlayerState.PLAYING) {
-                    if (ANALYZIFY.activeTimer.counter <= 30) {
-                        var value = '1-30 seg';
-                    } else if (ANALYZIFY.activeTimer.counter <= 60) {
-                        var value = '31-60 seg';
-                    } else if (ANALYZIFY.activeTimer.counter <= 120) {
-                        var value = '61-120 seg';
-                    } else {
-                        var value = '120+ seg';
-                    }
+                    var value = ANALYZIFY.timerInterval({120: 30}, 'sec', ANALYZIFY.activeTimer.counter);
                     ANALYZIFY.debug.yt !== true ?
                             ANALYZIFY.dlPush('youtube', 'firstplay', vidid + ' - ' + label, value, false, 'beacon') :
                             console.log('FIRSTPLAY: ' + ANALYZIFY.activeTimer.counter + ' seg');
@@ -84,17 +76,7 @@ if (typeof window.ANALYZIFY !== 'undefined') {
                 }
             } else if (event.data === YT.PlayerState.PLAYING && event["target"]["autoStatChange"] === true && event["target"]["autoPlayed"] === true) {
                 ANALYZIFY.yt.videoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-                if (ANALYZIFY.yt.videoTime < 20) {
-                    var value = '1-20 %';
-                } else if (ANALYZIFY.yt.videoTime < 60) {
-                    var value = '21-40 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '41-60 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '61-80 %';
-                } else {
-                    var value = '81-100 %';
-                }
+                var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                 ANALYZIFY.debug.yt !== true ?
                         ANALYZIFY.dlPush('youtube', 'autoplay', vidid + ' - ' + label, value, false, 'beacon', 'fb') :
                         console.log('AUTOPLAY: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
@@ -103,17 +85,7 @@ if (typeof window.ANALYZIFY !== 'undefined') {
                 event["target"]["autoPlayed"] = false;
             } else if (event.data === YT.PlayerState.PLAYING && event["target"]["lastAction"] === "pause" && event.target.getCurrentTime() - event["target"]["pausedTime"] < 1 && event.target.getCurrentTime() - event["target"]["pausedTime"] >= -1 && event["target"]["justChanged"] === false) {
                 ANALYZIFY.yt.videoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-                if (ANALYZIFY.yt.videoTime < 20) {
-                    var value = '1-20 %';
-                } else if (ANALYZIFY.yt.videoTime < 60) {
-                    var value = '21-40 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '41-60 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '61-80 %';
-                } else {
-                    var value = '81-100 %';
-                }
+                var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                 ANALYZIFY.debug.yt !== true ?
                         ANALYZIFY.dlPush('youtube', 'play', vidid + ' - ' + label, value, false, 'beacon', 'fb') :
                         console.log('PLAY: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
@@ -121,17 +93,7 @@ if (typeof window.ANALYZIFY !== 'undefined') {
                 event["target"]["justChanged"] = false;
             } else if (event.data === YT.PlayerState.PLAYING && event["target"]["lastAction"] === "pause") {
                 ANALYZIFY.yt.videoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-                if (ANALYZIFY.yt.videoTime < 20) {
-                    var value = '1-20 %';
-                } else if (ANALYZIFY.yt.videoTime < 60) {
-                    var value = '21-40 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '41-60 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '61-80 %';
-                } else {
-                    var value = '81-100 %';
-                }
+                var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                 ANALYZIFY.debug.yt !== true ?
                         ANALYZIFY.dlPush('youtube', 'jump', vidid + ' - ' + label, value, false, 'beacon', 'fb') :
                         console.log('JUMP: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
@@ -140,17 +102,7 @@ if (typeof window.ANALYZIFY !== 'undefined') {
             } else if (event.data === YT.PlayerState.PAUSED && event["target"]["autoStatChange"] === true && event["target"]["autoPaused"] === true) {
                 event["target"]["pausedTime"] = event.target.getCurrentTime();
                 ANALYZIFY.yt.videoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-                if (ANALYZIFY.yt.videoTime < 20) {
-                    var value = '1-20 %';
-                } else if (ANALYZIFY.yt.videoTime < 60) {
-                    var value = '21-40 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '41-60 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '61-80 %';
-                } else {
-                    var value = '81-100 %';
-                }
+                var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                 ANALYZIFY.debug.yt !== true ?
                         ANALYZIFY.dlPush('youtube', 'autopause', vidid + ' - ' + label, value, false, 'beacon', 'fb') :
                         console.log('AUTOPAUSE: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
@@ -164,17 +116,7 @@ if (typeof window.ANALYZIFY !== 'undefined') {
                         '';
                     } else {
                         ANALYZIFY.yt.videoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-                if (ANALYZIFY.yt.videoTime < 20) {
-                    var value = '1-20 %';
-                } else if (ANALYZIFY.yt.videoTime < 60) {
-                    var value = '21-40 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '41-60 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '61-80 %';
-                } else {
-                    var value = '81-100 %';
-                }
+                        var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                         ANALYZIFY.debug.yt !== true ?
                                 ANALYZIFY.dlPush('youtube', 'pause', vidid + ' - ' + label, value, true, 'beacon', 'fb') :
                                 console.log('PAUSE: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
@@ -277,17 +219,8 @@ if (typeof window.ANALYZIFY !== 'undefined') {
                                     label = video_data.title,
                                     vidid = video_data.video_id;
                             ANALYZIFY.yt.videoTime = parseInt(ANALYZIFY.yt.players[i].getCurrentTime() / ANALYZIFY.yt.players[i].getDuration() * 100);
-                if (ANALYZIFY.yt.videoTime < 20) {
-                    var value = '1-20 %';
-                } else if (ANALYZIFY.yt.videoTime < 60) {
-                    var value = '21-40 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '41-60 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '61-80 %';
-                } else {
-                    var value = '81-100 %';
-                }
+
+                            var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                             ANALYZIFY.debug.yt !== true ?
                                     ANALYZIFY.dlPush('youtube', 'exit', vidid + ' - ' + label, value, true, 'beacon', 'fb') :
                                     console.log('SAIU: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
@@ -299,17 +232,8 @@ if (typeof window.ANALYZIFY !== 'undefined') {
                                 label = video_data.title,
                                 vidid = video_data.video_id;
                         ANALYZIFY.yt.videoTime = parseInt(ANALYZIFY.yt.players[order].getCurrentTime() / ANALYZIFY.yt.players[order].getDuration() * 100);
-                if (ANALYZIFY.yt.videoTime < 20) {
-                    var value = '1-20 %';
-                } else if (ANALYZIFY.yt.videoTime < 60) {
-                    var value = '21-40 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '41-60 %';
-                } else if (ANALYZIFY.yt.videoTime < 120) {
-                    var value = '61-80 %';
-                } else {
-                    var value = '81-100 %';
-                }
+
+                        var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                         ANALYZIFY.debug.yt !== true ?
                                 ANALYZIFY.dlPush('youtube', 'exit', vidid + ' - ' + label, value, true, 'beacon', 'fb') :
                                 console.log('SAIU: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
