@@ -23,15 +23,14 @@ if (typeof window.ANALYZIFY !== 'undefined') {
         function onYouTubeIframeAPIReady() {
             for (i = 0; i < ANALYZIFY.yt.videos.length; i++) {
                 ANALYZIFY.yt.players.push(new YT.Player(ANALYZIFY.yt.videos[i].id, {
-                    height: '360',
-                    width: '640',
+                    height: "9",
+                    width: "16",
                     videoId: ANALYZIFY.yt.videos[i].getAttribute('data-ytId'),
                     playerVars: {
                         rel: 0,
                         showinfo: 0,
                         autoplay: 0,
                         enablejsapi: 1,
-                        origin: ANALYZIFY.BASE,
                         controls: 2
                     },
                     events: {

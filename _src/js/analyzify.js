@@ -125,9 +125,34 @@ ANALYZIFY.changeVar = function (variable, value) {
 };
 
 /**
+ * Insere o valor de um objeto dentro dele mesmo na chave pushObject.
+ * 
+ * @param {object} obj - JSON a ser autoinserido.
+ * @returns {object}
+ */
+ANALYZIFY.objSelfPush = function (obj) {
+    function Clone(x) {
+        for (p in x) {
+            this[p] = (typeof (x[p]) === 'object') ? new Clone(x[p]) : x[p];
+        }
+    }
+    if (typeof obj === 'object' && obj !== null) {
+        return (function (x) {
+            var o = new Clone(x);
+            o.pushObject = obj;
+            return o;
+        })(obj);
+    } else if (typeof obj !== 'object') {
+        console.error('objSelfPush: "obj" parameter must be an object');
+    } else {
+        console.error('objSelfPush: "obj" parameter must be defined');
+    }
+};
+
+/**
  * DATALAYER PUSH
  * 
- * Envia dados para a camada de dados do Google Tag Manager como evento omeado legacyEvent.
+ * Envia dados para a camada de dados do Google Tag Manager como evento nomeado analyzifyEvent.
  * Se debug for true, exibirá os eventos no console do navegador.
  * 
  * @param {string/Integer/Float} cat - Categoria do Evento
@@ -146,14 +171,17 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
     lab = checkType(lab);
     val = checkType(val);
     nInt = nInt ? (nInt === true || nInt === 'true' || nInt === 1 ? true : false) : false;
-    tran = tran ? 'beacon' : null;
-    exc = exc ? String(exc) : null;
+    tran = tran === 'beacon' ? 'beacon' : undefined;
+    exc = exc ? exc : undefined;
 
     var event = {
         eventCategory: cat,
         eventAction: act,
         eventLabel: lab,
-        eventValue: val
+        eventValue: val,
+        referrer: document.referrer,
+        userAgent: navigator.userAgent,
+        language: navigator.language
     };
 
     var push = {
@@ -164,7 +192,10 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
         nonInteraction: nInt,
         transport: tran,
         exceptions: exc,
-        event: 'legacyEvent'
+        referrer: document.referrer,
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        event: 'analyzifyEvent'
     };
 
     if (typeof obj === 'object' && obj !== null) {
@@ -188,7 +219,7 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
     }
 
     function checkType(param) {
-        return (param ? (isNaN(Number(param)) ? String(param) : (typeof param === 'boolean' ? param : Number(param))) : null);
+        return (param ? (isNaN(Number(param)) ? String(param) : (typeof param === 'boolean' ? param : Number(param))) : undefined);
     }
 
     $(function () {
@@ -1362,7 +1393,7 @@ $(function () {
 
         ANALYZIFY.menuFixedTopExist = true;
         var logoSrc = $('[data-menu="fixed-top"] .img-logo').attr('src');
-        var logoWhiteSrc = logoSrc.substr(0, logoSrc.indexOf('.')) + '-white.png';
+        var logoWhiteSrc = logoSrc.substr(0, logoSrc.indexOf('.png')) + '-white.png';
         if ($('.j_padding_top').length) {
             $('.j_padding_top').css('padding-top', ANALYZIFY.menuInitialHeight);
         } else {
