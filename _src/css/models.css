@@ -87,7 +87,7 @@
 .lock-icon{background-image: url(../icons/lock.svg); padding-left: 25px;}
 
 /*FORM MESSAGES*/
-.mauticform-message:not(:empty), .mauticform-erro:not(:empty){text-align: center; font-size: 1.2em; font-family: 'Raleway', sans-serif; padding: 10px; margin-bottom: 10px; border: solid 1px}
+.mauticform-message:not(:empty), .mauticform-error:not(:empty){text-align: center; font-size: 1.2em; padding: 10px; margin-bottom: 10px; border: solid 1px}
 .mauticform-message{color: #009984;}
 .mauticform-error{color: #F75B3B}
 .white .mauticform-message, .white .mauticform-error{color: #FFF}

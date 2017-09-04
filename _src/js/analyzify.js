@@ -3,7 +3,7 @@
  Repository  : https://github.com/dannyfranca/analyzify-framework
  */
 
-/* global index, property, param, eval, parseFloat, dataLayer */
+/* global index, property, param, eval, parseFloat, dataLayer, p */
 
 //ANALYZIFY INIT
 window.ANALYZIFY = window.ANALYZIFY || {};
@@ -84,15 +84,20 @@ ANALYZIFY.QueryStringToJSON = function () {
 //GET PARAMETERS
 /**
  * Recebe valor de determinado parâmetro da URL.
- * @param {string} name - Nome do parâmetro
+ * @param {string} paramName - Nome do parâmetro
  * @returns Valor do parâmetro setado em <b>name</b>
  */
-ANALYZIFY.urlParam = function (name) {
-    var results = new RegExp('[\?&]' + name + '=([^]*)').exec(window.location.href);
-    if (results === null) {
-        return null;
-    } else {
-        return results[1] || 0;
+ANALYZIFY.urlParam = function (paramName) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === paramName) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
     }
 };
 
@@ -235,7 +240,10 @@ ANALYZIFY.page = document.location.protocol + '//' + document.location.hostname 
 ANALYZIFY.ajaxPage = ANALYZIFY.ajaxPage || false;
 ANALYZIFY.tabHidden = ANALYZIFY.tabHidden || false;
 ANALYZIFY.inject = ANALYZIFY.inject || {};
-ANALYZIFY.timerIntervalObj = ANALYZIFY.timerIntervalObj || {300: 30, 600: 60, 3600: 300};
+ANALYZIFY.ativeTimerIntervalObj = ANALYZIFY.ativeTimerIntervalObj || {300: 30, 600: 60, 3600: 300};
+ANALYZIFY.customTimerIntervalObj = ANALYZIFY.customTimerIntervalObj || {};
+ANALYZIFY.customTimerIntervalObj.sec = ANALYZIFY.customTimerIntervalObj.sec || {30: 5, 60: 10};
+ANALYZIFY.customTimerIntervalObj.min = ANALYZIFY.customTimerIntervalObj.min || ANALYZIFY.ativeTimerIntervalObj;
 //DEBUG SWITCH
 ANALYZIFY.debug = ANALYZIFY.debug || {};
 ANALYZIFY.debugParam = ANALYZIFY.urlParam('debug');
@@ -270,6 +278,8 @@ jQuery(function () {
     ANALYZIFY.menuInitialHeight = jQuery('[data-menu*="fixed-"]').length ? jQuery('[data-menu*="fixed-"]').outerHeight() : 0;
     ANALYZIFY.logoDeltaHeight = jQuery('[data-menu*="fixed-"]').length ? 27 : 0; //variação da altura da logo
     ANALYZIFY.menuHeight = ANALYZIFY.menuInitialHeight - ANALYZIFY.logoDeltaHeight;
+    ANALYZIFY.jqMobile = ANALYZIFY.jqMobile || {};
+    ANALYZIFY.jqMobile.present = typeof jQuery.mobile !== 'undefined' ? true : false;
 
     /**
      * Injeta atributos e seus respectivos valores em elementos por meio de seletores jQuery.
@@ -646,7 +656,7 @@ jQuery(function () {
     /**
      * 
      * @param {integer/object} interval - Tempo em segundos do intervalo de tempo a ser retornado ou Objeto com limites de tempo em segundos e intervalos a serem retornados.
-     * @param {string} scope - Escopo de tempo registrado. Deve ser "min" para minutos ou "h" para horas.
+     * @param {string} scope - Escopo de tempo registrado. Deve ser "sec" para segundos, "min" para minutos, "h" para horas ou "%" para porcentagem .
      * @param {number} counter - Valor do contador.
      * @returns {String} String que representa os intervalos de tempo. Ex: 8 - 9 min
      */
@@ -701,17 +711,17 @@ jQuery(function () {
      */
     jQuery(window).on('beforeunload', function () {
         //ACTIVE TIME
-        var eventLabel = ANALYZIFY.timerInterval(ANALYZIFY.timerIntervalObj, 'min', ANALYZIFY.activeTimer.counter);
-        ANALYZIFY.dlPush('Active Time', (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.path.toLowerCase() : ANALYZIFY.ajaxPage.toLowerCase().replace(/(https:|http:|)\/\//, '').replace(ANALYZIFY.BASE, '')), (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.firstPath.toLowerCase() : null), eventLabel, true, 'beacon', null, {
-            activeTime: ANALYZIFY.activeTimer.counter
+        ANALYZIFY.dlPush('Active Time', (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.path.toLowerCase() : ANALYZIFY.ajaxPage.toLowerCase().replace(/(https:|http:|)\/\//, '').replace(ANALYZIFY.BASE, '')), ANALYZIFY.activeTimer.firstPath.toLowerCase(), ANALYZIFY.activeTimer.counter, true, 'beacon', null, {
+            activeTime: ANALYZIFY.activeTimer.counter,
+            interval: ANALYZIFY.timerInterval(ANALYZIFY.ativeTimerIntervalObj, 'min', ANALYZIFY.activeTimer.counter)
         });
 
         //CUSTOM TIMES
         for (var name in ANALYZIFY.customTimers) {
             if (ANALYZIFY.customTimers[name]['activeListener'] === true) {
-                var eventLabel = ANALYZIFY.timerInterval(ANALYZIFY.timerIntervalObj, 'min', ANALYZIFY.customTimers[name]['counter']);
-                ANALYZIFY.dlPush('Custom Time', ANALYZIFY.customTimers[name]['name'], ANALYZIFY.customTimers[name]['path'], eventLabel, true, 'beacon', null, {
-                    activeTime: ANALYZIFY.customTimers[name]['counter']
+                ANALYZIFY.dlPush('Custom Time', ANALYZIFY.customTimers[name]['name'], ANALYZIFY.customTimers[name]['firstPath'], ANALYZIFY.customTimers[name]['counter'], true, 'beacon', null, {
+                    activeTime: ANALYZIFY.customTimers[name]['counter'],
+                    interval: ANALYZIFY.timerInterval(ANALYZIFY.customTimers[name]['intervalObj'], ANALYZIFY.customTimers[name]['intervalObjScope'], ANALYZIFY.customTimers[name]['counter'])
                 });
             }
         }
@@ -767,7 +777,7 @@ jQuery(function () {
         ANALYZIFY.activeTimer.aliveTimer = setTimeout(function () {
             if (getActiveTimer <= ANALYZIFY.activeTimer.counter - 10) {
                 ANALYZIFY.activeTimer.aliveCounter = 0;
-                ANALYZIFY.dlPush('Session Alive', (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.path : ANALYZIFY.ajaxPage.toLowerCase().replace(/(https:|http:|)\/\//, '').replace(ANALYZIFY.BASE, '')), (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.firstPath : null), null, true, null, 'fb');
+                ANALYZIFY.dlPush('Session Alive', (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.path : ANALYZIFY.ajaxPage.toLowerCase().replace(/(https:|http:|)\/\//, '').replace(ANALYZIFY.BASE, '')), ANALYZIFY.activeTimer.firstPath, null, true, null, 'fb');
             } else {
                 ANALYZIFY.activeTimer.aliveCounter += 1;
             }
@@ -791,7 +801,7 @@ jQuery(function () {
      * @param {string} funcInterval - (Opcional) Intervalo de tempo em segundos que a função deve ser executada. Se não for setada, a função e parâmetros serão simplesmente ignorados.
      * @param {string} funcLimit - (Opcional) Limite de vezes que a função deve ser executada. Se não setada, a função será executada continuamente a cada intervalo de tempo.
      */
-    ANALYZIFY.customTimer = function (name, idleTrack, func, funcParams, funcInterval, funcLimit) {
+    ANALYZIFY.customTimer = function (name, idleTrack, intervalObj, intervalObjScope, func, funcParams, funcInterval, funcLimit) {
         ANALYZIFY.customTimers = ANALYZIFY.customTimers || [];
         ANALYZIFY.customTimers[name] = ANALYZIFY.customTimers[name] || [];
         ANALYZIFY.customTimers[name]['exeNumber'] = ANALYZIFY.customTimers[name]['exeNumber'] || 0;
@@ -809,8 +819,26 @@ jQuery(function () {
             var intervalCounter = 1;
             func ? func = func.split('||') : '';
             funcLimit = isNaN(parseInt(funcLimit)) === false ? parseInt(funcLimit) : false;
-            if (typeof idleTrack === "string") {
-                ANALYZIFY.customActiveListener(name, idleTrack);
+            if (typeof idleTrack !== "undefined" || idleTrack !== null) {
+                if (typeof idleTrack === "string") {
+                    ANALYZIFY.customActiveListener(name, idleTrack);
+                } else {
+                    console.error('customTimer: "idleTrack" parameter must be a string');
+                }
+            }
+            if (typeof intervalObj !== "undefined" || intervalObj !== null) {
+                if (typeof intervalObj === "object") {
+                    ANALYZIFY.customTimers[name]['intervalObj'] = intervalObj;
+                    ANALYZIFY.customTimers[name]['intervalObjScope'] = intervalObjScope;
+                } else if (intervalObj === "sec") {
+                    ANALYZIFY.customTimers[name]['intervalObj'] = ANALYZIFY.customTimerIntervalObj.sec;
+                    ANALYZIFY.customTimers[name]['intervalObjScope'] = "sec";
+                } else if (intervalObj === "min") {
+                    ANALYZIFY.customTimers[name]['intervalObj'] = ANALYZIFY.customTimerIntervalObj.min;
+                    ANALYZIFY.customTimers[name]['intervalObjScope'] = "min";
+                } else {
+                    console.error('customTimer: "intervalObj" parameter must be an object or a string, with value "sec" or "min"');
+                }
             }
 
             ANALYZIFY.customTimers[name]['activeTimer'] = setInterval(function () {
@@ -1582,9 +1610,10 @@ jQuery(function () {
          * Invoca fechamento de modal ao clicar fora
          * @param event
          */
-        jQuery(document).on('click', function (event) {
+        jQuery('[data-modal]').on('click', function (event) {
             if (jQuery(event.target).has('.j_modal_box').length) {
-                ANALYZIFY.closeModal();
+                var modal = jQuery(this).attr('data-modal');
+                ANALYZIFY.closeModal(modal);
             }
         });
 
@@ -1592,15 +1621,17 @@ jQuery(function () {
          * Invoca fechamento da modal ao clicar no botão de fechar
          */
         jQuery('.j_modal_close').click(function () {
-            ANALYZIFY.closeModal();
+            var modal = jQuery(this).parents('[data-modal]').attr('data-modal');
+            ANALYZIFY.closeModal(modal);
         });
 
         /**
          * Abre modal onde o valor do atributo <b>data-modal</b> é igual ao parâmetro <b>setDataModal</b>
-         * @param {string} setDataModal
+         * @param {string} setDataModal - Nome da modal a ser aberta
+         * @param {boolean} historyChange - Se não for false e jQuery Mobile estiver carregado, modais afetarão o histórico do navegador
          */
-        ANALYZIFY.openModal = function (setDataModal) {
-            dataModal = '[data-modal="' + setDataModal + '"]';
+        ANALYZIFY.openModal = function (setDataModal, historyChange) {
+            var dataModal = '[data-modal="' + setDataModal + '"]';
             if (jQuery(dataModal).length) {
                 jQuery('body').css('overflow', 'hidden');
                 jQuery(dataModal).fadeIn(400, function () {
@@ -1608,17 +1639,44 @@ jQuery(function () {
                         jQuery(this).find('input:text:visible:first').focus();
                     });
                 }).css("display", "flex");
+
+                //jQuery Mobile - Modal to History
+                if (ANALYZIFY.jqMobile.present && historyChange !== false) {
+                    if (ANALYZIFY.jqMobile.modalParamLoad !== true) {
+                        var modalParam = ANALYZIFY.urlParam('modal');
+                        if (!((modalParam) && (modalParam !== true))) {
+                            jQuery.mobile.navigate(window.location.pathname + (window.location.search === '' ? '?' : window.location.search + '&') + 'modal=' + setDataModal + window.location.hash, {
+                                info: "Modal opened"
+                            });
+                        }
+                    }
+                }
             }
         };
 
         /**
          * Fecha modais
+         * @param {string} setDataModal - Nome da modal a ser fechada
+         * @param {boolean} historyBack - Se plugin jQuery Mobile estiver presente, fechar modal volta o histórico a menos uqe historyBack seja false.
          */
-        ANALYZIFY.closeModal = function () {
-            jQuery('body').css('overflow', '');
-            jQuery('[data-modal]').children().fadeOut(200, function () {
-                jQuery(this).closest('[data-modal]').fadeOut(200);
-            });
+        ANALYZIFY.closeModal = function (setDataModal, historyBack) {
+            var dataModal = '[data-modal="' + setDataModal + '"]';
+            if (jQuery(dataModal).length) {
+                jQuery('body').css('overflow', '');
+                jQuery(dataModal).children().fadeOut(200, function () {
+                    jQuery(this).closest('[data-modal]').fadeOut(200);
+                });
+
+                //jQuery Mobile - Modal to History
+                if (ANALYZIFY.jqMobile.present && historyBack !== false) {
+                    var modalParam = ANALYZIFY.urlParam('modal');
+                    if ((modalParam) && (modalParam !== true)) {
+                        jQuery.mobile.navigate(window.location.pathname + window.location.hash, {
+                            info: "Modal closed"
+                        });
+                    }
+                }
+            }
         };
 
         /**
@@ -1627,8 +1685,9 @@ jQuery(function () {
          * Após carregar a página, abre modal se o parâmetro da URL <b>modal</b> for igual ao valor do atributo <b>data-modal</b>.
          */
         var modalParam = ANALYZIFY.urlParam('modal');
-        if ((modalParam) && (modalParam !== 0)) {
-            ANALYZIFY.openModal(modalParam);
+        if ((modalParam) && (modalParam !== true)) {
+            ANALYZIFY.openModal(modalParam, false);
+            ANALYZIFY.jqMobile.modalParamLoad = true;
         }
     }
 

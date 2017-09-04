@@ -62,9 +62,10 @@ if (typeof window.ANALYZIFY !== 'undefined') {
 
             if (event["target"]["lastAction"] === "ready") {
                 if (event.data === YT.PlayerState.PLAYING) {
-                    var value = ANALYZIFY.timerInterval({120: 30}, 'sec', ANALYZIFY.activeTimer.counter);
                     ANALYZIFY.debug.yt !== true ?
-                            ANALYZIFY.dlPush('youtube', 'firstplay', vidid + ' - ' + label, value, false, 'beacon') :
+                            ANALYZIFY.dlPush('youtube', 'firstplay', vidid + ' - ' + label, ANALYZIFY.activeTimer.counter, false, 'beacon', {
+                                interval: ANALYZIFY.timerInterval({120: 30}, 'sec', ANALYZIFY.activeTimer.counter)
+                            }) :
                             console.log('FIRSTPLAY: ' + ANALYZIFY.activeTimer.counter + ' seg');
                     ANALYZIFY.jqLink.func({
                         'customTimer': [vidid],
@@ -75,35 +76,39 @@ if (typeof window.ANALYZIFY !== 'undefined') {
                 }
             } else if (event.data === YT.PlayerState.PLAYING && event["target"]["autoStatChange"] === true && event["target"]["autoPlayed"] === true) {
                 ANALYZIFY.yt.videoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-                var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                 ANALYZIFY.debug.yt !== true ?
-                        ANALYZIFY.dlPush('youtube', 'autoplay', vidid + ' - ' + label, value, false, 'beacon', 'fb') :
+                        ANALYZIFY.dlPush('youtube', 'autoplay', vidid + ' - ' + label, ANALYZIFY.yt.videoTime, false, 'beacon', 'fb', {
+                            interval: ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime)
+                        }) :
                         console.log('AUTOPLAY: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
                 event["target"]["lastAction"] = "play";
                 event["target"]["justChanged"] = false;
                 event["target"]["autoPlayed"] = false;
             } else if (event.data === YT.PlayerState.PLAYING && event["target"]["lastAction"] === "pause" && event.target.getCurrentTime() - event["target"]["pausedTime"] < 1 && event.target.getCurrentTime() - event["target"]["pausedTime"] >= -1 && event["target"]["justChanged"] === false) {
                 ANALYZIFY.yt.videoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-                var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                 ANALYZIFY.debug.yt !== true ?
-                        ANALYZIFY.dlPush('youtube', 'play', vidid + ' - ' + label, value, false, 'beacon', 'fb') :
+                        ANALYZIFY.dlPush('youtube', 'play', vidid + ' - ' + label, ANALYZIFY.yt.videoTime, false, 'beacon', 'fb', {
+                            interval: ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime)
+                        }) :
                         console.log('PLAY: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
                 event["target"]["lastAction"] = "play";
                 event["target"]["justChanged"] = false;
             } else if (event.data === YT.PlayerState.PLAYING && event["target"]["lastAction"] === "pause") {
                 ANALYZIFY.yt.videoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-                var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                 ANALYZIFY.debug.yt !== true ?
-                        ANALYZIFY.dlPush('youtube', 'jump', vidid + ' - ' + label, value, false, 'beacon', 'fb') :
+                        ANALYZIFY.dlPush('youtube', 'jump', vidid + ' - ' + label, ANALYZIFY.yt.videoTime, false, 'beacon', 'fb', {
+                            interval: ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime)
+                        }) :
                         console.log('JUMP: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
                 event["target"]["lastAction"] = "jump";
                 event["target"]["justChanged"] = false;
             } else if (event.data === YT.PlayerState.PAUSED && event["target"]["autoStatChange"] === true && event["target"]["autoPaused"] === true) {
                 event["target"]["pausedTime"] = event.target.getCurrentTime();
                 ANALYZIFY.yt.videoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-                var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                 ANALYZIFY.debug.yt !== true ?
-                        ANALYZIFY.dlPush('youtube', 'autopause', vidid + ' - ' + label, value, false, 'beacon', 'fb') :
+                        ANALYZIFY.dlPush('youtube', 'autopause', vidid + ' - ' + label, ANALYZIFY.yt.videoTime, false, 'beacon', 'fb', {
+                            interval: ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime)
+                        }) :
                         console.log('AUTOPAUSE: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
                 event["target"]["lastAction"] = "pause";
                 event["target"]["justChanged"] = false;
@@ -115,9 +120,10 @@ if (typeof window.ANALYZIFY !== 'undefined') {
                         '';
                     } else {
                         ANALYZIFY.yt.videoTime = parseInt(event.target.getCurrentTime() / event.target.getDuration() * 100);
-                        var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                         ANALYZIFY.debug.yt !== true ?
-                                ANALYZIFY.dlPush('youtube', 'pause', vidid + ' - ' + label, value, true, 'beacon', 'fb') :
+                                ANALYZIFY.dlPush('youtube', 'pause', vidid + ' - ' + label, ANALYZIFY.yt.videoTime, true, 'beacon', 'fb', {
+                                    interval: ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime)
+                                }) :
                                 console.log('PAUSE: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
                         event["target"]["autoStatChange"] = false;
                     }
@@ -219,9 +225,10 @@ if (typeof window.ANALYZIFY !== 'undefined') {
                                     vidid = video_data.video_id;
                             ANALYZIFY.yt.videoTime = parseInt(ANALYZIFY.yt.players[i].getCurrentTime() / ANALYZIFY.yt.players[i].getDuration() * 100);
 
-                            var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                             ANALYZIFY.debug.yt !== true ?
-                                    ANALYZIFY.dlPush('youtube', 'exit', vidid + ' - ' + label, value, true, 'beacon', 'fb') :
+                                    ANALYZIFY.dlPush('youtube', 'exit', vidid + ' - ' + label, ANALYZIFY.yt.videoTime, true, 'beacon', 'fb', {
+                                        interval: ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime)
+                                    }) :
                                     console.log('SAIU: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
                         }
                     }
@@ -232,9 +239,10 @@ if (typeof window.ANALYZIFY !== 'undefined') {
                                 vidid = video_data.video_id;
                         ANALYZIFY.yt.videoTime = parseInt(ANALYZIFY.yt.players[order].getCurrentTime() / ANALYZIFY.yt.players[order].getDuration() * 100);
 
-                        var value = ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime);
                         ANALYZIFY.debug.yt !== true ?
-                                ANALYZIFY.dlPush('youtube', 'exit', vidid + ' - ' + label, value, true, 'beacon', 'fb') :
+                                ANALYZIFY.dlPush('youtube', 'exit', vidid + ' - ' + label, ANALYZIFY.yt.videoTime, true, 'beacon', 'fb', {
+                                    interval: ANALYZIFY.timerInterval({100: 20}, '%', ANALYZIFY.yt.videoTime)
+                                }) :
                                 console.log('SAIU: ' + ANALYZIFY.yt.videoTime + '%  /  ' + vidid + ' - ' + label);
                     }
                 }
