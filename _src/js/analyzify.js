@@ -245,6 +245,11 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
         cat.referrer = cat.referrer || document.referrer;
         cat.userAgent = cat.userAgent || navigator.userAgent;
         cat.language = cat.language || navigator.language;
+        if (ANALYZIFY.debug !== true && ANALYZIFY.debug.dlPush !== true) {
+            window.dataLayer.push(cat);
+        } else {
+            console.log(JSON.stringify(cat));
+        }
     } else {
         console.error('dlPush: Event Category param must be defined');
     }
