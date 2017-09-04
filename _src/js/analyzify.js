@@ -171,67 +171,83 @@ ANALYZIFY.objSelfPush = function (obj) {
  */
 ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
 
-    cat = checkType(cat);
-    act = checkType(act);
-    lab = checkType(lab);
-    val = checkType(val);
-    nInt = nInt ? (nInt === true || nInt === 'true' || nInt === 1 ? true : false) : false;
-    tran = tran === 'beacon' ? 'beacon' : undefined;
-    exc = exc ? exc : undefined;
+    if (typeof cat !== 'object') {
+        cat = checkType(cat);
+        act = checkType(act);
+        lab = checkType(lab);
+        val = checkType(val);
+        nInt = nInt ? (nInt === true || nInt === 'true' || nInt === 1 ? true : false) : false;
+        tran = tran === 'beacon' ? 'beacon' : undefined;
+        exc = exc ? exc : undefined;
 
-    var event = {
-        eventCategory: cat,
-        eventAction: act,
-        eventLabel: lab,
-        eventValue: val,
-        referrer: document.referrer,
-        userAgent: navigator.userAgent,
-        language: navigator.language
-    };
+        var event = {
+            eventCategory: cat,
+            eventAction: act,
+            eventLabel: lab,
+            eventValue: val,
+            referrer: document.referrer,
+            userAgent: navigator.userAgent,
+            language: navigator.language
+        };
 
-    var push = {
-        eventCategory: cat,
-        eventAction: act,
-        eventLabel: lab,
-        eventValue: val,
-        nonInteraction: nInt,
-        transport: tran,
-        exceptions: exc,
-        referrer: document.referrer,
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        event: 'analyzifyEvent'
-    };
+        var push = {
+            eventCategory: cat,
+            eventAction: act,
+            eventLabel: lab,
+            eventValue: val,
+            nonInteraction: nInt,
+            transport: tran,
+            exceptions: exc,
+            referrer: document.referrer,
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            event: 'analyzifyEvent'
+        };
 
-    if (typeof obj === 'object' && obj !== null) {
-        Object.assign(push, obj);
-    }
-
-    if (cat && act && ANALYZIFY.debug !== true && ANALYZIFY.debug.dlPush !== true) {
         if (typeof obj === 'object' && obj !== null) {
-            Object.assign(event, obj);
+            Object.assign(push, obj);
         }
-        Object.assign(push, {pushObject: event});
-        window.dataLayer.push(push);
-    } else if (ANALYZIFY.debug === true || ANALYZIFY.debug.dlPush === true) {
-        console.log(JSON.stringify(push));
-    } else if (!cat) {
-        console.error('dlPush: Event Category param must be defined');
-    } else if (!act) {
-        console.error('dlPush: Event Action param must be defined');
-    } else {
-        console.error('dlPush: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues.what changes you made');
-    }
 
-    function checkType(param) {
-        return (param ? (isNaN(Number(param)) ? String(param) : (typeof param === 'boolean' ? param : Number(param))) : undefined);
-    }
+        if (cat && act && ANALYZIFY.debug !== true && ANALYZIFY.debug.dlPush !== true) {
+            if (typeof obj === 'object' && obj !== null) {
+                Object.assign(event, obj);
+            }
+            Object.assign(push, {pushObject: event});
+            window.dataLayer.push(push);
+        } else if (ANALYZIFY.debug === true || ANALYZIFY.debug.dlPush === true) {
+            console.log(JSON.stringify(push));
+        } else if (!cat) {
+            console.error('dlPush: Event Category param must be defined');
+        } else if (!act) {
+            console.error('dlPush: Event Action param must be defined');
+        } else {
+            console.error('dlPush: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues.what changes you made');
+        }
 
-    jQuery(function () {
-        ANALYZIFY.jqLink.func({
-            'sessionAlive': []
+        function checkType(param) {
+            return (param ? (isNaN(Number(param)) ? String(param) : (typeof param === 'boolean' ? param : Number(param))) : undefined);
+        }
+
+        jQuery(function () {
+            ANALYZIFY.jqLink.func({
+                'sessionAlive': []
+            });
         });
-    });
+    } else if (typeof cat === 'object' && cat !== null) {
+        if (!cat.eventCategory || !cat.eventAction) {
+            cat.exception = cat.exception || '';
+            cat.exception += ' ga';
+        } else {
+            cat.nonInteraction === true ? '' : cat.nonInteraction = false;
+            cat.transport === 'beacon' ? '' : cat.transport = undefined;
+        }
+        cat.event = cat.event || 'analyzifyEvent';
+        cat.referrer = cat.referrer || document.referrer;
+        cat.userAgent = cat.userAgent || navigator.userAgent;
+        cat.language = cat.language || navigator.language;
+    } else {
+        console.error('dlPush: Event Category param must be defined');
+    }
 };
 
 //---- PRESETS -----
