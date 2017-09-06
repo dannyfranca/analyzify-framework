@@ -215,7 +215,8 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
             Object.assign(push, {pushObject: event});
             window.dataLayer.push(push);
         } else if (ANALYZIFY.debug === true || ANALYZIFY.debug.dlPush === true) {
-            console.log(JSON.stringify(push));
+            Object.assign(push, {pushObject: event});
+            console.log(push);
         } else if (!cat) {
             console.error('dlPush: Event Category param must be defined');
         } else if (!act) {
@@ -248,7 +249,7 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
         if (ANALYZIFY.debug !== true && ANALYZIFY.debug.dlPush !== true) {
             window.dataLayer.push(ANALYZIFY.objSelfPush(cat));
         } else {
-            console.log(JSON.stringify(ANALYZIFY.objSelfPush(cat)));
+            console.log(ANALYZIFY.objSelfPush(cat));
         }
     } else {
         console.error('dlPush: Event Category param must be defined');
