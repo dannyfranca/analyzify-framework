@@ -249,7 +249,7 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
         if (ANALYZIFY.debug !== true && ANALYZIFY.debug.dlPush !== true) {
             window.dataLayer.push(ANALYZIFY.objSelfPush(cat));
         } else {
-            cat = ANALYZIFY.objSelfPush(cat)
+            cat = ANALYZIFY.objSelfPush(cat);
             console.log(cat);
             console.log(JSON.stringify(cat));
         }
@@ -821,6 +821,7 @@ jQuery(function () {
      * @param {string} name - Nome único do Timer
      * @param {string} idleTrack - (Opcional) <b>Seletor CSS</b>. Se setado, rastreia o tempo ativo com o elemento específico. Se não setado, o temporizador contará continuamente a menos que a função <b>customUserNonIdle</b> seja executada.
      * @param {object} intervalObj - (Opcional) Objeto para enviar timerInterval ao dataLayer.
+     * @param {object} intervalObjScope - (Opcional) Escopo do timerInterval (sec, min, h ou %).
      * @param {string} func - (Opcional) Nome da função executada em invervalos de tempo. Aceita várias funções separadas por ||
      * @param {Array} funcParams - (Opcional) Parâmetros da função.
      * @param {string} funcInterval - (Opcional) Intervalo de tempo em segundos que a função deve ser executada. Se não for setada, a função e parâmetros serão simplesmente ignorados.

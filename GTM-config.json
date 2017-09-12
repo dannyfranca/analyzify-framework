@@ -1,12 +1,13 @@
 {
     "exportFormatVersion": 2,
-    "exportTime": "2017-09-04 15:51:15",
+    "exportTime": "2017-09-12 13:12:06",
     "containerVersion": {
-        "path": "accounts/447353382/containers/6978358/versions/12",
+        "path": "accounts/447353382/containers/6978358/versions/13",
         "accountId": "447353382",
         "containerId": "6978358",
-        "containerVersionId": "12",
-        "name": "1.5",
+        "containerVersionId": "13",
+        "name": "1.6",
+        "description": "- Adicionada variável dataLayer analyzifyEvent, que substitui o nome 'analyzifyEvent' como custom no Facebook Tracking\n- fbq é iniciado no pageview, enquanto pageView continua no firtActive. Isso permite que eventos do Facebook sejam disparados antes do firstActive, Analytics permanece inalterado, só dispara no firstActive.",
         "container": {
             "path": "accounts/447353382/containers/6978358",
             "accountId": "447353382",
@@ -16,7 +17,7 @@
             "usageContext": [
                 "WEB"
             ],
-            "fingerprint": "1504535930863",
+            "fingerprint": "1505221776232",
             "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/447353382/containers/6978358/workspaces?apiLink=container"
         },
         "tag": [
@@ -45,6 +46,35 @@
             {
                 "accountId": "447353382",
                 "containerId": "6978358",
+                "tagId": "19",
+                "name": "FB - Init",
+                "type": "html",
+                "priority": {
+                    "type": "INTEGER",
+                    "value": "10"
+                },
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "html",
+                        "value": "<!-- Facebook Pixel Code -->\n<script>\n  (function() {\n    !function (f, b, e, v, n, t, s) {\n      if (f.fbq)\n        return;n = f.fbq = function () {\n          n.callMethod ?\n            n.callMethod.apply(n, arguments) : n.queue.push(arguments)\n        };\n      if (!f._fbq)\n        f._fbq = n;\n      n.push = n;\n      n.loaded = !0;\n      n.version = '2.0';\n      n.queue = [];\n      t = b.createElement(e);\n      t.async = !0;\n      t.src = v;\n      s = b.getElementsByTagName(e)[0];\n      s.parentNode.insertBefore(t, s)\n    }(window,\n      document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');\n    fbq('init', '{{fbPixelID}}', {{fbInit}});\n  })();\n</script>\n<!-- End Facebook Pixel Code -->"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "supportDocumentWrite",
+                        "value": "false"
+                    }
+                ],
+                "fingerprint": "1505220952867",
+                "firingTriggerId": [
+                    "2147479553"
+                ],
+                "parentFolderId": "6",
+                "tagFiringOption": "ONCE_PER_LOAD"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
                 "tagId": "1",
                 "name": "FB - PageView",
                 "type": "html",
@@ -56,7 +86,7 @@
                     {
                         "type": "TEMPLATE",
                         "key": "html",
-                        "value": "<!-- Facebook Pixel Code -->\n<script>\n  (function() {\n    !function (f, b, e, v, n, t, s) {\n      if (f.fbq)\n        return;n = f.fbq = function () {\n          n.callMethod ?\n            n.callMethod.apply(n, arguments) : n.queue.push(arguments)\n        };\n      if (!f._fbq)\n        f._fbq = n;\n      n.push = n;\n      n.loaded = !0;\n      n.version = '2.0';\n      n.queue = [];\n      t = b.createElement(e);\n      t.async = !0;\n      t.src = v;\n      s = b.getElementsByTagName(e)[0];\n      s.parentNode.insertBefore(t, s)\n    }(window,\n      document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');\n    fbq('init', '{{fbPixelID}}', {{fbInit}});\n    fbq('track', 'PageView', {\n      utm_source: {{utmSource}},\n      utm_medium: {{utmMedium}},\n      utm_campaign: {{utmCampaign}},\n      utm_term: {{utmTerm}},\n      utm_content: {{utmContent}},\n      referrer: document.referrer,\n      userAgent: navigator.userAgent,\n      language: navigator.language\n    });\n  })();\n</script>\n<!-- End Facebook Pixel Code -->"
+                        "value": "<!-- Facebook Pixel Code -->\n<script>\n  (function() {\n    fbq('track', 'PageView', {\n      utm_source: {{utmSource}},\n      utm_medium: {{utmMedium}},\n      utm_campaign: {{utmCampaign}},\n      utm_term: {{utmTerm}},\n      utm_content: {{utmContent}},\n      referrer: document.referrer,\n      userAgent: navigator.userAgent,\n      language: navigator.language\n    });\n  })();\n</script>\n<!-- End Facebook Pixel Code -->"
                     },
                     {
                         "type": "BOOLEAN",
@@ -64,7 +94,7 @@
                         "value": "false"
                     }
                 ],
-                "fingerprint": "1501768492011",
+                "fingerprint": "1505221021598",
                 "firingTriggerId": [
                     "14"
                 ],
@@ -81,7 +111,7 @@
                     {
                         "type": "TEMPLATE",
                         "key": "html",
-                        "value": "<script>\n  (function() {\n    var fbEvent = {{fbEvent}};\n   if (typeof fbEvent !== 'undefined') {\n    var event = fbEvent;\n    var track = 'track';\n  } else {\n    var event = {{Event}};\n  var track = 'trackCustom';\n  }\n  fbq(track, event, {{pushObject}});\n  })();\n</script>"
+                        "value": "<script>\n  (function() {\n    var fbEvent = {{fbEvent}};\n   if (typeof fbEvent !== 'undefined') {\n    var event = fbEvent;\n    var track = 'track';\n  } else {\n    var event = {{analyzifyEvent}} ? {{analyzifyEvent}} : {{Event}};\n  var track = 'trackCustom';\n  }\n  fbq(track, event, {{pushObject}});\n  })();\n</script>"
                     },
                     {
                         "type": "BOOLEAN",
@@ -89,7 +119,7 @@
                         "value": "false"
                     }
                 ],
-                "fingerprint": "1501769927014",
+                "fingerprint": "1505221553617",
                 "firingTriggerId": [
                     "23"
                 ],
@@ -1215,6 +1245,32 @@
             {
                 "accountId": "447353382",
                 "containerId": "6978358",
+                "variableId": "57",
+                "name": "analyzifyEvent",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "analyzifyEvent"
+                    }
+                ],
+                "fingerprint": "1505221776232",
+                "parentFolderId": "10"
+            },
+            {
+                "accountId": "447353382",
+                "containerId": "6978358",
                 "variableId": "54",
                 "name": "autoLinkDomains",
                 "type": "c",
@@ -2209,7 +2265,7 @@
                 "name": "HTML ID"
             }
         ],
-        "fingerprint": "1504540248911",
-        "tagManagerUrl": "https://tagmanager.google.com/#/versions/accounts/447353382/containers/6978358/versions/12?apiLink=version"
+        "fingerprint": "1505221910784",
+        "tagManagerUrl": "https://tagmanager.google.com/#/versions/accounts/447353382/containers/6978358/versions/13?apiLink=version"
     }
 }
