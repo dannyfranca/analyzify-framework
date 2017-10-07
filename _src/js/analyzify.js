@@ -13,49 +13,6 @@ window.A = ANALYZIFY;
 window.dataLayer = window.dataLayer || [];
 
 /**
- * GLOBAL TO JQUERY LINK
- * 
- * Porta de entrada para invocar funções jQuery a partir do escopo global. Veja mais detalhes em <b>GLOBAL FUNCTION LISTENER</b>.
- * 
- * @param {function} callback
- * @returns {ANALYZIFY.create.scriptsAnonym$0}
- */
-ANALYZIFY.create = function (callback) {
-    var jqObj = false;
-    return {
-        func: function (jqObj) {
-            callback(jqObj);
-        }
-    };
-};
-
-function echo() {
-    console.log('echo');
-}
-
-/**
- * Função que escreve no console em diferentes formatos dependendo dos parâmetros definidos ou não.
- * Usada para testes em desenvolvimento.
- *
- * @param x - primeiro valor a ser logado
- * @param y
- * @param alert - se for true, executa alert() ao invés de console.log().
- */
-ANALYZIFY.echos = function (x, y, alert) {
-    if (x && y) {
-        var echo = '(' + typeof x + ') x: ' + x + ' / ' + '(' + typeof y + ') y: ' + y;
-    } else if (x) {
-        var echo = '(' + typeof x + ') x: ' + x;
-    } else if (y) {
-        var echo = '(' + typeof y + ') y: ' + y;
-    } else {
-        var echo = 'no param';
-    }
-
-    alert !== true ? console.log(echo) : alert(echo);
-};
-
-/**
  * Função para pegar o path, inteiro ou uma parte, da URL.
  * 
  * @param {integer} n (Opcional) Ordem específica do URL Path.
@@ -101,15 +58,91 @@ ANALYZIFY.urlParam = function (paramName) {
     }
 };
 
+//---- PRESETS -----
+ANALYZIFY.BASE = document.location.hostname;
+ANALYZIFY.analyzifyEvent = ANALYZIFY.analyzifyEvent || 'analyzifyEvent';
+ANALYZIFY.page = document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search;
+ANALYZIFY.ajaxPage = ANALYZIFY.ajaxPage || false;
+ANALYZIFY.tabHidden = ANALYZIFY.tabHidden || false;
+ANALYZIFY.inject = ANALYZIFY.inject || {};
+ANALYZIFY.activeTimerIntervalObj = ANALYZIFY.activeTimerIntervalObj || {300: 30, 600: 60, 3600: 300};
+ANALYZIFY.customTimerIntervalObj = ANALYZIFY.customTimerIntervalObj || {};
+ANALYZIFY.customTimerIntervalObj.sec = ANALYZIFY.customTimerIntervalObj.sec || {30: 5, 60: 10};
+ANALYZIFY.customTimerIntervalObj.min = ANALYZIFY.customTimerIntervalObj.min || ANALYZIFY.activeTimerIntervalObj;
+//DEBUG SWITCH
+ANALYZIFY.debug = ANALYZIFY.debug || {};
+ANALYZIFY.debugParam = ANALYZIFY.urlParam('debug');
+if (ANALYZIFY.debugParam !== null) {
+    ANALYZIFY.debug[ANALYZIFY.debugParam] = true;
+}
+//UTM PARAMETERS
+ANALYZIFY.utmSource = ANALYZIFY.urlParam('utm_source');
+ANALYZIFY.utmMedium = ANALYZIFY.urlParam('utm_medium');
+ANALYZIFY.utmCampaign = ANALYZIFY.urlParam('utm_campaign');
+ANALYZIFY.utmTerm = ANALYZIFY.urlParam('utm_term');
+ANALYZIFY.utmContent = ANALYZIFY.urlParam('utm_content');
+//DATALAYER INITIAL PUSH
+window.dataLayer.push(
+        {
+            originalLocation: ANALYZIFY.page,
+            utmSource: ANALYZIFY.utmSource,
+            utmMedium: ANALYZIFY.utmMedium,
+            utmCampaign: ANALYZIFY.utmCampaign,
+            utmTerm: ANALYZIFY.utmTerm,
+            utmContent: ANALYZIFY.utmContent
+        }
+);
+
+/**
+ * GLOBAL TO JQUERY LINK
+ * 
+ * Porta de entrada para invocar funções jQuery a partir do escopo global. Veja mais detalhes em <b>GLOBAL FUNCTION LISTENER</b>.
+ * 
+ * @param {function} callback
+ * @returns {ANALYZIFY.create.scriptsAnonym$0}
+ */
+ANALYZIFY.create = function (callback) {
+    var jqObj = false;
+    return {
+        func: function (jqObj) {
+            callback(jqObj);
+        }
+    };
+};
+
+/**
+ * Função que escreve no console em diferentes formatos dependendo dos parâmetros definidos ou não.
+ * Usada para testes em desenvolvimento.
+ *
+ * @param x - primeiro valor a ser logado
+ * @param y
+ * @param alert - se for true, executa alert() ao invés de console.log().
+ */
+ANALYZIFY.echos = function (x, y, alert) {
+    if (x && y) {
+        var echo = '(' + typeof x + ') x: ' + x + ' / ' + '(' + typeof y + ') y: ' + y;
+    } else if (x) {
+        var echo = '(' + typeof x + ') x: ' + x;
+    } else if (y) {
+        var echo = '(' + typeof y + ') y: ' + y;
+    } else {
+        var echo = 'no param';
+    }
+
+    alert !== true ? console.log(echo) : alert(echo);
+};
+
 //CUSTOM ENTRIES FOR PLUGINS
 ANALYZIFY.customEntries = ANALYZIFY.customEntries || {};
 ANALYZIFY.customEntries.pageHidden = ANALYZIFY.customEntries.pageHidden || {};
 ANALYZIFY.customEntries.pageShow = ANALYZIFY.customEntries.pageShow || {};
+ANALYZIFY.customEntries.pageLoad = ANALYZIFY.customEntries.pageLoad || {};
 ANALYZIFY.customEntries.beforeUnload = ANALYZIFY.customEntries.beforeUnload || {};
 ANALYZIFY.customEntries.exitIntent = ANALYZIFY.customEntries.exitIntent || {};
 ANALYZIFY.customEntries.scroll = ANALYZIFY.customEntries.scroll || {};
 ANALYZIFY.customEntries.resize = ANALYZIFY.customEntries.resize || {};
 ANALYZIFY.customEntries.normalize = ANALYZIFY.customEntries.normalize || {};
+ANALYZIFY.customEntries.navigate = ANALYZIFY.customEntries.navigate || {};
 
 /**
  * Muda o valor de uma variável global. Útil para atribuir um valor diante um evento, como por exemplo atribuir dinamicamente a window.exitIntent uma função para abrir uma modal específica relevante quando o usuário tentar sair da página.
@@ -169,7 +202,7 @@ ANALYZIFY.objSelfPush = function (obj) {
  * @param {string} exc - (Opcional) Se definido, informará ao Google Tag Manager quais tags de <b>evento não disparar</b>. se setado como <b>'fb'</b>, o evento apenas será enviado ao Analytics, se setado como <b>'ga'</b>, o evento apenas será enviado ao Facebook. Se setado como <b>'fbga' ou 'fb ga'</b> não será enviado evento algum, o que é válido se você apenas quiser enviar para suas outras integrações no GTM.
  * @param {object} obj - (Opcional) Objeto com métricas customizadas para expandir os dados enviados pelo dlPush().
  */
-ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
+ANALYZIFY.dlp = ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
 
     if (typeof cat !== 'object') {
         cat = checkType(cat);
@@ -185,9 +218,14 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
             eventAction: act,
             eventLabel: lab,
             eventValue: val,
+            nonInteraction: nInt,
+            transport: tran,
+            exceptions: exc,
             referrer: document.referrer,
             userAgent: navigator.userAgent,
-            language: navigator.language
+            language: navigator.language,
+            analyzifyEvent: ANALYZIFY.analyzifyEvent,
+            event: 'analyzifyEvent'
         };
 
         var push = {
@@ -201,6 +239,7 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
             referrer: document.referrer,
             userAgent: navigator.userAgent,
             language: navigator.language,
+            analyzifyEvent: ANALYZIFY.analyzifyEvent,
             event: 'analyzifyEvent'
         };
 
@@ -211,6 +250,7 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
         if (cat && act && ANALYZIFY.debug !== true && ANALYZIFY.debug.dlPush !== true) {
             if (typeof obj === 'object' && obj !== null) {
                 Object.assign(event, obj);
+                Object.assign(push, obj);
             }
             Object.assign(push, {pushObject: event});
             window.dataLayer.push(push);
@@ -243,6 +283,7 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
             cat.transport === 'beacon' ? '' : cat.transport = undefined;
         }
         cat.event = cat.event || 'analyzifyEvent';
+        cat.analyzifyEvent = cat.analyzifyEvent || ANALYZIFY.analyzifyEvent;
         cat.referrer = cat.referrer || document.referrer;
         cat.userAgent = cat.userAgent || navigator.userAgent;
         cat.language = cat.language || navigator.language;
@@ -254,43 +295,9 @@ ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc, obj) {
             console.log(JSON.stringify(cat));
         }
     } else {
-        console.error('dlPush: Event Category param must be defined');
+        console.error('dlPush: first param must be defined as a string or object');
     }
 };
-
-//---- PRESETS -----
-ANALYZIFY.BASE = document.location.hostname;
-ANALYZIFY.page = document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search;
-ANALYZIFY.ajaxPage = ANALYZIFY.ajaxPage || false;
-ANALYZIFY.tabHidden = ANALYZIFY.tabHidden || false;
-ANALYZIFY.inject = ANALYZIFY.inject || {};
-ANALYZIFY.ativeTimerIntervalObj = ANALYZIFY.ativeTimerIntervalObj || {300: 30, 600: 60, 3600: 300};
-ANALYZIFY.customTimerIntervalObj = ANALYZIFY.customTimerIntervalObj || {};
-ANALYZIFY.customTimerIntervalObj.sec = ANALYZIFY.customTimerIntervalObj.sec || {30: 5, 60: 10};
-ANALYZIFY.customTimerIntervalObj.min = ANALYZIFY.customTimerIntervalObj.min || ANALYZIFY.ativeTimerIntervalObj;
-//DEBUG SWITCH
-ANALYZIFY.debug = ANALYZIFY.debug || {};
-ANALYZIFY.debugParam = ANALYZIFY.urlParam('debug');
-if (ANALYZIFY.debugParam !== null) {
-    ANALYZIFY.debug[ANALYZIFY.debugParam] = true;
-}
-//UTM PARAMETERS
-ANALYZIFY.utmSource = ANALYZIFY.urlParam('utm_source');
-ANALYZIFY.utmMedium = ANALYZIFY.urlParam('utm_medium');
-ANALYZIFY.utmCampaign = ANALYZIFY.urlParam('utm_campaign');
-ANALYZIFY.utmTerm = ANALYZIFY.urlParam('utm_term');
-ANALYZIFY.utmContent = ANALYZIFY.urlParam('utm_content');
-//DATALAYER INITIAL PUSH
-window.dataLayer.push(
-        {
-            originalLocation: ANALYZIFY.page,
-            utmSource: ANALYZIFY.utmSource,
-            utmMedium: ANALYZIFY.utmMedium,
-            utmCampaign: ANALYZIFY.utmCampaign,
-            utmTerm: ANALYZIFY.utmTerm,
-            utmContent: ANALYZIFY.utmContent
-        }
-);
 
 //INÍCIO FUNÇÕES JQUERY
 jQuery(function () {
@@ -304,6 +311,62 @@ jQuery(function () {
     ANALYZIFY.menuHeight = ANALYZIFY.menuInitialHeight - ANALYZIFY.logoDeltaHeight;
     ANALYZIFY.jqMobile = ANALYZIFY.jqMobile || {};
     ANALYZIFY.jqMobile.present = typeof jQuery.mobile !== 'undefined' ? true : false;
+
+    /**
+     * 
+     * @param {array} funcs - Array de funções a serem executadas por eval()
+     * @param {array} limit - Array de limites de execução de cada função em funcs
+     * @param {integer} counter - Contador de execuções do evento
+     * @param {string} log - Texto a ser exibido no console no debug e antes do erro
+     * @param {boolean} debug - Se true, função executada é exibida no console
+     * @returns {undefined}
+     */
+    ANALYZIFY.attrExec = function (funcs, limit, counter, log, debug) {
+        for (i = 0; i < funcs.length; i++) {
+            var checkLimit = isNaN(parseInt(limit[i]));
+            if (checkLimit === false ? limit[i] > counter : true) {
+                try {
+                    eval('ANALYZIFY.' + funcs[i]);
+                } catch (er) {
+                    var error = er;
+                    try {
+                        eval('window.' + funcs[i]);
+                    } catch (er) {
+                        console.error(log + error.message);
+                        console.error(log + er.message);
+                    }
+                }
+                if (ANALYZIFY.debug === true || debug === true) {
+                    console.log(log + funcs[i]);
+                }
+            }
+        }
+    };
+
+    /**
+     * 
+     * @param {string} func - Função a ser executada por apply
+     * @param {array} params - Parâmetros passados para func por apply
+     * @param {string} log - Texto a ser exibido no console no debug e antes do erro
+     * @param {boolean} debug - Se true, função executada é exibida no console
+     * @returns {undefined}
+     */
+    ANALYZIFY.applyExec = function (func, params, log, debug) {
+        try {
+            ANALYZIFY[func].apply(this, params);
+        } catch (er) {
+            var error = er;
+            try {
+                window[func].apply(this, params);
+            } catch (er) {
+                console.error(log + error.message);
+                console.error(log + er.message);
+            }
+        }
+        if (ANALYZIFY.debug === true || debug === true) {
+            console.log(log + func);
+        }
+    };
 
     /**
      * Injeta atributos e seus respectivos valores em elementos por meio de seletores jQuery.
@@ -406,37 +469,55 @@ jQuery(function () {
      * @param {string} name - Nome do objeto filho de ANALYZIFY.customEntries
      */
     ANALYZIFY.setCustomEntry = function (name) {
+
         if (typeof name === 'string') {
+
             if (typeof ANALYZIFY.customEntries[name] === 'object' && ANALYZIFY.customEntries[name] !== null) {
                 for (property in ANALYZIFY.customEntries[name]) {
                     ANALYZIFY.customEntries[name][property]['count'] = ANALYZIFY.customEntries[name][property]['count'] || 0;
-                    if (typeof ANALYZIFY.customEntries[name][property]['limit'] === 'undefined' || ANALYZIFY.customEntries[name][property]['count'] < ANALYZIFY.customEntries[name][property]['limit']) {
-                        if (typeof ANALYZIFY[property] === 'function') {
-                            if (typeof ANALYZIFY.customEntries[name][property]['params'] !== 'undefined') {
-                                if (jQuery.isArray(ANALYZIFY.customEntries[name][property]['params'])) {
-                                    var params = ANALYZIFY.customEntries[name][property]['params'];
-                                } else {
-                                    console.warn('Custom entrie params from ' + name + '.' + property + ' is not an array');
-                                }
+                    if (!ANALYZIFY.customEntries[name][property]['limit'] || ANALYZIFY.customEntries[name][property]['count'] < ANALYZIFY.customEntries[name][property]['limit']) {
+                        if (ANALYZIFY.customEntries[name][property]['params']) {
+                            if (jQuery.isArray(ANALYZIFY.customEntries[name][property]['params'])) {
+                                var params = ANALYZIFY.customEntries[name][property]['params'];
                             } else {
+                                console.warn('setCustomEntry: ANALYZIFY.customEntries.' + name + '.' + property + '.params parameter must be an array');
                                 var params = [];
                             }
-                            try {
-                                ANALYZIFY[property].apply(this, params);
-                            } catch (e) {
-                                if (e instanceof SyntaxError) {
-                                    console.error(e.message);
+                        } else {
+                            var params = [];
+                        }
+                        if (ANALYZIFY.customEntries[name][property]['action']) {
+                            if (typeof ANALYZIFY.customEntries[name][property]['action'] === 'function') {
+                                ANALYZIFY.customEntries[name][property]['action'].apply(this, params);
+                            } else {
+                                console.error('setCustomEntry: ANALYZIFY.customEntries.' + name + '.' + property + '.action parameter must be a function');
+                            }
+                        } else if (ANALYZIFY.customEntries[name][property]['scope']) {
+                            if (typeof ANALYZIFY.customEntries[name][property]['scope'] === 'object' && ANALYZIFY.customEntries[name][property]['scope'] !== null) {
+                                try {
+                                    ANALYZIFY.customEntries[name][property]['scope'][property].apply(this, params);
+                                } catch (er) {
+                                    console.error('Custom entry ' + name + ': ' + er.message);
                                 }
+                            } else {
+                                console.error('setCustomEntry: ANALYZIFY.customEntries.' + name + '.' + property + '.scope parameter must be an object reference');
                             }
                         } else {
-                            console.error(name + ': ANALYZIFY.' + property + ' is not a function');
+                            ANALYZIFY.applyExec(property, params, 'Custom entry ' + name + ': ');
                         }
+
+
+
+
                     }
-                    if (typeof ANALYZIFY.customEntries[name][property]['limit'] !== 'undefined') {
+                    if (ANALYZIFY.customEntries[name][property]['limit']) {
                         ANALYZIFY.customEntries[name][property]['count']++;
                     }
                 }
+            } else {
+                console.error('setCustomEntry: ANALYZIFY.customEntries["' + name + '"] parameter must be an object');
             }
+
         } else {
             console.error('setCustomEntry: "name" parameter must be seted and a string');
         }
@@ -492,10 +573,8 @@ jQuery(function () {
             for (property in jqObj) {
                 try {
                     ANALYZIFY[property].apply(this, jqObj[property]);
-                } catch (e) {
-                    if (e instanceof SyntaxError) {
-                        console.error(e.message);
-                    }
+                } catch (er) {
+                    console.error('jqLink ' + property + ': ' + er.message);
                 }
             }
         }
@@ -505,14 +584,17 @@ jQuery(function () {
 
     jQuery(window).on("load", function () {
         ANALYZIFY.load = true;
+        var hashElement = jQuery('[id="' + ANALYZIFY.hashVal + '"]');
         window.dataLayer.push({event: 'pageLoad'});
-        if (ANALYZIFY.hashVal && jQuery('[id="' + ANALYZIFY.hashVal + '_go"]').length) {
-            var goto = jQuery('[id="' + ANALYZIFY.hashVal + '_go"]').offset().top;
+        if (ANALYZIFY.hashVal && hashElement.length) {
+            var goto = hashElement.offset().top;
             jQuery('html, body').animate({scrollTop: goto - ANALYZIFY.menuInitialHeight + ANALYZIFY.logoDeltaHeight}, 1000);
             history.pushState("", document.title, window.location.pathname + window.location.search);
         }
         ANALYZIFY.normalize();
         ANALYZIFY.handleVisibilityChange();
+
+        ANALYZIFY.setCustomEntry('pageLoad');
     });
 
     //*****END PRESETS*****
@@ -737,7 +819,7 @@ jQuery(function () {
         //ACTIVE TIME
         ANALYZIFY.dlPush('Active Time', (ANALYZIFY.ajaxPage === false ? ANALYZIFY.activeTimer.path.toLowerCase() : ANALYZIFY.ajaxPage.toLowerCase().replace(/(https:|http:|)\/\//, '').replace(ANALYZIFY.BASE, '')), ANALYZIFY.activeTimer.firstPath.toLowerCase(), ANALYZIFY.activeTimer.counter, true, 'beacon', null, {
             activeTime: ANALYZIFY.activeTimer.counter,
-            interval: ANALYZIFY.timerInterval(ANALYZIFY.ativeTimerIntervalObj, 'min', ANALYZIFY.activeTimer.counter)
+            interval: ANALYZIFY.timerInterval(ANALYZIFY.activeTimerIntervalObj, 'min', ANALYZIFY.activeTimer.counter)
         });
 
         //CUSTOM TIMES
@@ -756,6 +838,20 @@ jQuery(function () {
     jQuery(document).mouseleave(function () {
         ANALYZIFY.setCustomEntry('exitIntent');
     });
+
+    if (ANALYZIFY.jqMobile.present) {
+        $(window).on("navigate", function (data, state) {
+            var modalParam = ANALYZIFY.urlParam('modal');
+            if ((modalParam) && (modalParam !== true)) {
+                ANALYZIFY.openModal(modalParam);
+                ANALYZIFY.jqMobile.lastModal = modalParam;
+            } else if (ANALYZIFY.jqMobile.lastModal) {
+                ANALYZIFY.closeModal(ANALYZIFY.jqMobile.lastModal, false);
+                delete ANALYZIFY.jqMobile.lastModal;
+            }
+//                ANALYZIFY.setCustomEntry('navigate');
+        });
+    }
 
     /**
      * Informa ao framework que o usuário começou a interagir com a página por meio de uma variável e marcando o evento firstActive na camada de dados do GTM, previnindo que Analytics comece a rodar se usuário apenas abriu o navegador.
@@ -852,10 +948,12 @@ jQuery(function () {
                     console.error('customTimer: "idleTrack" parameter must be a string');
                 }
             }
-            if (typeof intervalObj !== "undefined" || intervalObj !== null) {
+            if (typeof intervalObj === "undefined" || intervalObj === null) {
+                intervalObj = "sec";
+            } else {
                 if (typeof intervalObj === "object") {
                     ANALYZIFY.customTimers[name]['intervalObj'] = intervalObj;
-                    ANALYZIFY.customTimers[name]['intervalObjScope'] = intervalObjScope;
+                    ANALYZIFY.customTimers[name]['intervalObjScope'] = intervalObjScope || "sec";
                 } else if (intervalObj === "sec") {
                     ANALYZIFY.customTimers[name]['intervalObj'] = ANALYZIFY.customTimerIntervalObj.sec;
                     ANALYZIFY.customTimers[name]['intervalObjScope'] = "sec";
@@ -877,13 +975,7 @@ jQuery(function () {
                 if (typeof funcInterval !== "undefined" && isNaN(parseInt(funcInterval)) === false && ANALYZIFY.customTimers[name]['counter'] >= funcInterval * intervalCounter && funcLimit !== 0) {
                     funcParams = $.isArray(funcParams) ? funcParams : [];
                     for (i = 0; i < func.length; i++) {
-                        try {
-                            ANALYZIFY.func[i].apply(this, funcParams[i]);
-                        } catch (e) {
-                            if (e instanceof SyntaxError) {
-                                console.error(e.message);
-                            }
-                        }
+                        ANALYZIFY.applyExec(func[i], funcParams[i], 'customTimer ' + name + ': ', ANALYZIFY.debug.customTimers);
                     }
                     intervalCounter++;
                     if (funcLimit !== false) {
@@ -1079,22 +1171,11 @@ jQuery(function () {
         var arrayClick = {};
         jQuery('[data-click]').click(function () {
             var e = jQuery(this).attr('data-click');
-            typeof arrayClick[e] !== "undefined" ? '' : arrayClick[e] = {};
-            typeof arrayClick[e].counter !== "undefined" ? '' : arrayClick[e].counter = 0;
+            arrayClick[e] = arrayClick[e] || {};
+            arrayClick[e].counter = arrayClick[e].counter || 0;
             var clickFunc = e.split('||');
             var clickLimit = jQuery(this).attr('data-click-limit') ? jQuery(this).attr('data-click-limit').split(',') : 'notset';
-            for (i = 0; i < clickFunc.length; i++) {
-                var checkLimit = isNaN(parseInt(clickLimit[i]));
-                if (checkLimit === false ? clickLimit[i] > arrayClick[e].counter : true) {
-                    try {
-                        eval('ANALYZIFY.' + clickFunc[i]);
-                    } catch (er) {
-                        if (er instanceof SyntaxError) {
-                            console.error(er.message);
-                        }
-                    }
-                }
-            }
+            ANALYZIFY.attrExec(clickFunc, clickLimit, arrayClick[e].counter, 'data-click: ', ANALYZIFY.debug.click);
             arrayClick[e].counter++;
         });
     }
@@ -1167,39 +1248,12 @@ jQuery(function () {
                         if ((ANALYZIFY.scrollTop >= ANALYZIFY.arrayView[e]['viewPositionTop']) && (ANALYZIFY.scrollTop < ANALYZIFY.arrayView[e]['viewPositionBottom'])) {
                             if (ANALYZIFY.arrayView[e]['viewHidden'] !== true && jQuery(this).is(":visible")) {
                                 if ((ANALYZIFY.arrayView[e]['alt'] !== true || ignorealt === true) && timerCheck) {
-                                    if (jQuery(this).attr('data-view-act')) {
-                                        var viewFunc = jQuery(this).attr('data-view-act').split('||');
-                                        for (i = 0; i < viewFunc.length; i++) {
-                                            if (isNaN(parseInt(ANALYZIFY.arrayView[e]['viewLimit'][i])) === false ? ANALYZIFY.arrayView[e]['viewLimit'][i] > ANALYZIFY.arrayView[e]['viewCounter'] : true) {
-                                                try {
-                                                    eval('ANALYZIFY.' + viewFunc[i]);
-                                                } catch (e) {
-                                                    if (e instanceof SyntaxError) {
-                                                        console.error(e.message);
-                                                    }
-                                                }
-                                                if (ANALYZIFY.debug === true || ANALYZIFY.debug.view === true) {
-                                                    console.log(viewFunc[i]);
-                                                }
-                                            }
-                                        }
+                                    if (ANALYZIFY.arrayView[e]['viewAct']) {
+                                        ANALYZIFY.attrExec(ANALYZIFY.arrayView[e]['viewAct'], ANALYZIFY.arrayView[e]['viewLimit'], ANALYZIFY.arrayView[e]['viewCounter'], 'data-view-act: ', ANALYZIFY.debug.view);
                                         ignorealt !== true ? ANALYZIFY.arrayView[e]['viewCounter']++ : '';
-                                    } else if (!(jQuery(this).attr('data-nonview-act'))) {
+                                    } else if (!ANALYZIFY.arrayView[e]['nonViewAct']) {
                                         var viewFunc = e.split('||');
-                                        for (i = 0; i < viewFunc.length; i++) {
-                                            if (isNaN(parseInt(ANALYZIFY.arrayView[e]['viewLimit'][i])) === false ? ANALYZIFY.arrayView[e]['viewLimit'][i] > ANALYZIFY.arrayView[e]['viewCounter'] : true) {
-                                                try {
-                                                    eval('ANALYZIFY.' + viewFunc[i]);
-                                                } catch (e) {
-                                                    if (e instanceof SyntaxError) {
-                                                        console.error(e.message);
-                                                    }
-                                                }
-                                                if (ANALYZIFY.debug === true || ANALYZIFY.debug.view === true) {
-                                                    console.log(viewFunc[i]);
-                                                }
-                                            }
-                                        }
+                                        ANALYZIFY.attrExec(viewFunc, ANALYZIFY.arrayView[e]['viewLimit'], ANALYZIFY.arrayView[e]['viewCounter'], 'data-view: ', ANALYZIFY.debug.view);
                                         ignorealt !== true ? ANALYZIFY.arrayView[e]['viewCounter']++ : '';
                                     }
                                 }
@@ -1207,22 +1261,8 @@ jQuery(function () {
                             }
                         } else {
                             if ((ANALYZIFY.arrayView[e]['alt'] === true || ignorealt === true) && timerCheck) {
-                                if (jQuery(this).attr('data-nonview-act')) {
-                                    var viewFunc = jQuery(this).attr('data-nonview-act').split('||');
-                                    for (i = 0; i < viewFunc.length; i++) {
-                                        if (isNaN(parseInt(ANALYZIFY.arrayView[e]['nonViewLimit'][i])) === false ? ANALYZIFY.arrayView[e]['nonViewLimit'][i] > ANALYZIFY.arrayView[e]['nonViewCounter'] : true) {
-                                            try {
-                                                eval('ANALYZIFY.' + viewFunc[i]);
-                                            } catch (e) {
-                                                if (e instanceof SyntaxError) {
-                                                    console.error(e.message);
-                                                }
-                                            }
-                                            if (ANALYZIFY.debug === true || ANALYZIFY.debug.view === true) {
-                                                console.log(viewFunc[i]);
-                                            }
-                                        }
-                                    }
+                                if (ANALYZIFY.arrayView[e]['nonViewAct']) {
+                                    ANALYZIFY.attrExec(ANALYZIFY.arrayView[e]['nonViewAct'], ANALYZIFY.arrayView[e]['nonViewLimit'], ANALYZIFY.arrayView[e]['nonViewCounter'], 'data-nonview-act: ', ANALYZIFY.debug.view);
                                     ignorealt !== true ? ANALYZIFY.arrayView[e]['nonViewCounter']++ : '';
                                 }
                             }
@@ -1248,18 +1288,17 @@ jQuery(function () {
 
                 jQuery(selector).each(function () {
                     var e = jQuery(this).attr('data-view');
-                    if (typeof ANALYZIFY.arrayView[e] !== "undefined") {
-                        ANALYZIFY.arrayView[e]['position'] = jQuery(this).offset().top;
-                        ANALYZIFY.arrayView[e]['height'] = jQuery(this).outerHeight();
-                    } else {
-                        ANALYZIFY.arrayView[e] = {position: jQuery(this).offset().top, height: jQuery(this).outerHeight()};
-                    }
+                    ANALYZIFY.arrayView[e] = ANALYZIFY.arrayView[e] || {};
+                    ANALYZIFY.arrayView[e]['position'] = jQuery(this).offset().top;
+                    ANALYZIFY.arrayView[e]['height'] = jQuery(this).outerHeight();
                     var viewTime = jQuery(this).attr('data-view-time');
                     var checkTime = isNaN(parseInt(viewTime));
+                    ANALYZIFY.arrayView[e]['viewAct'] = jQuery(this).attr('data-view-act') ? jQuery(this).attr('data-view-act').split('||') : false;
+                    ANALYZIFY.arrayView[e]['nonViewAct'] = jQuery(this).attr('data-nonview-act') ? jQuery(this).attr('data-nonview-act').split('||') : false;
                     ANALYZIFY.arrayView[e]['viewTime'] = checkTime === false ? parseInt(jQuery(this).attr('data-view-time')) : 0;
                     ANALYZIFY.arrayView[e]['viewPercent'] = jQuery(this).attr('data-view-percent') ? parseInt(jQuery(this).attr('data-view-percent')) : 50;
-                    typeof ANALYZIFY.arrayView[e]['viewCounter'] !== "undefined" ? '' : ANALYZIFY.arrayView[e]['viewCounter'] = 0;
-                    typeof ANALYZIFY.arrayView[e]['nonViewCounter'] !== "undefined" ? '' : ANALYZIFY.arrayView[e]['nonViewCounter'] = 0;
+                    ANALYZIFY.arrayView[e]['viewCounter'] = ANALYZIFY.arrayView[e]['viewCounter'] || 0;
+                    ANALYZIFY.arrayView[e]['nonViewCounter'] = ANALYZIFY.arrayView[e]['nonViewCounter'] || 0;
                     ANALYZIFY.arrayView[e]['viewLimit'] = jQuery(this).attr('data-view-limit') ? jQuery(this).attr('data-view-limit').split(',') : 'notset';
                     ANALYZIFY.arrayView[e]['nonViewLimit'] = jQuery(this).attr('data-nonview-limit') ? jQuery(this).attr('data-nonview-limit').split(',') : 'notset';
                     ANALYZIFY.arrayView[e]['viewHidden'] = jQuery(this).attr('data-view-hidden');
@@ -1369,19 +1408,20 @@ jQuery(function () {
     /**
      * <b>HASH ROLL</b>
      * 
-     * Faz rolamento até elemento com <b>id</b> igual ao <b>href</b> do elemento clicado com sufixo <b>_go</b>.
+     * Faz rolamento até elemento com <b>id</b> igual ao <b>href</b> do elemento clicado com atributo <b>data-goto</b>.
      * Também previne comportamento padrão no processo.
      * @param event - Marcação apenas para prevenir comportamento padrão.
      */
-    if (jQuery('[id$="_go"]').length) {
-        jQuery('a[href^="#"]').click(function (event) {
+    if (jQuery('[data-goto]').length) {
+        jQuery('[data-goto]').click(function (event) {
             event.preventDefault();
-            var selector = jQuery('[id="' + jQuery(this).attr('href').replace('#', '') + '_go"]');
+            var selector = jQuery(jQuery(this).attr("href"));
             if (selector.length) {
-                var goto = selector.offset().top;
-                jQuery('html, body').stop().animate({scrollTop: goto - ANALYZIFY.menuInitialHeight + ANALYZIFY.logoDeltaHeight}, 1000);
-                return false;
+                jQuery('html, body').stop().animate({scrollTop: selector.offset().top - ANALYZIFY.menuInitialHeight + ANALYZIFY.logoDeltaHeight}, 1000);
+            } else {
+                jQuery('html, body').animate({scrollTop: 0}, 1000);
             }
+            return false;
         });
     }
 

@@ -215,7 +215,7 @@ if (typeof window.ANALYZIFY !== 'undefined') {
          * Add unload event listener when user close exit with video playing.
          * @param order (evento)
          **/
-        ANALYZIFY.ytExit = function (order) {
+        ANALYZIFY.yt.exit = function (order) {
             if (ANALYZIFY.yt.players.length) {
                 if (typeof order === "undefined") {
                     for (var i = 0; i < ANALYZIFY.yt.players.length; i++) {
@@ -250,7 +250,7 @@ if (typeof window.ANALYZIFY !== 'undefined') {
         };
 
         //Pause video
-        ANALYZIFY.ytPause = function (order) {
+        ANALYZIFY.yt.pause = function (order) {
             if (typeof order === "undefined") {
                 for (var i = 0; i < ANALYZIFY.yt.players.length; i++) {
                     if (ANALYZIFY.yt.players[i].ready === true && ANALYZIFY.yt.players[i].getPlayerState() === YT.PlayerState.PLAYING) { // playing
@@ -269,7 +269,7 @@ if (typeof window.ANALYZIFY !== 'undefined') {
         };
 
         //Play video
-        ANALYZIFY.ytPlay = function (order) {
+        ANALYZIFY.yt.play = function (order) {
             if (typeof order === "undefined") {
                 for (var i = 0; i < ANALYZIFY.yt.players.length; i++) {
                     if (ANALYZIFY.yt.players[i].ready === true && ANALYZIFY.yt.players[i].getPlayerState() === YT.PlayerState.PAUSED && ANALYZIFY.yt.players[i].autoStatChange === true) { // paused and automode
@@ -285,7 +285,7 @@ if (typeof window.ANALYZIFY !== 'undefined') {
             }
         };
 
-        ANALYZIFY.ytLoad = function (id, autoplay, start, end, order) {
+        ANALYZIFY.yt.load = function (id, autoplay, start, end, order) {
             order = order || 0;
             if (ANALYZIFY.yt.players.length) {
                 var load = (autoplay === true || autoplay === 'true' || autoplay === 1 ? 'loadVideoById' : 'cueVideoById');
@@ -322,15 +322,20 @@ if (typeof window.ANALYZIFY !== 'undefined') {
 
         //CUSTOM ENTRIES
         Object.assign(ANALYZIFY.customEntries.beforeUnload, {
-            'ytExit': {}
+            'ytExit': {
+                action: ANALYZIFY.yt.exit
+            }
         });
         Object.assign(ANALYZIFY.customEntries.pageShow, {
-            'viewEvent': {
+            'ytViewEvent': {
+                action: ANALYZIFY.viewEvent,
                 params: ['youtube', true]
             }
         });
         Object.assign(ANALYZIFY.customEntries.pageHidden, {
-            'ytPause': {}
+            'ytPause': {
+                action: ANALYZIFY.yt.pause
+            }
         });
     }
 } else {

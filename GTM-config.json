@@ -1,13 +1,12 @@
 {
     "exportFormatVersion": 2,
-    "exportTime": "2017-09-12 13:12:06",
+    "exportTime": "2017-10-07 22:22:32",
     "containerVersion": {
-        "path": "accounts/447353382/containers/6978358/versions/13",
+        "path": "accounts/447353382/containers/6978358/versions/14",
         "accountId": "447353382",
         "containerId": "6978358",
-        "containerVersionId": "13",
-        "name": "1.6",
-        "description": "- Adicionada variável dataLayer analyzifyEvent, que substitui o nome 'analyzifyEvent' como custom no Facebook Tracking\n- fbq é iniciado no pageview, enquanto pageView continua no firtActive. Isso permite que eventos do Facebook sejam disparados antes do firstActive, Analytics permanece inalterado, só dispara no firstActive.",
+        "containerVersionId": "14",
+        "name": "2.0",
         "container": {
             "path": "accounts/447353382/containers/6978358",
             "accountId": "447353382",
@@ -17,7 +16,7 @@
             "usageContext": [
                 "WEB"
             ],
-            "fingerprint": "1505221776232",
+            "fingerprint": "1505221910826",
             "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/447353382/containers/6978358/workspaces?apiLink=container"
         },
         "tag": [
@@ -111,7 +110,7 @@
                     {
                         "type": "TEMPLATE",
                         "key": "html",
-                        "value": "<script>\n  (function() {\n    var fbEvent = {{fbEvent}};\n   if (typeof fbEvent !== 'undefined') {\n    var event = fbEvent;\n    var track = 'track';\n  } else {\n    var event = {{analyzifyEvent}} ? {{analyzifyEvent}} : {{Event}};\n  var track = 'trackCustom';\n  }\n  fbq(track, event, {{pushObject}});\n  })();\n</script>"
+                        "value": "<script>\n  (function() {\n    var mainEvents = ['ViewContent', 'Search', 'AddToCart', 'AddToWishlist', 'InitiateCheckout', 'AddPaymentInfo', 'Purchase', 'Lead', 'CompleteRegistration'];\n    var fbEvent = {{fbEvent}};\n\n   \tif (typeof fbEvent !== 'undefined' && inArray(fbEvent, mainEvents)) {\n    \tvar event = fbEvent;\n    \tvar track = 'track';\n  \t} else {\n    \tvar event = {{analyzifyEvent}} ? {{analyzifyEvent}} : {{Event}};\n  \t\tvar track = 'trackCustom';\n  \t}\n\n  \tfbq(track, event, {{pushObject}});\n\n    function inArray(needle, haystack) {\n      var length = haystack.length;\n      for(var i = 0; i < length; i++) {\n        if (haystack[i] == needle) return true;\n      }\n      return false;\n    }\n  })();\n</script>"
                     },
                     {
                         "type": "BOOLEAN",
@@ -119,7 +118,7 @@
                         "value": "false"
                     }
                 ],
-                "fingerprint": "1505221553617",
+                "fingerprint": "1507392235931",
                 "firingTriggerId": [
                     "23"
                 ],
@@ -2265,7 +2264,7 @@
                 "name": "HTML ID"
             }
         ],
-        "fingerprint": "1505221910784",
-        "tagManagerUrl": "https://tagmanager.google.com/#/versions/accounts/447353382/containers/6978358/versions/13?apiLink=version"
+        "fingerprint": "1507414940402",
+        "tagManagerUrl": "https://tagmanager.google.com/#/versions/accounts/447353382/containers/6978358/versions/14?apiLink=version"
     }
 }
