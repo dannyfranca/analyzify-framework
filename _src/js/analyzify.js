@@ -332,39 +332,14 @@ jQuery(function () {
                     try {
                         eval('window.' + funcs[i]);
                     } catch (er) {
-                        console.error(log + error.message);
-                        console.error(log + er.message);
+                        console.error('(ANALYZIFY scope) ' + log + error.message);
+                        console.error('(window scope) ' + log + er.message);
                     }
                 }
                 if (ANALYZIFY.debug === true || debug === true) {
                     console.log(log + funcs[i]);
                 }
             }
-        }
-    };
-
-    /**
-     * 
-     * @param {string} func - Função a ser executada por apply
-     * @param {array} params - Parâmetros passados para func por apply
-     * @param {string} log - Texto a ser exibido no console no debug e antes do erro
-     * @param {boolean} debug - Se true, função executada é exibida no console
-     * @returns {undefined}
-     */
-    ANALYZIFY.applyExec = function (func, params, log, debug) {
-        try {
-            ANALYZIFY[func].apply(this, params);
-        } catch (er) {
-            var error = er;
-            try {
-                window[func].apply(this, params);
-            } catch (er) {
-                console.error(log + error.message);
-                console.error(log + er.message);
-            }
-        }
-        if (ANALYZIFY.debug === true || debug === true) {
-            console.log(log + func);
         }
     };
 
@@ -469,46 +444,20 @@ jQuery(function () {
      * @param {string} name - Nome do objeto filho de ANALYZIFY.customEntries
      */
     ANALYZIFY.setCustomEntry = function (name) {
-
         if (typeof name === 'string') {
-
             if (typeof ANALYZIFY.customEntries[name] === 'object' && ANALYZIFY.customEntries[name] !== null) {
                 for (property in ANALYZIFY.customEntries[name]) {
                     ANALYZIFY.customEntries[name][property]['count'] = ANALYZIFY.customEntries[name][property]['count'] || 0;
                     if (!ANALYZIFY.customEntries[name][property]['limit'] || ANALYZIFY.customEntries[name][property]['count'] < ANALYZIFY.customEntries[name][property]['limit']) {
-                        if (ANALYZIFY.customEntries[name][property]['params']) {
-                            if (jQuery.isArray(ANALYZIFY.customEntries[name][property]['params'])) {
-                                var params = ANALYZIFY.customEntries[name][property]['params'];
-                            } else {
-                                console.warn('setCustomEntry: ANALYZIFY.customEntries.' + name + '.' + property + '.params parameter must be an array');
-                                var params = [];
-                            }
-                        } else {
-                            var params = [];
-                        }
                         if (ANALYZIFY.customEntries[name][property]['action']) {
                             if (typeof ANALYZIFY.customEntries[name][property]['action'] === 'function') {
-                                ANALYZIFY.customEntries[name][property]['action'].apply(this, params);
+                                ANALYZIFY.customEntries[name][property]['action']();
                             } else {
                                 console.error('setCustomEntry: ANALYZIFY.customEntries.' + name + '.' + property + '.action parameter must be a function');
                             }
-                        } else if (ANALYZIFY.customEntries[name][property]['scope']) {
-                            if (typeof ANALYZIFY.customEntries[name][property]['scope'] === 'object' && ANALYZIFY.customEntries[name][property]['scope'] !== null) {
-                                try {
-                                    ANALYZIFY.customEntries[name][property]['scope'][property].apply(this, params);
-                                } catch (er) {
-                                    console.error('Custom entry ' + name + ': ' + er.message);
-                                }
-                            } else {
-                                console.error('setCustomEntry: ANALYZIFY.customEntries.' + name + '.' + property + '.scope parameter must be an object reference');
-                            }
                         } else {
-                            ANALYZIFY.applyExec(property, params, 'Custom entry ' + name + ': ');
+                            console.error('setCustomEntry: ANALYZIFY.customEntries.' + name + '.' + property + '.action parameter must be defined')
                         }
-
-
-
-
                     }
                     if (ANALYZIFY.customEntries[name][property]['limit']) {
                         ANALYZIFY.customEntries[name][property]['count']++;
@@ -918,12 +867,11 @@ jQuery(function () {
      * @param {string} idleTrack - (Opcional) <b>Seletor CSS</b>. Se setado, rastreia o tempo ativo com o elemento específico. Se não setado, o temporizador contará continuamente a menos que a função <b>customUserNonIdle</b> seja executada.
      * @param {object} intervalObj - (Opcional) Objeto para enviar timerInterval ao dataLayer.
      * @param {object} intervalObjScope - (Opcional) Escopo do timerInterval (sec, min, h ou %).
-     * @param {string} func - (Opcional) Nome da função executada em invervalos de tempo. Aceita várias funções separadas por ||
-     * @param {Array} funcParams - (Opcional) Parâmetros da função.
+     * @param {function} func - (Opcional) Nome da função executada em invervalos de tempo
      * @param {string} funcInterval - (Opcional) Intervalo de tempo em segundos que a função deve ser executada. Se não for setada, a função e parâmetros serão simplesmente ignorados.
      * @param {string} funcLimit - (Opcional) Limite de vezes que a função deve ser executada. Se não setada, a função será executada continuamente a cada intervalo de tempo.
      */
-    ANALYZIFY.customTimer = function (name, idleTrack, intervalObj, intervalObjScope, func, funcParams, funcInterval, funcLimit) {
+    ANALYZIFY.customTimer = function (name, idleTrack, intervalObj, intervalObjScope, func, funcInterval, funcLimit) {
         ANALYZIFY.customTimers = ANALYZIFY.customTimers || [];
         ANALYZIFY.customTimers[name] = ANALYZIFY.customTimers[name] || [];
         ANALYZIFY.customTimers[name]['exeNumber'] = ANALYZIFY.customTimers[name]['exeNumber'] || 0;
@@ -939,9 +887,8 @@ jQuery(function () {
             ANALYZIFY.customTimers[name]['activeMaster'] = false;
             ANALYZIFY.customTimers[name]['counter'] = 0;
             var intervalCounter = 1;
-            func ? func = func.split('||') : '';
             funcLimit = isNaN(parseInt(funcLimit)) === false ? parseInt(funcLimit) : false;
-            if (typeof idleTrack !== "undefined" || idleTrack !== null) {
+            if (idleTrack) {
                 if (typeof idleTrack === "string") {
                     ANALYZIFY.customActiveListener(name, idleTrack);
                 } else {
@@ -973,10 +920,7 @@ jQuery(function () {
                     }
                 }
                 if (typeof funcInterval !== "undefined" && isNaN(parseInt(funcInterval)) === false && ANALYZIFY.customTimers[name]['counter'] >= funcInterval * intervalCounter && funcLimit !== 0) {
-                    funcParams = $.isArray(funcParams) ? funcParams : [];
-                    for (i = 0; i < func.length; i++) {
-                        ANALYZIFY.applyExec(func[i], funcParams[i], 'customTimer ' + name + ': ', ANALYZIFY.debug.customTimers);
-                    }
+                    func();
                     intervalCounter++;
                     if (funcLimit !== false) {
                         funcLimit--;
@@ -1349,7 +1293,8 @@ jQuery(function () {
         if (ANALYZIFY.debug === true || ANALYZIFY.debug.activity === true) {
             console.log('Tab Visible');
         }
-
+        
+        ANALYZIFY.viewEvent();
         ANALYZIFY.setCustomEntry('pageShow');
     };
 
