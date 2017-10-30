@@ -3,6 +3,8 @@
 if (typeof window.ANALYZIFY !== 'undefined') {
 
     ANALYZIFY.yt = ANALYZIFY.yt || {};
+    ANALYZIFY.yt.config = ANALYZIFY.yt.config || {};
+    ANALYZIFY.yt.config.currentTimerByCustomTimer = ANALYZIFY.yt.config.currentTimerByCustomTimer || false;
     ANALYZIFY.yt.videos = document.querySelectorAll('[data-ytId]');
     ANALYZIFY.customEntries.ytReady = ANALYZIFY.customEntries.ytReady || {};
 
@@ -176,7 +178,11 @@ if (typeof window.ANALYZIFY !== 'undefined') {
                         vidid = video_data.video_id;
 
                 // Set the played duration to every tenth because we'll need to also capture 90% played.
-                var currentTime = event["getCurrentTime"]() <= ANALYZIFY.customTimers[vidid]['activeTimer'] ? event["getCurrentTime"]() : ANALYZIFY.customTimers[vidid]['activeTimer'];
+                if (!ANALYZIFY.yt.config.currentTimerByCustomTimer) {
+                    var currentTime = event["getCurrentTime"]();
+                } else {
+                    var currentTime = event["getCurrentTime"]() <= ANALYZIFY.customTimers[vidid]['activeTimer'] ? event["getCurrentTime"]() : ANALYZIFY.customTimers[vidid]['activeTimer'];
+                }
                 var t = event["getDuration"]() - currentTime <= 1.5 ? 1 : (Math.floor(currentTime / event["getDuration"]() * 10) / 10).toFixed(2);
 
                 if (parseFloat(t) > 0.90) {
@@ -289,59 +295,75 @@ if (typeof window.ANALYZIFY !== 'undefined') {
             }
         };
 
-        ANALYZIFY.yt.load = function (id, autoplay, start, end, order) {
-            order = order || 0;
-            if (ANALYZIFY.yt.players.length) {
-                var load = (autoplay === true || autoplay === 'true' || autoplay === 1 ? 'loadVideoById' : 'cueVideoById');
-                if (typeof id !== "undefined") {
-                    if (ANALYZIFY.yt.players[order]["lastAction"] !== "ready") {
-                        //Get Video Data
-                        var video_data = ANALYZIFY.yt.players[order].getVideoData(),
-                                vidid = video_data.video_id;
-                        A.ytExit(order);
-                        //Finish Previous Video Metrics and Unset Previous Custom Timer
-                        ANALYZIFY.jqLink.func({
-                            'unsetCustomTimer': [vidid]
+        ANALYZIFY.yt.load = function (id, order, autoplay, start, end) {
+            if (typeof id !== "undefined" && id !== null) {
+                if (typeof id === "string" || typeof id === "object") {
+                    if (typeof id === "string") {
+                        order = order || 0;
+                        start = start ? parseInt(start) : undefined;
+                        end = end ? parseInt(end) : undefined;
+                    } else {
+                        order = id.order || 0;
+                        autoplay = id.autoplay;
+                        start = id.start ? parseInt(id.start) : undefined;
+                        end = id.end ? parseInt(id.end) : undefined;
+                    }
+                    if (ANALYZIFY.yt.players.length) {
+                        var load = (autoplay === true || autoplay === 'true' || autoplay === 1 ? 'loadVideoById' : 'cueVideoById');
+
+                        if (ANALYZIFY.yt.players[order]["lastAction"] !== "ready") {
+                            //Get Video Data
+                            var video_data = ANALYZIFY.yt.players[order].getVideoData(),
+                                    vidid = video_data.video_id;
+                            ANALYZIFY.yt.exit(order);
+                            //Finish Previous Video Metrics and Unset Previous Custom Timer
+                            ANALYZIFY.jqLink.func({
+                                'unsetCustomTimer': [vidid]
+                            });
+                        }
+                        if (autoplay === true || autoplay === 'true' || autoplay === 1) {
+                            ANALYZIFY.jqLink.func({
+                                'customTimer': [id],
+                                'customActiveMaster': [id, true]
+                            });
+                        }
+                        ANALYZIFY.yt.players[order][load]({
+                            videoId: id,
+                            startSeconds: parseInt(start),
+                            endSeconds: parseInt(end)
                         });
+                        if (!(autoplay === true || autoplay === 'true' || autoplay === 1)) {
+                            ANALYZIFY.yt.players[order]["lastAction"] = 'ready';
+                        }
+                    } else {
+                        ANALYZIFY.yt.videos[order].setAttribute("data-ytId", id);
                     }
-                    if (autoplay === true || autoplay === 'true' || autoplay === 1) {
-                        ANALYZIFY.jqLink.func({
-                            'customTimer': [id],
-                            'customActiveMaster': [id, true]
-                        });
-                    }
-                    ANALYZIFY.yt.players[order][load]({
-                        videoId: id,
-                        startSeconds: parseInt(start),
-                        endSeconds: parseInt(end)
-                    });
-                    if (!(autoplay === true || autoplay === 'true' || autoplay === 1)) {
-                        ANALYZIFY.yt.players[order]["lastAction"] = 'ready';
-                    }
+                } else {
+                    console.error('yt.load: id parameter must be a string or object');
                 }
             } else {
-                ANALYZIFY.yt.videos[order].setAttribute("data-ytId", id);
+                console.error('yt.load: id parameter must be defined');
             }
         };
 
         //CUSTOM ENTRIES
         Object.assign(ANALYZIFY.customEntries.beforeUnload, {
             'ytExit': {
-                action: function(){
+                action: function () {
                     ANALYZIFY.yt.exit();
                 }
             }
         });
         Object.assign(ANALYZIFY.customEntries.pageShow, {
             'ytPause': {
-                action: function(){
-                    ANALYZIFY.yt.viewEvent('youtube', true);
+                action: function () {
+                    ANALYZIFY.viewEvent('youtube', true);
                 }
             }
         });
         Object.assign(ANALYZIFY.customEntries.pageHidden, {
             'ytPause': {
-                action: function(){
+                action: function () {
                     ANALYZIFY.yt.pause();
                 }
             }

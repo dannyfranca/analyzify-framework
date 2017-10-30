@@ -15,10 +15,10 @@ window.dataLayer = window.dataLayer || [];
 /**
  * Função para pegar o path, inteiro ou uma parte, da URL.
  * 
- * @param {integer} n (Opcional) Ordem específica do URL Path.
+ * @param {integer} n (Opcional) Índice do URL Path.
  * @returns Retorna URL Path inteira ou fragmentada se n for definido.
  */
-ANALYZIFY.getUrlPath = function (n) {
+ANALYZIFY.urlPath = function (n) {
     var path = window.location.pathname.toLowerCase();
     if (n) {
         path = path.split("/")[n];
@@ -26,7 +26,7 @@ ANALYZIFY.getUrlPath = function (n) {
     return path;
 };
 
-ANALYZIFY.QueryStringToJSON = function () {
+ANALYZIFY.queryStringToJSON = function () {
     var pairs = location.search.slice(1).split('&');
 
     var result = {};
@@ -59,8 +59,17 @@ ANALYZIFY.urlParam = function (paramName) {
 };
 
 //---- PRESETS -----
+ANALYZIFY.config = ANALYZIFY.config || {};
+ANALYZIFY.config.backtop = ANALYZIFY.config.backtop || false;
+ANALYZIFY.config.backtopContent = ANALYZIFY.config.backtopContent || '<analyzify-backtop title="Voltar ao topo"></analyzify-backtop>';
+ANALYZIFY.config.redirectFade = ANALYZIFY.config.redirectFade || false;
+ANALYZIFY.config.redirectFadeBg = ANALYZIFY.config.redirectFadeBg || '#111';
+ANALYZIFY.config.redirectFadeContent = ANALYZIFY.config.redirectFadeContent || undefined;
+ANALYZIFY.config.redirectFadeTime = ANALYZIFY.config.redirectFadeTime || 200;
+ANALYZIFY.config.preloadTimer = ANALYZIFY.config.preloadTimer || undefined;
+ANALYZIFY.config.analyzifyDefaultEventname = ANALYZIFY.config.analyzifyDefaultEventname || 'analyzifyEvent';
+ANALYZIFY.config.dlPushExceptionDefault = ANALYZIFY.config.dlPushExceptionDefault || undefined;
 ANALYZIFY.BASE = document.location.hostname;
-ANALYZIFY.analyzifyEvent = ANALYZIFY.analyzifyEvent || 'analyzifyEvent';
 ANALYZIFY.page = document.location.protocol + '//' + document.location.hostname + document.location.pathname + document.location.search;
 ANALYZIFY.ajaxPage = ANALYZIFY.ajaxPage || false;
 ANALYZIFY.tabHidden = ANALYZIFY.tabHidden || false;
@@ -92,6 +101,18 @@ window.dataLayer.push(
             utmContent: ANALYZIFY.utmContent
         }
 );
+//CUSTOM ENTRIES FOR PLUGINS
+ANALYZIFY.customEntries = ANALYZIFY.customEntries || {};
+ANALYZIFY.customEntries.pageHidden = ANALYZIFY.customEntries.pageHidden || {};
+ANALYZIFY.customEntries.pageShow = ANALYZIFY.customEntries.pageShow || {};
+ANALYZIFY.customEntries.pageLoad = ANALYZIFY.customEntries.pageLoad || {};
+ANALYZIFY.customEntries.beforeUnload = ANALYZIFY.customEntries.beforeUnload || {};
+ANALYZIFY.customEntries.exitIntent = ANALYZIFY.customEntries.exitIntent || {};
+ANALYZIFY.customEntries.scroll = ANALYZIFY.customEntries.scroll || {};
+ANALYZIFY.customEntries.resize = ANALYZIFY.customEntries.resize || {};
+ANALYZIFY.customEntries.normalize = ANALYZIFY.customEntries.normalize || {};
+ANALYZIFY.customEntries.navigate = ANALYZIFY.customEntries.navigate || {};
+
 
 /**
  * GLOBAL TO JQUERY LINK
@@ -132,58 +153,99 @@ ANALYZIFY.echos = function (x, y, alert) {
     alert !== true ? console.log(echo) : alert(echo);
 };
 
-//CUSTOM ENTRIES FOR PLUGINS
-ANALYZIFY.customEntries = ANALYZIFY.customEntries || {};
-ANALYZIFY.customEntries.pageHidden = ANALYZIFY.customEntries.pageHidden || {};
-ANALYZIFY.customEntries.pageShow = ANALYZIFY.customEntries.pageShow || {};
-ANALYZIFY.customEntries.pageLoad = ANALYZIFY.customEntries.pageLoad || {};
-ANALYZIFY.customEntries.beforeUnload = ANALYZIFY.customEntries.beforeUnload || {};
-ANALYZIFY.customEntries.exitIntent = ANALYZIFY.customEntries.exitIntent || {};
-ANALYZIFY.customEntries.scroll = ANALYZIFY.customEntries.scroll || {};
-ANALYZIFY.customEntries.resize = ANALYZIFY.customEntries.resize || {};
-ANALYZIFY.customEntries.normalize = ANALYZIFY.customEntries.normalize || {};
-ANALYZIFY.customEntries.navigate = ANALYZIFY.customEntries.navigate || {};
-
 /**
- * Muda o valor de uma variável global. Útil para atribuir um valor diante um evento, como por exemplo atribuir dinamicamente a window.exitIntent uma função para abrir uma modal específica relevante quando o usuário tentar sair da página.
+ * Muda o valor dentro de um objeto definido. Útil para atribuir um valor diante um evento, como por exemplo atribuir dinamicamente a ANALYZIFY.customEntries.exitIntent uma função para abrir uma modal específica relevante quando o usuário tentar sair da página.
  * 
- * @param {string} variable - Nome de uma varipavel Global
+ * @param {object} object - Objeto cujo valor será alterado internamente
+ * @param {string} key - Nome de uma chave dentro do objeto object
  * @param {any} value - Novo valor atribuído a variável global
  */
-ANALYZIFY.changeVar = function (variable, value) {
-    if (typeof variable !== "undefined" && typeof value !== "undefined") {
-        window[variable] = value;
-    } else if (typeof variable === "undefined") {
-        console.error('changeVar: "variable" parameter must be defined');
-    } else if (typeof value === "undefined") {
-        console.error('changeVar: "value" parameter must be defined');
+ANALYZIFY.objChangeKeyVal = function (object, key, value) {
+    if (typeof object === 'object' && object !== null) {
+        if (typeof key === "string") {
+            if (typeof value !== 'undefined') {
+                object[key] = value;
+            } else {
+                console.error('changeObjVal: "value" parameter must be defined');
+            }
+        } else if (typeof key !== 'undefined') {
+            console.error('changeObjVal: "variable" parameter must be a string');
+        } else {
+            console.error('changeObjVal: "variable" parameter must be defined');
+        }
+    } else if (object || object === false) {
+        console.error('changeObjVal: "object" parameter must be an object');
     } else {
-        console.error('changeVar: Error not identified. If you are seeing this in your console, please, report in the repository issues tab: https://github.com/dannyfranca/analyzify-framework/issues.what changes you made');
+        console.error('changeObjVal: "object" parameter must be defined');
     }
 };
 
 /**
  * Insere o valor de um objeto dentro dele mesmo na chave pushObject.
  * 
- * @param {object} obj - JSON a ser autoinserido.
+ * @param {object} object - JSON a ser autoinserido.
  * @returns {object}
  */
-ANALYZIFY.objSelfPush = function (obj) {
+ANALYZIFY.objSelfPush = function (object) {
     function Clone(x) {
         for (p in x) {
             this[p] = (typeof (x[p]) === 'object') ? new Clone(x[p]) : x[p];
         }
     }
-    if (typeof obj === 'object' && obj !== null) {
+    if (typeof object === 'object' && object !== null) {
         return (function (x) {
             var o = new Clone(x);
-            o.pushObject = obj;
+            o.pushObject = object;
             return o;
-        })(obj);
-    } else if (typeof obj !== 'object') {
-        console.error('objSelfPush: "obj" parameter must be an object');
+        })(object);
+    } else if (object || object === false) {
+        console.error('objSelfPush: "object" parameter must be an object');
     } else {
-        console.error('objSelfPush: "obj" parameter must be defined');
+        console.error('objSelfPush: "object" parameter must be defined');
+    }
+};
+
+ANALYZIFY.entryAssign = function (name, entryName, object) {
+    if (typeof name === 'string') {
+        if (typeof ANALYZIFY.customEntries[name] === 'object' && ANALYZIFY.customEntries[name] !== null) {
+            if (typeof entryName === 'string') {
+                if (!ANALYZIFY.customEntries[name][entryName]) {
+                    if (typeof object === 'object' && object !== null) {
+                        ANALYZIFY.customEntries[name][entryName] = {};
+                        Object.assign(ANALYZIFY.customEntries[name][entryName], object);
+                    } else if (object || object === false) {
+                        console.error('entryAssign: "object" parameter must be an object');
+                    } else {
+                        console.error('entryAssign: "object" parameter must be defined');
+                    }
+                } else {
+                    console.error('entryAssign: ANALYZIFY.customEntries.' + name + '.' + entryName + ' is already defined');
+                }
+            } else if (typeof entryName !== 'undefined') {
+                console.error('entryAssign: "entryName" parameter must be a string');
+            } else {
+                console.error('entryAssign: "entryName" parameter must be defined');
+            }
+        } else {
+            var errorName = ANALYZIFY.customEntries[name] === null ? ' value is null' : ' type is ' + typeof ANALYZIFY.customEntries[name];
+            console.error('entryAssign: ANALYZIFY.customEntries.' + name + errorName);
+        }
+    } else if (typeof name !== 'undefined') {
+        console.error('entryAssign: "name" parameter must be a string');
+    } else {
+        console.error('entryAssign: "name" parameter must be defined');
+    }
+};
+
+ANALYZIFY.entryRemove = function (name, entryNames) {
+    if (Array.isArray(entryNames)) {
+        for (i = 0; i < entryNames.length; i++) {
+            delete ANALYZIFY.customEntries[name][entryNames[i]];
+        }
+    } else if (typeof entryNames === 'string') {
+        delete ANALYZIFY.customEntries[name][entryNames];
+    } else {
+        console.error('entryRemove: entryNames must be array or string');
     }
 };
 
@@ -224,7 +286,7 @@ ANALYZIFY.dlp = ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc
             referrer: document.referrer,
             userAgent: navigator.userAgent,
             language: navigator.language,
-            analyzifyEvent: ANALYZIFY.analyzifyEvent,
+            analyzifyEvent: ANALYZIFY.config.analyzifyDefaultEventname,
             event: 'analyzifyEvent'
         };
 
@@ -239,7 +301,7 @@ ANALYZIFY.dlp = ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc
             referrer: document.referrer,
             userAgent: navigator.userAgent,
             language: navigator.language,
-            analyzifyEvent: ANALYZIFY.analyzifyEvent,
+            analyzifyEvent: ANALYZIFY.config.analyzifyDefaultEventname,
             event: 'analyzifyEvent'
         };
 
@@ -283,7 +345,7 @@ ANALYZIFY.dlp = ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc
             cat.transport === 'beacon' ? '' : cat.transport = undefined;
         }
         cat.event = cat.event || 'analyzifyEvent';
-        cat.analyzifyEvent = cat.analyzifyEvent || ANALYZIFY.analyzifyEvent;
+        cat.analyzifyEvent = cat.analyzifyEvent || ANALYZIFY.config.analyzifyDefaultEventname;
         cat.referrer = cat.referrer || document.referrer;
         cat.userAgent = cat.userAgent || navigator.userAgent;
         cat.language = cat.language || navigator.language;
@@ -298,7 +360,6 @@ ANALYZIFY.dlp = ANALYZIFY.dlPush = function (cat, act, lab, val, nInt, tran, exc
         console.error('dlPush: first param must be defined as a string or object');
     }
 };
-
 //INÍCIO FUNÇÕES JQUERY
 jQuery(function () {
 
@@ -443,7 +504,7 @@ jQuery(function () {
      * 
      * @param {string} name - Nome do objeto filho de ANALYZIFY.customEntries
      */
-    ANALYZIFY.setCustomEntry = function (name) {
+    ANALYZIFY.setCustomEntry = function (name, data) {
         if (typeof name === 'string') {
             if (typeof ANALYZIFY.customEntries[name] === 'object' && ANALYZIFY.customEntries[name] !== null) {
                 for (property in ANALYZIFY.customEntries[name]) {
@@ -451,7 +512,7 @@ jQuery(function () {
                     if (!ANALYZIFY.customEntries[name][property]['limit'] || ANALYZIFY.customEntries[name][property]['count'] < ANALYZIFY.customEntries[name][property]['limit']) {
                         if (ANALYZIFY.customEntries[name][property]['action']) {
                             if (typeof ANALYZIFY.customEntries[name][property]['action'] === 'function') {
-                                ANALYZIFY.customEntries[name][property]['action']();
+                                ANALYZIFY.customEntries[name][property]['action'](data);
                             } else {
                                 console.error('setCustomEntry: ANALYZIFY.customEntries.' + name + '.' + property + '.action parameter must be a function');
                             }
@@ -463,19 +524,21 @@ jQuery(function () {
                         ANALYZIFY.customEntries[name][property]['count']++;
                     }
                 }
+            } else if (ANALYZIFY.customEntries[name] || ANALYZIFY.customEntries[name] === false) {
+                console.error('setCustomEntry: ANALYZIFY.customEntries.' + name + ' parameter must be an object');
             } else {
-                console.error('setCustomEntry: ANALYZIFY.customEntries["' + name + '"] parameter must be an object');
+                console.error('setCustomEntry: ANALYZIFY.customEntries.' + name + ' parameter must be defined');
             }
 
         } else {
-            console.error('setCustomEntry: "name" parameter must be seted and a string');
+            console.error('setCustomEntry: "name" parameter must be defined as a string');
         }
     };
 
     /**
      * (NÃO USE) Função em desenvolvimento para substituir eval(), não está pronta ainda.
      * 
-     * @param {type} func
+     * @param {action} func
      */
     ANALYZIFY.functionify = function (func) {
         if (typeof name === 'string') {
@@ -558,23 +621,29 @@ jQuery(function () {
 
     ANALYZIFY.lastScrollTop = jQuery(window).scrollTop();
     ANALYZIFY.scrollTop = jQuery(window).scrollTop();
-    jQuery(window).scroll(function () {
+    jQuery(window).on('scroll', function () {
         ANALYZIFY.scrollTop = jQuery(this).scrollTop(); //DISTANCIA DO TOPO
         ANALYZIFY.scrollDirection(); //DIRECAO DA ROLAGEM
         ANALYZIFY.userNonIdle();
 
-        if (ANALYZIFY.menuFixedTopExist === true) { //REDUZ MENU
-            ANALYZIFY.reduzMenu();
+        if (ANALYZIFY.menuFixedTopExist)
+            ANALYZIFY.reduzMenu(); //REDUZ MENU
+
+        if (ANALYZIFY.scrollTop > 0) {
+            $(A).trigger('scroll:top', [ANALYZIFY.scrollTop]);
+        } else {
+            $(A).trigger('scroll:zero');
         }
-        if (ANALYZIFY.botaoTopoExist === true) { //BOTAO TOPO
-            ANALYZIFY.exibeBotaoTopo();
-        }
-        if (ANALYZIFY.scrollSpyExist === true && ANALYZIFY.load === true) { //SCROLLSPY
-            ANALYZIFY.scrollSpy();
-        }
-        if (ANALYZIFY.viewEventExist === true && ANALYZIFY.load === true) { //VIEWEVENT
-            ANALYZIFY.viewEvent();
-        }
+
+        if (ANALYZIFY.scrollSpyExist && ANALYZIFY.load)
+            ANALYZIFY.scrollSpy(); //SCROLLSPY
+
+        if (ANALYZIFY.lazyLoadExist && ANALYZIFY.load)
+            ANALYZIFY.lazyLoad(); //LAZY LOAD
+
+        if (ANALYZIFY.viewEventExist && ANALYZIFY.load)
+            ANALYZIFY.viewEvent(); //VIEWEVENT
+
 //        if (affixExist === true) { //AFFIX
 //            affixScroll();
 //            if (affixTopExist === true) {
@@ -588,6 +657,7 @@ jQuery(function () {
 //            }
 //        }
         ANALYZIFY.setCustomEntry('scroll');
+        ANALYZIFY.firstActive();
 
         ANALYZIFY.lastScrollTop = ANALYZIFY.scrollTop; //ULTIMA DISTANCIA DO TOPO
     });
@@ -611,28 +681,28 @@ jQuery(function () {
      * 
      * Responde ao redimensionamento do navegador e executa funções do framework após verificar se estão disponíveis.
      */
-    jQuery(window).resize(function () {
+    jQuery(window).on('resize', function () {
         ANALYZIFY.height = jQuery(window).outerHeight();
         ANALYZIFY.width = jQuery(window).outerWidth();
-//        if (affixExist === true) { //AFFIX
-//            ANALYZIFY.affixCalc();
-//            ANALYZIFY.affixResize();
-//        }
+
         ANALYZIFY.setCustomEntry('resize');
         ANALYZIFY.normalize();
     });
 
     ANALYZIFY.normalize = function () {
         if (ANALYZIFY.load === true) {
-            if (ANALYZIFY.scrollSpyExist === true) { //SCROLLSPY
-                ANALYZIFY.scrollSpyCalc();
-            }
-            if (ANALYZIFY.viewEventExist === true) { //VIEWEVENT
-                ANALYZIFY.viewEventCalc();
-            }
-            if (ANALYZIFY.jSameHeightExist === true) { //IGUALA ALTURA DE BOX MENORES
-                ANALYZIFY.sameHeight();
-            }
+            if (ANALYZIFY.scrollSpyExist)
+                ANALYZIFY.scrollSpyCalc(); //SCROLLSPY
+
+            if (ANALYZIFY.lazyLoadExist)
+                ANALYZIFY.lazyLoadCalc(); //LAZY LOAD
+
+            if (ANALYZIFY.viewEventExist)
+                ANALYZIFY.viewEventCalc(); //VIEWEVENT
+
+            if (ANALYZIFY.jSameHeightExist)
+                ANALYZIFY.sameHeight(); //IGUALA ALTURA DE BOX MENORES
+
             ANALYZIFY.setCustomEntry('normalize');
         }
     };
@@ -662,8 +732,8 @@ jQuery(function () {
             }
         }
     }, 1000);
-    ANALYZIFY.activeTimer.path = ANALYZIFY.getUrlPath();
-    ANALYZIFY.activeTimer.firstPath = ANALYZIFY.getUrlPath(1);
+    ANALYZIFY.activeTimer.path = ANALYZIFY.urlPath();
+    ANALYZIFY.activeTimer.firstPath = ANALYZIFY.urlPath(1);
 
     /**
      * Responde ao foco na página mediante clique.
@@ -789,7 +859,7 @@ jQuery(function () {
     });
 
     if (ANALYZIFY.jqMobile.present) {
-        $(window).on("navigate", function (data, state) {
+        $(window).on("navigate", function (event, data) {
             var modalParam = ANALYZIFY.urlParam('modal');
             if ((modalParam) && (modalParam !== true)) {
                 ANALYZIFY.openModal(modalParam);
@@ -798,7 +868,7 @@ jQuery(function () {
                 ANALYZIFY.closeModal(ANALYZIFY.jqMobile.lastModal, false);
                 delete ANALYZIFY.jqMobile.lastModal;
             }
-//                ANALYZIFY.setCustomEntry('navigate');
+            ANALYZIFY.setCustomEntry('navigate', {event: event, data: data});
         });
     }
 
@@ -809,7 +879,7 @@ jQuery(function () {
         if (ANALYZIFY.activeTimer.firstActive === false) {
             window.dataLayer.push({event: 'firstActive'});
             ANALYZIFY.activeTimer.firstActive = true;
-            if (ANALYZIFY.viewEventExist === true && ANALYZIFY.load === true) {
+            if (ANALYZIFY.viewEventExist && ANALYZIFY.load) {
                 ANALYZIFY.viewEvent();
             }
             if (ANALYZIFY.debug === true || ANALYZIFY.debug.activity === true) {
@@ -879,8 +949,8 @@ jQuery(function () {
         //check if timer is not already initiated
         if (typeof name !== "undefined" && typeof ANALYZIFY.customTimers[name]['timerInit'] === "undefined") {
             ANALYZIFY.customTimers[name]['name'] = name;
-            ANALYZIFY.customTimers[name]['path'] = ANALYZIFY.getUrlPath();
-            ANALYZIFY.customTimers[name]['firstPath'] = ANALYZIFY.getUrlPath(1);
+            ANALYZIFY.customTimers[name]['path'] = ANALYZIFY.urlPath();
+            ANALYZIFY.customTimers[name]['firstPath'] = ANALYZIFY.urlPath(1);
             //setup
             ANALYZIFY.customTimers[name]['timerInit'] = true;
             ANALYZIFY.customTimers[name]['idle'] = false;
@@ -1085,8 +1155,8 @@ jQuery(function () {
     /**
      * Ativa ou desativa customTimer permanentemente, ignorando estado ocioso o tempo ocioso definido por <b>customUserNonIdle</b>. Útil para ativar se o usuário estiver vendo um vídeo, por exemplo. Semelhante a <b>activeMaster</b>.
      * 
-     * @param {type} name - Deve ser o mesmo usado para iniciar o contador na função <b>customTimer</b>.
-     * @param {type} state - Se setado como true, <b>customTimer</b> fica ativo definitivamente. Se setado como false, <b>customTimer</b> volta a lervar <b>customUserNonIdle</b> em consideração.
+     * @param {action} name - Deve ser o mesmo usado para iniciar o contador na função <b>customTimer</b>.
+     * @param {action} state - Se setado como true, <b>customTimer</b> fica ativo definitivamente. Se setado como false, <b>customTimer</b> volta a lervar <b>customUserNonIdle</b> em consideração.
      */
     ANALYZIFY.customActiveMaster = function (name, state) {
         if (typeof name !== "undefined" && typeof ANALYZIFY.customTimers !== "undefined" && typeof ANALYZIFY.customTimers[name] !== "undefined" && typeof ANALYZIFY.customTimers[name]['timerInit'] !== "undefined") {
@@ -1181,7 +1251,7 @@ jQuery(function () {
          * @param {boolean} ignorealt - (Opcional) Por padrão, as funções são executadas uma vez e só serão executadas novamente caso o elemento marcado não fique visível e venha ma ficar visível novamente. Com o ignorealt setado como true, a função é executada continuamente toda vez que a função <b>viewEvent</b> for invocada. Ex: É utilizado para dar play e pausar vídeo do YouTube quando a janela está ou não ativa, isso evita bugs e reações inesperadas. Não é usado true como padrão pois as funções seriam executadas diversas vezes enquanto o usuário rola pelo elemento visível.
          */
         ANALYZIFY.viewEvent = function (view, ignorealt) {
-            if (ANALYZIFY.load === true && ANALYZIFY.activeTimer.firstActive === true) {
+            if (ANALYZIFY.load && ANALYZIFY.activeTimer.firstActive) {
                 var selector = view ? '[data-view="' + view + '"]' : '[data-view]';
 
                 jQuery(selector).each(function () {
@@ -1293,8 +1363,9 @@ jQuery(function () {
         if (ANALYZIFY.debug === true || ANALYZIFY.debug.activity === true) {
             console.log('Tab Visible');
         }
-        
-        ANALYZIFY.viewEvent();
+
+        if (ANALYZIFY.viewEventExist && ANALYZIFY.load)
+            ANALYZIFY.viewEvent(); //VIEWEVENT
         ANALYZIFY.setCustomEntry('pageShow');
     };
 
@@ -1383,15 +1454,6 @@ jQuery(function () {
     });
 
     /**
-     * <b>BACK TOPO</b>
-     * 
-     * Volta ao topo ao clicar no botão .j_back
-     */
-    jQuery('.j_back').click(function () {
-        jQuery('html, body').animate({scrollTop: 0}, 1000);
-    });
-
-    /**
      * <b>REDUZ MENU</b>
      * 
      * Reduz altura do menu fixo suavemente, desde qeu devidamente marcado com data-menu e valor iniciado com "fixed-"
@@ -1452,11 +1514,11 @@ jQuery(function () {
      * Em telas menores, abre menu lateral
      */
     ANALYZIFY.mobileMenuToggle = function () {
-        if (!jQuery('.mobile_action').hasClass('active')) {
-            jQuery('.mobile_action').addClass('active');
+        if (!jQuery('.mobile_action').data('active')) {
+            jQuery('.mobile_action').data('active', true);
             jQuery('.main_header_nav').animate({'left': '0px'}, 100);
         } else {
-            jQuery('.mobile_action').removeClass('active');
+            jQuery('.mobile_action').data('active', false);
             jQuery('.main_header_nav').animate({'left': '-100%'}, 100);
         }
     };
@@ -1470,15 +1532,20 @@ jQuery(function () {
      * 
      * Exibe botão para voltar ao topo
      */
-    if (jQuery('.j_back').length) {
+    if (ANALYZIFY.config.backtop) {
         ANALYZIFY.botaoTopoExist = true;
-        ANALYZIFY.exibeBotaoTopo = function () {
-            if (ANALYZIFY.scrollTop > 0) {
-                jQuery('body').append('<div class="j_back backtop round" title="Voltar ao topo"></div>');
-            } else {
-                jQuery('.j_back').remove();
-            }
-        };
+
+        jQuery(ANALYZIFY.config.backtopContent).appendTo('body').on('click', function () {
+            jQuery('html, body').animate({scrollTop: 0}, 1000);
+        });
+        
+        jQuery(ANALYZIFY).on('scroll:zero', function(){
+            jQuery('analyzify-backtop').fadeOut();
+        });
+        
+        jQuery(ANALYZIFY).on('scroll:top', function(){
+            jQuery('analyzify-backtop').fadeIn();
+        });
     }
 
     //SCROLLSPY
@@ -1487,23 +1554,6 @@ jQuery(function () {
         var arraySpy = {};
         var processingSpy = false;
         var processingSpyCalc = false;
-
-        /**
-         * Calcula as posição de cada elemento com data-spy.
-         */
-        ANALYZIFY.scrollSpyCalc = function () {
-            if (processingSpyCalc === false) {
-                processingSpyCalc = true;
-                jQuery('[data-spy]').each(function (i) {
-                    var id = jQuery(this).attr('id');
-                    if (typeof id !== 'undefined') {
-                        arraySpy[i] = {dataspy: id.replace("_go", ""), position: jQuery(this).offset().top - ANALYZIFY.menuInitialHeight, height: jQuery(this).outerHeight()};
-                    }
-                });
-                ANALYZIFY.scrollSpy();
-                processingSpyCalc = false;
-            }
-        };
 
         /**
          * <b>SCROLLSPY</b>
@@ -1518,15 +1568,124 @@ jQuery(function () {
                 jQuery('[data-spy]').each(function (i) {
                     if (typeof arraySpy[i] !== 'undefined') {
                         if (ANALYZIFY.scrollTop >= arraySpy[i].position - 5 && ANALYZIFY.scrollTop < arraySpy[i].position + arraySpy[i].height - 5) {
-                            jQuery('[scrollspy] [href="#' + arraySpy[i].dataspy + '"]').addClass('active');
+                            jQuery('[data-scrollspy] [href="#' + arraySpy[i].dataspy + '"]').addClass('active');
                         } else {
-                            jQuery('[scrollspy] [href="#' + arraySpy[i].dataspy + '"]').removeClass('active');
+                            jQuery('[data-scrollspy] [href="#' + arraySpy[i].dataspy + '"]').removeClass('active');
                         }
                     }
                 });
                 processingSpy = false;
             }
         };
+
+        /**
+         * Calcula as posição de cada elemento com data-spy.
+         */
+        ANALYZIFY.scrollSpyCalc = function () {
+            if (processingSpyCalc === false) {
+                processingSpyCalc = true;
+                jQuery('[data-spy]').each(function (i) {
+                    var id = jQuery(this).attr('id');
+                    if (typeof id !== 'undefined') {
+                        arraySpy[i] = {dataspy: id, position: jQuery(this).offset().top - ANALYZIFY.menuInitialHeight, height: jQuery(this).outerHeight()};
+                    }
+                });
+                ANALYZIFY.scrollSpy();
+                processingSpyCalc = false;
+            }
+        };
+    }
+
+    //LAZY LOAD
+    if (jQuery('[data-src]').length) {
+        ANALYZIFY.lazyLoadExist = true;
+        var arraySrc = {};
+        var processingLazyLoad = false;
+        var processingLazyLoadCalc = false;
+
+        /**
+         * <b>LAZY LOAD</b>
+         * 
+         * Carrega imagens dinamicamente quando imagem está prestes a ficar visível.
+         * 
+         * Na presença do atributo <b>data-src</b> a função busca no mesmo elemento o valor do mesmo e muda o valor do atributo <b>src</b>, fazendo a imagem ser carregada dinamicamente.
+         */
+        ANALYZIFY.lazyLoad = function () {
+            if (processingLazyLoad === false) {
+                processingLazyLoad = true;
+                jQuery('[data-src]').each(function (i) {
+                    if (typeof arraySrc[i] !== 'undefined') {
+                        if (ANALYZIFY.scrollTop >= arraySrc[i].position - ANALYZIFY.height && ANALYZIFY.scrollTop < arraySrc[i].position + arraySrc[i].height && !arraySrc[i].load) {
+                            var element = jQuery(this);
+                            if (!element.is('[data-src-bg]')) {
+                                element.attr('src', arraySrc[i].source).load(function () {
+                                    element.removeAttr('style').unwrap('[data-src-wrap]');
+                                    if (element.is('[data-normalize]'))
+                                        A.normalize();
+                                });
+                            } else {
+                                element.css('background-image', 'url(' + arraySrc[i].source) + ')';
+                            }
+                            arraySrc[i].load = true;
+                            if (ANALYZIFY.debug.lazyLoad === true)
+                                console.log(element.attr('data-src'));
+                        }
+                    }
+                });
+                processingLazyLoad = false;
+            }
+        };
+
+        /**
+         * Calcula as posição de cada elemento com data-src.
+         */
+        ANALYZIFY.lazyLoadCalc = function () {
+            if (processingLazyLoadCalc === false) {
+                processingLazyLoadCalc = true;
+                jQuery('[data-src]').each(function (i) {
+                    var src = jQuery(this).attr('data-src');
+                    if (typeof src !== 'undefined') {
+                        arraySrc[i] = arraySrc[i] || {};
+                        arraySrc[i].source = src;
+                        arraySrc[i].position = jQuery(this).offset().top;
+                        arraySrc[i].height = jQuery(this).outerHeight();
+                        arraySrc[i].load = arraySrc[i].load || false;
+                    }
+                });
+                ANALYZIFY.lazyLoad();
+                processingLazyLoadCalc = false;
+            }
+        };
+    }
+
+    //FADE REDIRECTION
+    if (ANALYZIFY.config.redirectFade) {
+        $('a[href]:not([data-default]):not([rel]):not([target])').on('click', function (event) {
+            if (this.pathname === window.location.pathname &&
+                    this.protocol === window.location.protocol &&
+                    this.host === window.location.host) {
+            } else {
+                event.preventDefault();
+                var href = $(this).attr('href');
+                var content = '<div class="center_fixed ds_none" style="background: ' + ANALYZIFY.config.redirectFadeBg + ' !important"></div>';
+                jQuery(content).appendTo('body').append(ANALYZIFY.config.redirectFadeContent).fadeIn(ANALYZIFY.config.redirectFadeTime, function () {
+                    window.location = href;
+                });
+            }
+        });
+    }
+
+    //PRELOAD HANDLE
+    $('[data-preload]:not([data-load])').fadeOut();
+    $(window).on('load', function () {
+        $('[data-preload][data-load]').fadeOut();
+    });
+    if (ANALYZIFY.config.preloadTimer) {
+        setTimeout(function () {
+            var preload = $('[data-preload]');
+            if (preload.is(':visible'))
+                preload.fadeOut();
+        }, ANALYZIFY.config.preloadTimer);
     }
 
 //    //AFFIX
@@ -1613,6 +1772,69 @@ jQuery(function () {
 //        }
 //    }
 
+    ANALYZIFY.navigate = function (obj, data) {
+        var def = {
+            params: undefined,
+            removeParams: undefined,
+            overwriteParams: false,
+            path: undefined,
+            hash: undefined
+        };
+
+        Object.assign(def, obj);
+
+        if (typeof def.params === 'object' && def.params !== null && !jQuery.isEmptyObject(def.params)) {
+
+            //parameters
+            if (!def.overwriteParams) {
+                Object.assign(def.params, ANALYZIFY.queryStringToJSON());
+            } else {
+                def.params = ANALYZIFY.queryStringToJSON();
+            }
+
+            //remove parameters
+            if (typeof def.removeParams === 'object' && def.removeParams !== null) {
+                for (param in def.removeParams) {
+                    delete def.params[param];
+                }
+            }
+
+            //serialize JSON into query string
+            var params = jQuery.param(def.params);
+        } else {
+            var params = '';
+        }
+
+        //hash
+        if (def.hash) {
+            if (def.hash.indexOf('#') !== -1) {
+                var hash = def.hash;
+            } else {
+                var hash = '#' + def.hash;
+            }
+        } else if (def.hash === false) {
+            var hash = '';
+        } else {
+            var hash = window.location.hash;
+        }
+
+        //pathname
+        if (def.path) {
+            var path = def.path;
+        } else if (def.path === false) {
+            var path = '';
+        } else {
+            var path = window.location.pathname;
+        }
+
+        //if jQuery Mobile is present, use it!
+        if (ANALYZIFY.jqMobile.present) {
+            jQuery.mobile.navigate(path + params + hash, data);
+        } else {
+            window.location = path + params + hash;
+        }
+    };
+
     //MODAL
     if (jQuery('[data-modal]').length) {
         var dataModal;
@@ -1652,12 +1874,13 @@ jQuery(function () {
                 }).css("display", "flex");
 
                 //jQuery Mobile - Modal to History
-                if (ANALYZIFY.jqMobile.present && historyChange !== false) {
+                if (historyChange !== false) {
                     if (ANALYZIFY.jqMobile.modalParamLoad !== true) {
                         var modalParam = ANALYZIFY.urlParam('modal');
                         if (!((modalParam) && (modalParam !== true))) {
-                            jQuery.mobile.navigate(window.location.pathname + (window.location.search === '' ? '?' : window.location.search + '&') + 'modal=' + setDataModal + window.location.hash, {
-                                info: "Modal opened"
+                            ANALYZIFY.navigate({
+                                params: {modal: setDataModal},
+                                info: 'Modal opened'
                             });
                         }
                     }
@@ -1682,8 +1905,9 @@ jQuery(function () {
                 if (ANALYZIFY.jqMobile.present && historyBack !== false) {
                     var modalParam = ANALYZIFY.urlParam('modal');
                     if ((modalParam) && (modalParam !== true)) {
-                        jQuery.mobile.navigate(window.location.pathname + window.location.hash, {
-                            info: "Modal closed"
+                        ANALYZIFY.navigate({
+                            removeParams: {modal: setDataModal},
+                            info: 'Modal closed'
                         });
                     }
                 }
@@ -1754,10 +1978,10 @@ jQuery(function () {
     //-----WIDGETS-----
 
     //SHARE BOX
-    if (jQuery('.sharebox').length) {
+    if (jQuery('[data-sharebox]').length) {
 
         //SHARE :: FACEBOOK
-        jQuery('.facebook a').click(function () {
+        jQuery('[data-sharebox-facebook] a').click(function () {
             var share = 'https://www.facebook.com/sharer/sharer.php?u=';
             var urlOpen = jQuery(this).attr('href');
             window.open(share + urlOpen, "_blank", "toolbar=yes, scrollbars=yes, resizable=yes, width=660, height=400");
@@ -1765,7 +1989,7 @@ jQuery(function () {
         });
 
         //SHARE :: GOOGLE PLUS
-        jQuery('.google a').click(function () {
+        jQuery('[data-sharebox-google] a').click(function () {
             var share = 'https://plus.google.com/share?url=';
             var urlOpen = jQuery(this).attr('href');
             window.open(share + urlOpen, "_blank", "toolbar=yes, scrollbars=yes, resizable=yes, width=516, height=400");
@@ -1773,7 +1997,7 @@ jQuery(function () {
         });
 
         //SHARE :: TWITTER
-        jQuery('.twitter a').click(function () {
+        jQuery('[data-sharebox-twitter] a').click(function () {
             var share = 'https://twitter.com/share?url=';
             var urlOpen = jQuery(this).attr('href');
             var complement = jQuery(this).attr('rel');
@@ -1802,92 +2026,102 @@ jQuery(function () {
 
     //SLIDER
     if (jQuery('[data-slide]').length) {
-        var trackSlideClick;
-        var trackSlideIndicator;
-        var slideOrder;
+        var slideContentFirst;
+        var slideContent;
+        var slideIndicatorActive;
+        var slideIndicator;
         var slideId;
+        var slideDiv;
         jQuery('[data-slide-go]').click(function () {
-            slideId = jQuery(this).attr('data-slide-go');
-            trackSlideClick = '[data-slide="' + slideId + '"]';
-            trackSlideIndicator = '[data-slide-ind="' + slideId + '"]';
-            ANALYZIFY.slideGo();
+            ANALYZIFY.slider(jQuery(this), 'go');
+            return false;
         });
 
         jQuery('[data-slide-back]').click(function () {
-            slideId = jQuery(this).attr('data-slide-back');
-            trackSlideClick = '[data-slide="' + slideId + '"]';
-            trackSlideIndicator = '[data-slide-ind="' + slideId + '"]';
-            ANALYZIFY.slideBack();
+            ANALYZIFY.slider(jQuery(this), 'back');
+            return false;
         });
 
-        jQuery('[data-slide-ind]').click(function () {
-            slideId = jQuery(this).attr('data-slide-ind');
-            trackSlideClick = '[data-slide="' + slideId + '"]';
-            trackSlideIndicator = '[data-slide-ind="' + slideId + '"]';
-            slideOrder = jQuery(this).attr('data-order');
-            ANALYZIFY.slideIndicators();
+        jQuery('[data-slide-indicator] li').click(function () {
+            var slideIndex = jQuery(this).index();
+            ANALYZIFY.slider(jQuery(this), 'to', slideIndex);
+            return false;
         });
 
-        /**
-         * Avança para o próximo item do slider
+        /*
+         * 
+         * @param {element} element - Objeto jQuery do Slider
+         * @param {string} type - Método de execução do Slider, pode ser 'go', 'back', ou 'to'.
+         * @param {integer} index - Índice do data-slide-content, caso do primeiro argumento ser 'to'
+         * @returns {Boolean}
          */
-        ANALYZIFY.slideGo = function () {
-            if (jQuery(trackSlideClick + '.first').next().length) {
-                jQuery(trackSlideClick + '.first').fadeOut(200, function () {
-                    jQuery(trackSlideClick + '.first').removeClass('first').next().fadeIn().addClass('first');
-                    jQuery(trackSlideIndicator + '.active').removeClass('active').next().fadeIn().addClass('active');
-                });
-            } else {
-                jQuery(trackSlideClick + '.first').fadeOut(200, function () {
-                    jQuery(trackSlideClick + '.first').removeClass('first');
-                    jQuery(trackSlideClick).eq(0).fadeIn().addClass('first');
-                    jQuery(trackSlideIndicator + '.active').removeClass('active');
-                    jQuery(trackSlideIndicator).eq(0).fadeIn().addClass('active');
-                });
-            }
-            return false;
-        };
+        ANALYZIFY.slider = function (element, action, options) {
+            slideDiv = element.closest('[data-slide]');
+            slideId = slideDiv.attr('data-slide');
+            slideContentFirst = slideDiv.find('[data-slide-content] > *.first');
+            slideContent = slideDiv.find('[data-slide-content] > *');
+            slideIndicatorActive = slideDiv.find('[data-slide-indicator] li.active');
+            slideIndicator = slideDiv.find('[data-slide-indicator] li');
 
-        /**
-         * Volta para o item anterior do slider
-         */
-        ANALYZIFY.slideBack = function () {
-            if (jQuery(trackSlideClick + '.first').index() > 1) {
-                jQuery(trackSlideClick + '.first').fadeOut(200, function () {
-                    jQuery(trackSlideClick + '.first').removeClass('first').prev().fadeIn().addClass('first');
-                    jQuery(trackSlideIndicator + '.active').removeClass('active').prev().fadeIn().addClass('active');
-                });
+            if (typeof options === 'object' && options !== null) {
+                var index = options.index;
             } else {
-                jQuery(trackSlideClick + '.first').fadeOut(200, function () {
-                    jQuery(trackSlideClick + '.first').removeClass('first');
-                    jQuery(trackSlideClick + ':last-of-type').eq(0).fadeIn().addClass('first');
-                    jQuery(trackSlideIndicator + '.active').removeClass('active');
-                    jQuery(trackSlideIndicator + ':last-of-type').eq(0).fadeIn().addClass('active');
-                });
+                var index = options;
             }
-            return false;
-        };
 
-        /**
-         * Avança para o item clicado do slider
-         */
-        ANALYZIFY.slideIndicators = function () {
-            if (!(jQuery(this).hasClass('active'))) {
-                jQuery(trackSlideClick + '.first').fadeOut(200, function () {
-                    jQuery(trackSlideClick + '.first').removeClass('first');
-                    jQuery(trackSlideClick).eq(slideOrder).fadeIn().addClass('first');
-                    jQuery('[data-slide-ind="' + slideId + '"]' + '.active').removeClass('active');
-                    jQuery('[data-slide-ind="' + slideId + '"][data-order="' + slideOrder + '"]').addClass('active');
-                });
+            switch (action) {
+                case 'go':
+                    if (slideContentFirst.next().length) {
+                        slideContentFirst.fadeOut(200, function () {
+                            jQuery(this).removeClass('first').next().fadeIn().addClass('first');
+                            slideIndicatorActive.removeClass('active').next().addClass('active');
+                        });
+                    } else {
+                        slideContentFirst.fadeOut(200, function () {
+                            jQuery(this).removeClass('first');
+                            slideContent.first().fadeIn().addClass('first');
+                            slideIndicatorActive.removeClass('active');
+                            slideIndicator.first().addClass('active');
+                        });
+                    }
+                    break;
+                case 'back':
+                    if (slideContentFirst.index() >= 1) {
+                        slideContentFirst.fadeOut(200, function () {
+                            jQuery(this).removeClass('first').prev().fadeIn().addClass('first');
+                            slideIndicatorActive.removeClass('active').prev().addClass('active');
+                        });
+                    } else {
+                        slideContentFirst.fadeOut(200, function () {
+                            jQuery(this).removeClass('first');
+                            slideContent.last().fadeIn().addClass('first');
+                            slideIndicatorActive.removeClass('active');
+                            slideIndicator.last().addClass('active');
+                        });
+                    }
+                    break;
+                case 'to':
+                    var selectedIndicator = slideIndicator.eq(index);
+                    if (!selectedIndicator.hasClass('active')) {
+                        slideContentFirst.fadeOut(200, function () {
+                            jQuery(this).removeClass('first');
+                            slideContent.eq(index).fadeIn().addClass('first');
+                            slideIndicatorActive.removeClass('active');
+                            selectedIndicator.addClass('active');
+                        });
+                    }
+                    break;
+                default:
+                    console.log('slider: type parameter must on of these strings: "go", "back" or "to"');
+                    break;
             }
-            return false;
         };
     }
 
     //*****END WIDGETS*****
 
     //-----DEV TOOLS-----
-    if (typeof ANALYZIFY.BASE !== 'undefined' && ANALYZIFY.BASE === 'localhost' || ANALYZIFY.BASE === '127.0.0.1') { //Verifica se está em localhost
+    if (typeof ANALYZIFY.BASE !== 'undefined' && (ANALYZIFY.BASE === 'localhost' || ANALYZIFY.BASE === '127.0.0.1')) { //Verifica se está em localhost
 
         jQuery(window).resize(function () {
             ANALYZIFY.definePrefix();
@@ -1918,16 +2152,36 @@ jQuery(function () {
             }
         };
 
-        //DEBUG
-        if (jQuery('.debug').length) {
-            jQuery('.debug').each(function () {
-                jQuery(this).after('<p style="color: #fff; background: #333; padding: 10px">' + jQuery(this).width() + 'px</p>');
+        //IMAGE DEBUG
+        var imgElements = ANALYZIFY.urlParam('imgdebug');
+        if (jQuery(imgElements).length) {
+
+            ANALYZIFY.imgDebug = function (element) {
+                var width = element.width();
+                var height = element.height();
+                console.log(width + 'x' + height);
+                element.after('<p style="color: #fff; background: #333; padding: 10px;">width: ' + width + 'px - RatioPadding: ' + (height / width * 100).toFixed(2) + '%</p>');
+            };
+
+            //ON LOAD
+            $(window).on('load', function () {
+                var elems = jQuery(imgElements).not(function () {
+                    return $(this).closest('[data-src-wrap]').length;
+                });
+                elems.each(function () {
+                    ANALYZIFY.imgDebug(jQuery(this));
+                });
+                $('<span style="padding: 5px; position: fixed; bottom: 20px; right: 100px; z-index: 200; background-color: #000; opacity: 0.7; color: #fff; border-radius: 5px; cursor: pointer">Get Ratio</span>').appendTo('body').on('click', function () {
+                    jQuery(imgElements).each(function () {
+                        ANALYZIFY.imgDebug(jQuery(this));
+                    });
+                });
             });
         }
 
         //SCROLLTOP PRINT
         ANALYZIFY.appendScrollTop = function () {
-            jQuery('body').append('<span class="prefixLabel" style="position: fixed; left: 0; bottom: 0; background-color: rgba(70, 70, 70, 0.8); color: #fff; padding: 10px 16px; border-radius: 0 5px 0 0; text-transform: uppercase;">' + ANALYZIFY.scrollTop + '</span>');
+            jQuery('body').append('<span class="prefixLabel" style="position: fixed; left: 0; bottom: 0; background-color: rgba(70, 70, 70, 0.8); color: #fff; padding: 10px 16px; border-radius: 0 5px 0 0; text-transform: uppercase; z-index: 200;">' + ANALYZIFY.scrollTop + '</span>');
         };
 
         //RESOLUTION PREFIXES

@@ -1,6 +1,6 @@
 /*BACKTOP*/
-.backtop{position: fixed; display: none; cursor: pointer; bottom: 15px; right: 25px; padding: 23px; background-color: rgba(0,0,0,0.5); background-image: url(../icons/go-up.svg); background-repeat: no-repeat; background-position: center 40%; z-index: 99}
-.backtop:hover{background-color: #555;}
+analyzify-backtop{position: fixed; border-radius: 50%; display: none; cursor: pointer; bottom: 15px; right: 25px; padding: 23px; background-color: rgba(0,0,0,0.5); background-image: url(../icons/go-up.svg); background-repeat: no-repeat; background-position: center 40%; z-index: 99}
+analyzify-backtop:hover{background-color: #555;}
 
 /*PAGINATION*/
 .pagination{float: left; width: 100%; padding: 15px; background: #bbb; text-align: center; margin: 30px auto 0;}
